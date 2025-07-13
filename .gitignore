@@ -1,0 +1,12 @@
+# Python virtual environments
+sentiVoice (BE)/venv/
+
+# Node modules
+sentiVoice (FE)/node_modules/
+sentiVoice (BE)/node_modules/
+
+# Build and cache files
+dist/
+build/
+.env
+.DS_Store
