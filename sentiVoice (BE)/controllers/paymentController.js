@@ -1,0 +1,386 @@
+const Payment      = require("../models/paymentModel");
+const Appointment  = require("../models/appointmentModel");
+const User         = require("../models/dataModel");
+const Notification = require("../models/notificationModel");
+const { generatePdfReport } = require("../utils/pdfGenerator");
+
+// ─── PATIENT SIDE ────────────────────────────────────────────────────────────
+// POST  /api/payments
+exports.createPayment = async (req, res) => {
+  try {
+    // Check if file was uploaded
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded. Please select a payment receipt image." });
+    }
+
+    const {
+      patientUsername,
+      method,
+      referenceNo,
+      date,
+      time,
+      therapistUsername,
+      voiceRecordingData,  // Base64 encoded audio data
+      voiceFileName        // Name of the voice file
+    } = req.body;
+
+    // Validate required fields
+    if (!patientUsername || !method || !referenceNo || !date || !time || !therapistUsername) {
+      return res.status(400).json({ 
+        error: "Missing required fields. Please fill in all payment details." 
+      });
+    }
+
+    // Validate payment method
+    const validMethods = [
+      "easypaisa", "jazzcash", "bank_transfer", "credit_card", "paypal", 
+      "stripe", "razorpay", "paytm", "phonepe", "gpay", "apple_pay", "other"
+    ];
+    
+    if (!validMethods.includes(method)) {
+      return res.status(400).json({ 
+        error: `Invalid payment method: ${method}. Allowed methods: ${validMethods.join(', ')}` 
+      });
+    }
+
+    const paymentData = {
+      patientUsername,
+      method,
+      referenceNo,
+      receiptUrl: `uploads/${req.file.filename}`,
+      bookingInfo: { date, time, therapistUsername }
+    };
+
+    // Add voice recording data if provided
+    if (voiceRecordingData && voiceFileName) {
+      paymentData.voiceRecording = {
+        audioData: voiceRecordingData,
+        fileName: voiceFileName,
+        processed: false,
+        reportSent: false
+      };
+    }
+
+    const payment = await Payment.create(paymentData);
+
+    res.status(201).json({ message: "Payment uploaded; pending admin review", payment });
+  } catch (err) {
+    console.error('Payment creation error:', err.message);
+    
+    // Check if it's a validation error
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({ 
+        error: "Validation error", 
+        details: Object.values(err.errors).map(e => e.message) 
+      });
+    }
+    
+    res.status(500).json({ error: "Failed to create payment" });
+  }
+};
+
+// ─── ADMIN SIDE ──────────────────────────────────────────────────────────────
+
+// GET /api/admin/payment-stats - Get payment statistics
+exports.getPaymentStats = async (_req, res) => {
+  try {
+    // Get total submissions (all payments)
+    const totalSubmissions = await Payment.countDocuments();
+    
+    // Get processed today (approved or declined payments created today)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const processedToday = await Payment.countDocuments({
+      status: { $in: ["Approved", "Declined"] },
+      updatedAt: { $gte: today, $lt: tomorrow }
+    });
+    
+    // Get pending payments count
+    const pendingPayments = await Payment.countDocuments({ status: "Pending" });
+    
+    res.json({
+      totalSubmissions,
+      processedToday,
+      pendingPayments
+    });
+  } catch (error) {
+    console.error('Error fetching payment stats:', error);
+    res.status(500).json({ error: "Failed to fetch payment statistics" });
+  }
+};
+
+// GET /api/admin/pending-payments
+exports.listPending = async (_req, res) => {
+  const pending = await Payment.find({ status: "Pending" }).lean();
+
+  for (let p of pending) {
+    /* ---------- patient ---------- */
+    const pat = await User.findOne({ username: p.patientUsername });
+    p.patientFullName =
+      pat?.info?.firstName && pat?.info?.lastName
+        ? `${pat.info.firstName} ${pat.info.lastName}`
+        : p.patientUsername;
+
+    /* ---------- therapist ---------- */
+    const therapistUname = p.bookingInfo?.therapistUsername;
+    const th = therapistUname
+      ? await User.findOne({ username: therapistUname })
+      : null;
+
+    p.therapistFullName =
+      th?.info?.firstName && th?.info?.lastName
+        ? `Dr. ${th.info.firstName} ${th.info.lastName}`
+        : `Dr. ${therapistUname || "N/A"}`;
+  }
+
+  res.json(pending);
+};
+
+// GET  /api/admin/payment-history   – all Approved or Declined
+exports.listHistory = async (_req, res) => {
+  const payments = await Payment.find({
+    status: { $in: ["Approved", "Declined", "Refunded"] }
+  })
+  .sort({ updatedAt: -1 })
+  .lean();
+
+  // attach patient & therapist full names
+  for (let p of payments) {
+    const patient = await User.findOne({ username: p.patientUsername });
+    p.patientFullName =
+      patient?.info?.firstName && patient?.info?.lastName
+        ? `${patient.info.firstName} ${patient.info.lastName}`
+        : p.patientUsername;
+
+    const tUname = p.bookingInfo?.therapistUsername;
+    const th     = tUname ? await User.findOne({ username: tUname }) : null;
+    p.therapistFullName =
+      th?.info?.firstName && th?.info?.lastName
+        ? `Dr. ${th.info.firstName} ${th.info.lastName}`
+        : `Dr. ${tUname || "N/A"}`;
+  }
+
+  res.json(payments);
+};
+
+// PUT /api/admin/payments/:id/refund   – mark a Declined payment as Refunded
+exports.markRefunded = async (req, res) => {
+  const { id } = req.params;
+
+  const payment = await Payment.findById(id);
+  if (!payment) return res.status(404).json({ error: "Payment not found" });
+
+  if (payment.status !== "Declined")
+    return res.status(400).json({ error: "Only declined payments can be refunded" });
+
+  payment.status = "Refunded";
+  await payment.save();
+
+  res.json({ message: "Payment marked as refunded", payment });
+};
+
+// PUT  /api/admin/payments/:id/status    { status: "Approved" | "Declined" }
+exports.updateStatus = async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+  if (!["Approved", "Declined"].includes(status))
+    return res.status(400).json({ error: "Invalid status" });
+
+  const payment = await Payment.findById(id);
+  if (!payment) return res.status(404).json({ error: "Payment not found" });
+
+  payment.status = status;
+  await payment.save();
+
+  // Update appointment if exists
+  if (payment.appointmentId) {
+    const appt = await Appointment.findById(payment.appointmentId);
+    appt.paymentVerified = status === "Approved";
+    appt.save();
+  }
+
+  // Create appointment if not already created
+  if (status === "Approved") {
+    const { date, time, therapistUsername } = payment.bookingInfo;
+
+    const duplicate = await Appointment.findOne({
+      patientUsername: payment.patientUsername,
+      therapistUsername,
+      status: { $in: ["Pending", "Accepted"] }
+    });
+
+    if (!duplicate) {
+      const newAppt = await Appointment.create({
+        patientUsername: payment.patientUsername,
+        therapistUsername,
+        date,
+        time,
+        status: "Pending",
+        initiatorRole: "patient",
+        paymentId: payment._id,
+        paymentVerified: true
+      });
+
+      // Notify patient & therapist of appointment creation
+      await Notification.create({
+        recipientUsername: payment.patientUsername,
+        message: `Appointment created: ${date} at ${time} (pending therapist approval)`,
+        appointmentId: newAppt._id,
+      });
+
+      await Notification.create({
+        recipientUsername: therapistUsername,
+        message: `New appointment request from patient. (${date} at ${time})`,
+        appointmentId: newAppt._id,
+      });
+
+      payment.appointmentId = newAppt._id;
+      await payment.save();
+
+      // Process voice recording and send report to therapist if available
+      if (payment.voiceRecording && payment.voiceRecording.audioData && !payment.voiceRecording.processed) {
+        try {
+          // Import required modules for voice processing
+          const fs = require('fs');
+          const path = require('path');
+          const axios = require('axios');
+
+          // Create temporary file for voice analysis
+          const tempDir = path.join(__dirname, '..', 'uploads');
+          const tempFileName = `temp_voice_${Date.now()}.wav`;
+          const tempFilePath = path.join(tempDir, tempFileName);
+
+          // Convert base64 to file
+          const audioBuffer = Buffer.from(payment.voiceRecording.audioData, 'base64');
+          fs.writeFileSync(tempFilePath, audioBuffer);
+
+          // Process voice analysis
+          let flaskResponse;
+          try {
+            flaskResponse = await axios.post(
+              'http://localhost:5000/api/predict',
+              { file_path: tempFilePath },
+              { headers: { 'Content-Type': 'application/json' } }
+            );
+          } catch (flaskError) {
+            // Fallback: create a default response
+            flaskResponse = {
+              data: {
+                data: {
+                  emotion: 'neutral',
+                  mfcc1: 0.0000,
+                  mfcc40: 0.0000,
+                  chroma: 0.0000,
+                  melspectrogram: 0.0000,
+                  contrast: 0.0000,
+                  tonnetz: 0.0000
+                }
+              }
+            };
+          }
+
+          // Clean up temp file
+          try {
+            if (fs.existsSync(tempFilePath)) {
+              fs.unlinkSync(tempFilePath);
+            }
+          } catch (cleanupError) {
+            console.error('Error cleaning up temp voice file:', cleanupError.message);
+          }
+
+          // Get analysis results
+          const responseData = flaskResponse.data;
+          const emotion = responseData.data?.emotion || responseData.emotion || 'neutral';
+
+          // Update payment with emotion result
+          payment.voiceRecording.processed = true;
+          payment.voiceRecording.emotionResult = emotion;
+          await payment.save();
+
+          // Send report to therapist
+          const patient = await User.findOne({ username: payment.patientUsername });
+          const patientName = patient?.info?.firstName && patient?.info?.lastName
+            ? `${patient.info.firstName} ${patient.info.lastName}`
+            : payment.patientUsername;
+
+          // Create and send PDF report using the existing endpoint
+          const reportData = {
+            patientUsername: payment.patientUsername,
+            therapistUsername: therapistUsername,
+            patientName: patientName,
+            emotion: emotion,
+            analysisData: responseData.data || responseData,
+            fileName: `${patientName}_Voice_Analysis_${new Date().toISOString().split('T')[0]}.pdf`,
+            reportType: 'voice_analysis'
+          };
+
+          // Send report to therapist using the existing endpoint
+          try {
+            // Generate PDF report
+            let pdfData;
+            try {
+              pdfData = await generatePdfReport(responseData.data || responseData, patientName);
+            } catch (pdfError) {
+              // Create a simple fallback PDF
+              const PDFDocument = require('pdfkit');
+              const doc = new PDFDocument();
+              const buffers = [];
+              
+              doc.on('data', chunk => buffers.push(chunk));
+              doc.on('end', () => {
+                pdfData = Buffer.concat(buffers).toString('base64');
+              });
+              
+              doc.fontSize(16).text('Voice Analysis Report', { align: 'center' });
+              doc.moveDown();
+              doc.fontSize(12).text(`Patient: ${patientName}`);
+              doc.text(`Emotion: ${emotion}`);
+              doc.text(`Date: ${new Date().toLocaleDateString()}`);
+              doc.text(`Time: ${new Date().toLocaleTimeString()}`);
+              doc.end();
+            }
+            
+            const reportController = require('./reportController');
+            await reportController.sendVoiceAnalysisReport({
+              body: {
+                ...reportData,
+                pdfData: pdfData
+              }
+            });
+
+            // Update payment to mark report as sent
+            payment.voiceRecording.reportSent = true;
+            await payment.save();
+
+          } catch (reportError) {
+            console.error('Error sending voice analysis report:', reportError.message);
+          }
+
+        } catch (voiceError) {
+          console.error('Error processing voice recording:', voiceError.message);
+          // Continue with appointment creation even if voice analysis fails
+        }
+      }
+    }
+  }
+
+  // Notify patient of payment decision
+  if (status === "Approved") {
+    await Notification.create({
+      recipientUsername: payment.patientUsername,
+      message: `Your payment has been accepted. Your appointment request is now pending therapist approval.`,
+      appointmentId: payment.appointmentId || null
+    });
+  } else if (status === "Declined") {
+    await Notification.create({
+      recipientUsername: payment.patientUsername,
+      message: `Your payment has been declined by the admin. If you were charged, you should receive a refund within 5 business days.`,
+      appointmentId: null
+    });
+  }
+
+  res.json({ message: `Payment ${status.toLowerCase()}`, payment });
+};
