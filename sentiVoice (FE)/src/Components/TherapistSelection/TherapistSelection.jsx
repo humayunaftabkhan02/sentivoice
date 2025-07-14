@@ -154,7 +154,7 @@ const TherapistSelection = ({
       
       if (filename) {
         try {
-          const response = await api.get(`/uploads/profile-pictures/${filename}`);
+          const response = await api.get(`/api/uploads/profile-pictures/${filename}`);
           if (response.image) {
             return response.image;
           }

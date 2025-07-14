@@ -44,17 +44,17 @@ const AppointmentHistory = () => {
       setUsername(storedUsername);
       fetchAppointments(storedUsername);
       fetchUserData(storedUsername);
-      api.get(`/user-info/${storedUsername}`)
-        .then(data => {
-          const pic = data.user?.info?.profilePicture;
+      api.get(`/api/user-info/${storedUsername}`)
+        .then(userInfo => {
+          const pic = userInfo.user?.info?.profilePicture;
           if (pic) {
             if (pic.startsWith('data:image')) {
               setProfilePicture(pic);
             } else if (pic.startsWith('/uploads/')) {
               const filename = pic.split('/').pop();
-              api.get(`/uploads/profile-pictures/${filename}`)
-                .then(response => {
-                  if (response.image) setProfilePicture(response.image);
+              api.get(`/api/uploads/profile-pictures/${filename}`)
+                .then(profilePic => {
+                  if (profilePic.image) setProfilePicture(profilePic.image);
                 })
                 .catch(() => setProfilePicture(null));
             } else {
@@ -69,11 +69,11 @@ const AppointmentHistory = () => {
   const fetchAppointments = async (uname) => {
     try {
       setLoading(true);
-      const data = await api.get(`/appointments?username=${uname}&role=patient`);
-      setAppointments(data.appointments || []);
+      const appointmentsData = await api.get(`/api/appointments?username=${uname}&role=patient`);
+      setAppointments(appointmentsData.appointments || []);
       
       // Debug: Log unique status values to identify spelling inconsistencies
-      const uniqueStatuses = [...new Set(data.appointments?.map(a => a.status) || [])];
+      const uniqueStatuses = [...new Set(appointmentsData.appointments?.map(a => a.status) || [])];
       console.log('Appointment statuses found:', uniqueStatuses);
     } catch (err) {
       console.error("Error fetching appointments:", err);
@@ -84,9 +84,9 @@ const AppointmentHistory = () => {
 
   const fetchUserData = async (uname) => {
     try {
-      const data = await api.get(`/user-info/${uname}`);
-      if (data.user?.info?.firstName && data.user?.info?.lastName) {
-        setFullName(`${data.user.info.firstName} ${data.user.info.lastName}`);
+      const userData = await api.get(`/api/user-info/${uname}`);
+      if (userData.user?.info?.firstName && userData.user?.info?.lastName) {
+        setFullName(`${userData.user.info.firstName} ${userData.user.info.lastName}`);
       }
     } catch (err) {
       console.error("Error fetching user data:", err);

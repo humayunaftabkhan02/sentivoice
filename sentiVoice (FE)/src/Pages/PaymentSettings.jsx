@@ -73,11 +73,11 @@ export default function PaymentSettings() {
   const fetchPendingCounts = async () => {
     try {
       // Fetch pending therapist approvals
-      const pendingApprovals = await api.get("/admin/pending-therapists");
+      const pendingApprovals = await api.get("/api/admin/pending-therapists");
       const approvalsCount = Array.isArray(pendingApprovals) ? pendingApprovals.length : 0;
 
       // Fetch pending payments
-      const pendingPayments = await api.get("/admin/pending-payments");
+      const pendingPayments = await api.get("/api/admin/pending-payments");
       const paymentsCount = Array.isArray(pendingPayments) ? pendingPayments.length : 0;
 
       setPendingCounts({
@@ -94,7 +94,7 @@ export default function PaymentSettings() {
     try {
       setLoading(true);
       setError(null);
-      const data = await api.get("/admin/payment-settings");
+      const data = await api.get("/api/admin/payment-settings");
       setSettings(Array.isArray(data) ? data : []);
     } catch (err) {
       setError("Failed to fetch payment settings");
@@ -107,7 +107,7 @@ export default function PaymentSettings() {
   const initializeSettings = async () => {
     try {
       setLoading(true);
-      await api.post("/admin/payment-settings/initialize");
+      await api.post("/api/admin/payment-settings/initialize");
       setSuccess("Default payment settings initialized successfully");
       fetchSettings();
     } catch (err) {
@@ -169,7 +169,7 @@ export default function PaymentSettings() {
   const handleAdd = async () => {
     try {
       setLoading(true);
-      await api.post("/admin/payment-settings", addForm);
+      await api.post("/api/admin/payment-settings", addForm);
       setSuccess("Payment method added successfully");
       setShowAddForm(false);
       fetchSettings();
@@ -184,7 +184,7 @@ export default function PaymentSettings() {
   const handleSave = async () => {
     try {
       setLoading(true);
-      await api.put(`/admin/payment-settings/${editingId}`, editForm);
+      await api.put(`/api/admin/payment-settings/${editingId}`, editForm);
       setSuccess("Payment setting updated successfully");
       setEditingId(null);
       fetchSettings();
@@ -205,7 +205,7 @@ export default function PaymentSettings() {
 
     try {
       setLoading(true);
-      await api.delete(`/admin/payment-settings/${settingId}`);
+      await api.delete(`/api/admin/payment-settings/${settingId}`);
       setSuccess("Payment setting deleted successfully");
       fetchSettings();
     } catch (err) {

@@ -11,7 +11,7 @@ const NotificationBell = ({ username }) => {
 
     const fetchUnreadCount = async () => {
               try {
-          const data = await api.get(`/notifications/${username}/unread-count`);
+          const data = await api.get(`/api/notifications/${username}/unread-count`);
           setUnreadCount(data.unreadCount || 0);
         } catch (err) {
           console.error(err);
@@ -33,7 +33,7 @@ const NotificationBell = ({ username }) => {
     const toggleNotifs = async () => {
       if (!showNotifs) {
                   try {
-            const data = await api.get(`/notifications/${username}`);
+            const data = await api.get(`/api/notifications/${username}`);
             setNotifications(data.notifications || []);
             await markAllAsRead();           // ✅ mark as read
             await fetchUnreadCount();        // ✅ refresh badge count
@@ -47,7 +47,7 @@ const NotificationBell = ({ username }) => {
 
     const markAllAsRead = async () => {
       try {
-        const res = await api.put(`/notifications/${username}/mark-read`);
+        const res = await api.put(`/api/notifications/${username}/mark-read`);
     
         setUnreadCount(0);
       } catch (err) {

@@ -38,11 +38,11 @@ export default function AdminDashboard() {
   const fetchPendingCounts = async () => {
     try {
       // Fetch pending therapist approvals
-      const pendingApprovals = await api.get("/admin/pending-therapists");
+      const pendingApprovals = await api.get("/api/admin/pending-therapists");
       const approvalsCount = Array.isArray(pendingApprovals) ? pendingApprovals.length : 0;
 
       // Fetch pending payments
-      const pendingPayments = await api.get("/admin/pending-payments");
+      const pendingPayments = await api.get("/api/admin/pending-payments");
       const paymentsCount = Array.isArray(pendingPayments) ? pendingPayments.length : 0;
 
       setPendingCounts({
@@ -59,7 +59,7 @@ export default function AdminDashboard() {
   const updateSystemHealth = async () => {
     try {
       // Test backend connectivity by making a simple API call
-      await api.get("/admin/stats");
+      await api.get("/api/admin/stats");
       setSystemHealth({
         status: 'Healthy'
       });
@@ -74,7 +74,7 @@ export default function AdminDashboard() {
   const fetchStats = async () => {
     try {
       setLoading(true);
-      const data = await api.get("/admin/stats");
+      const data = await api.get("/api/admin/stats");
       
       // Store previous stats before updating
       if (stats) {

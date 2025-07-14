@@ -121,7 +121,7 @@ const PatientSettings = () => {
       setUsername(storedUsername);
       
       setLoading(true);
-      api.get(`/user-info/${storedUsername}`)
+      api.get(`/api/user-info/${storedUsername}`)
         .then(data => {
           console.log('User info loaded:', data);
           if (data.user?.info?.firstName && data.user?.info?.lastName) {
@@ -330,7 +330,7 @@ const PatientSettings = () => {
         }
       });
 
-      const result = await api.put(`/update-profile/${username}`, formDataToSend);
+      const result = await api.put(`/api/update-profile/${username}`, formDataToSend);
       console.log('Profile update result:', result);
       
       if (result.token) {
@@ -342,7 +342,7 @@ const PatientSettings = () => {
       
       // Refresh user info
       try {
-        const userData = await api.get(`/user-info/${username}`);
+        const userData = await api.get(`/api/user-info/${username}`);
         if (userData.user?.info?.firstName && userData.user?.info?.lastName) {
           setFullName(`${userData.user.info.firstName} ${userData.user.info.lastName}`);
         }

@@ -33,7 +33,7 @@ const TherapistReports = () => {
     if (storedUsername) {
       setUsername(storedUsername);
       // Fetch user info for display name and profile picture
-      api.get(`/user-info/${storedUsername}`)
+      api.get(`/api/user-info/${storedUsername}`)
         .then(data => {
           if (data.user?.info?.firstName && data.user?.info?.lastName) {
             setFullName(`${data.user.info.firstName} ${data.user.info.lastName}`);
@@ -44,7 +44,7 @@ const TherapistReports = () => {
               setProfilePicture(pic);
             } else if (pic.startsWith('/uploads/')) {
               const filename = pic.split('/').pop();
-              api.get(`/uploads/profile-pictures/${filename}`)
+              api.get(`/api/uploads/profile-pictures/${filename}`)
                 .then(response => {
                   if (response.image) setProfilePicture(response.image);
                 })
@@ -71,7 +71,7 @@ const TherapistReports = () => {
       setLoading(true);
       setError("");
       console.log("Fetching reports for therapist:", therapistUsername);
-      const data = await api.get(`/reports/therapist/${therapistUsername}`);
+      const data = await api.get(`/api/reports/therapist/${therapistUsername}`);
       console.log("Reports data received:", data);
       
       // Handle both response formats

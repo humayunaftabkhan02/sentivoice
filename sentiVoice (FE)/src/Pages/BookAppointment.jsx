@@ -32,7 +32,7 @@ import UserTopBar from '../Components/UserTopBar';
 
 const checkDuplicateBooking = async (patientUsername, therapistUsername) => {
   try {
-    const data = await api.get(`/appointments?username=${patientUsername}&role=patient`);
+    const data = await api.get(`/api/appointments?username=${patientUsername}&role=patient`);
     const existing = data.appointments?.find(
       (a) =>
         a.therapistUsername === therapistUsername &&
@@ -161,7 +161,7 @@ useEffect(() => {
 
   useEffect(() => {
     if (therapistUsername && date) {
-              api.get(`/appointments/booked?therapist=${therapistUsername}&date=${date}`)
+              api.get(`/api/appointments/booked?therapist=${therapistUsername}&date=${date}`)
           .then(data => {
           setBookedSlots(data.bookedTimes || []);
         })
@@ -173,7 +173,7 @@ useEffect(() => {
     const storedUsername = localStorage.getItem("username");
     if (storedUsername) {
       setUsername(storedUsername);
-      api.get(`/user-info/${storedUsername}`)
+      api.get(`/api/user-info/${storedUsername}`)
         .then((data) => {
           setPatientData(data.user);
           if (data.user?.info?.firstName && data.user?.info?.lastName) {
@@ -193,7 +193,7 @@ useEffect(() => {
   useEffect(() => {
     const storedUsername = localStorage.getItem("username");
     if (storedUsername) {
-          api.get(`/user-info/${storedUsername}`)
+          api.get(`/api/user-info/${storedUsername}`)
       .then((data) => {
         if (data.user?.info?.firstName && data.user?.info?.lastName) {
           setFullName(`${data.user.info.firstName} ${data.user.info.lastName}`);
@@ -209,14 +209,14 @@ useEffect(() => {
     if (storedRole) setRole(storedRole);
     
     // Fetch therapists
-    api.get("/therapists")
+    api.get("/api/therapists")
       .then((data) => {
         setTherapistList(data.therapists || []);
       })
       .catch(console.error);
     
     // Fetch payment settings
-    api.get("/payment-settings")
+    api.get("/api/payment-settings")
       .then((settings) => {
         setPaymentAccounts(settings);
       })
@@ -243,7 +243,7 @@ useEffect(() => {
   useEffect(() => {
     const storedUsername = localStorage.getItem("username");
     if (storedUsername) {
-      api.get(`/user-info/${storedUsername}`)
+      api.get(`/api/user-info/${storedUsername}`)
         .then(data => {
           const pic = data.user?.info?.profilePicture;
           if (pic) {
@@ -251,7 +251,7 @@ useEffect(() => {
               setProfilePicture(pic);
             } else if (pic.startsWith('/uploads/')) {
               const filename = pic.split('/').pop();
-              api.get(`/uploads/profile-pictures/${filename}`)
+              api.get(`/api/uploads/profile-pictures/${filename}`)
                 .then(response => {
                   if (response.image) setProfilePicture(response.image);
                 })
@@ -355,7 +355,7 @@ useEffect(() => {
       }
 
       console.log('Submitting payment with FormData...');
-      const paymentResponse = await api.post("/payments", fd);
+      const paymentResponse = await api.post("/api/payments", fd);
       console.log('Payment response:', paymentResponse);
 
       // Success - show comprehensive message

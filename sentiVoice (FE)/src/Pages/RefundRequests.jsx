@@ -33,7 +33,7 @@ export default function RefundRequests() {
     try {
       setLoading(true);
       setError(null);
-      const data = await api.get("/admin/refund-requests");
+      const data = await api.get("/api/admin/refund-requests");
       setRefunds(Array.isArray(data) ? data : []);
     } catch (err) {
       setError("Failed to fetch refund requests");
@@ -52,7 +52,7 @@ export default function RefundRequests() {
     if (!confirmed) return;
     try {
       setProcessing(payment._id);
-      await api.put(`/admin/payments/${payment._id}/refund`, {
+      await api.put(`/api/admin/payments/${payment._id}/refund`, {
         refundNote: note,
         refundReference: reference
       });

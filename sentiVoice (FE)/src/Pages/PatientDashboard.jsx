@@ -154,7 +154,7 @@ const P_Dashboard = () => {
 
   const fetchAppointments = async (uname) => {
     try {
-      const data = await api.get(`/appointments?username=${uname}&role=patient`);
+      const data = await api.get(`/api/appointments?username=${uname}&role=patient`);
       setAppointments(data.appointments || []);
       setAppointmentHistory(data.appointments || []); // Store all appointments for PDF generation
     } catch (err) {
@@ -164,7 +164,7 @@ const P_Dashboard = () => {
 
   const fetchUserData = async (uname) => {
     try {
-      const data = await api.get(`/user-info/${uname}`);
+      const data = await api.get(`/api/user-info/${uname}`);
       if (data.user) {
         setUser(data.user);
         const pic = data.user.info?.profilePicture;
@@ -173,7 +173,7 @@ const P_Dashboard = () => {
             setProfilePicture(pic);
           } else if (pic.startsWith('/uploads/')) {
             const filename = pic.split('/').pop();
-            api.get(`/uploads/profile-pictures/${filename}`)
+            api.get(`/api/uploads/profile-pictures/${filename}`)
               .then(response => {
                 if (response.image) setProfilePicture(response.image);
               })
@@ -203,7 +203,7 @@ const P_Dashboard = () => {
   // Cancel Appointment
   const cancelAppointment = async (appointmentId, reason) => {
     try {
-      await api.put(`/appointments/${appointmentId}/cancel`, { reason });
+      await api.put(`/api/appointments/${appointmentId}/cancel`, { reason });
       alert("Appointment canceled.");
       fetchAppointments(username);
     } catch (err) {
@@ -221,7 +221,7 @@ const P_Dashboard = () => {
   
   const handleConfirmReschedule = async (newDate, newTime, reason) => {
     try {
-      await api.put(`/appointments/${reschedulingApp._id}/reschedule`, {
+      await api.put(`/api/appointments/${reschedulingApp._id}/reschedule`, {
         newDate,
         newTime,
         reason,
@@ -239,7 +239,7 @@ const P_Dashboard = () => {
   // Accept
   const acceptAppointment = async (appointmentId) => {
     try {
-      await api.put(`/appointments/${appointmentId}/accept`);
+      await api.put(`/api/appointments/${appointmentId}/accept`);
       alert("Appointment accepted.");
       fetchAppointments(username);
     } catch (err) {
@@ -251,7 +251,7 @@ const P_Dashboard = () => {
   // Reject
   const rejectAppointment = async (appointmentId) => {
     try {
-      await api.put(`/appointments/${appointmentId}/reject`, { reason: "Rejected by patient" });
+      await api.put(`/api/appointments/${appointmentId}/reject`, { reason: "Rejected by patient" });
       alert("Appointment rejected.");
       fetchAppointments(username);
     } catch (err) {

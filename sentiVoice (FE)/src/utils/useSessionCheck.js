@@ -11,7 +11,7 @@ export const useSessionCheck = () => {
 
       try {
         console.log('🔍 Checking session on component mount...');
-        const response = await api.get('/auth/validate-session');
+        const response = await api.get('/api/auth/validate-session');
         
         if (!response.valid) {
           console.log('❌ Session invalid on mount:', response.error);

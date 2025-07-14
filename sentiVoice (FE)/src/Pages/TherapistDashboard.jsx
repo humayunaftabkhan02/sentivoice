@@ -68,7 +68,7 @@ const TherapistDashboard = () => {
         setFullName(storedUsername);
       }
       // Fetch profile picture
-      api.get(`/user-info/${storedUsername}`)
+      api.get(`/api/user-info/${storedUsername}`)
         .then(data => {
           const pic = data.user?.info?.profilePicture;
           if (pic) {
@@ -76,7 +76,7 @@ const TherapistDashboard = () => {
               setProfilePicture(pic);
             } else if (pic.startsWith('/uploads/')) {
               const filename = pic.split('/').pop();
-              api.get(`/uploads/profile-pictures/${filename}`)
+              api.get(`/api/uploads/profile-pictures/${filename}`)
                 .then(response => {
                   if (response.image) setProfilePicture(response.image);
                 })
@@ -107,7 +107,7 @@ const TherapistDashboard = () => {
 
   const fetchAppointments = async (therapistUsername) => {
     try {
-      const data = await api.get(`/appointments?username=${therapistUsername}&role=therapist`);
+      const data = await api.get(`/api/appointments?username=${therapistUsername}&role=therapist`);
       setAppointments(data.appointments || []);
     } catch (err) {
       console.error("Error fetching therapist appointments:", err);
@@ -117,7 +117,7 @@ const TherapistDashboard = () => {
   // Accept
   const acceptAppointment = async (appointmentId) => {
     try {
-      await api.put(`/appointments/${appointmentId}/accept`);
+      await api.put(`/api/appointments/${appointmentId}/accept`);
       alert("Appointment accepted.");
       fetchAppointments(username);
     } catch (err) {
@@ -129,7 +129,7 @@ const TherapistDashboard = () => {
   // Reject
   const rejectAppointment = async (appointmentId) => {
     try {
-      await api.put(`/appointments/${appointmentId}/reject`, { reason: "Rejected by therapist" });
+      await api.put(`/api/appointments/${appointmentId}/reject`, { reason: "Rejected by therapist" });
       alert("Appointment rejected.");
       fetchAppointments(username);
     } catch (err) {
@@ -141,7 +141,7 @@ const TherapistDashboard = () => {
   // Cancel
   const cancelAppointment = async (appointmentId, reason) => {
     try {
-      await api.put(`/appointments/${appointmentId}/cancel`, { reason });
+      await api.put(`/api/appointments/${appointmentId}/cancel`, { reason });
       alert("Appointment canceled.");
       fetchAppointments(username);
     } catch (err) {
@@ -154,7 +154,7 @@ const TherapistDashboard = () => {
 
   const rescheduleAppointment = async (appointment) => {
     try {
-      const data = await api.get(`/therapist/${appointment.therapistUsername}/availability`);
+      const data = await api.get(`/api/therapist/${appointment.therapistUsername}/availability`);
       setAvailableSlots(data.slots || []);
       setReschedulingApp(appointment); // show modal
     } catch (err) {
@@ -165,7 +165,7 @@ const TherapistDashboard = () => {
 
   const handleConfirmReschedule = async (newDate, newTime, reason) => {
     try {
-      await api.put(`/appointments/${reschedulingApp._id}/reschedule`, {
+      await api.put(`/api/appointments/${reschedulingApp._id}/reschedule`, {
         newDate,
         newTime,
         reason,

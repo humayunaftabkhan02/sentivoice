@@ -103,7 +103,7 @@ const TherapistSettings = () => {
       }
       
       setLoading(true);
-      api.get(`/user-info/${storedUsername}`)
+      api.get(`/api/user-info/${storedUsername}`)
         .then(data => {
           console.log('Fetched user data:', data);
           setInfo(data.user?.info || {});
@@ -134,7 +134,7 @@ const TherapistSettings = () => {
               setProfilePicture(pic);
             } else if (pic.startsWith('/uploads/')) {
               const filename = pic.split('/').pop();
-              api.get(`/uploads/profile-pictures/${filename}`)
+              api.get(`/api/uploads/profile-pictures/${filename}`)
                 .then(response => {
                   if (response.image) {
                     setProfileImagePreview(response.image);
@@ -261,7 +261,7 @@ const TherapistSettings = () => {
       }
       
       console.log('Updating therapist profile:', formDataToSend);
-      const result = await api.put(`/update-profile/${username}`, formDataToSend);
+      const result = await api.put(`/api/update-profile/${username}`, formDataToSend);
       console.log('Profile update result:', result);
       
       // Update the token if a new one is provided

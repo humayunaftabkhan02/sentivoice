@@ -52,9 +52,9 @@ export default function AdminUserList() {
 
   const fetchPendingCounts = async () => {
     try {
-      const pendingApprovals = await api.get("/admin/pending-therapists");
+      const pendingApprovals = await api.get("/api/admin/pending-therapists");
       const approvalsCount = Array.isArray(pendingApprovals) ? pendingApprovals.length : 0;
-      const pendingPayments = await api.get("/admin/pending-payments");
+      const pendingPayments = await api.get("/api/admin/pending-payments");
       const paymentsCount = Array.isArray(pendingPayments) ? pendingPayments.length : 0;
 
       setPendingCounts({
@@ -72,7 +72,7 @@ export default function AdminUserList() {
       setLoading(true);
       setError(null);
       const param = roleFilter === "all" ? "" : `?role=${roleFilter}`;
-        const data = await api.get(`/admin/users${param}`);
+        const data = await api.get(`/api/admin/users${param}`);
       console.log(`📋 Fetched users data:`, data);
         setUsers(data);
       
@@ -162,17 +162,17 @@ export default function AdminUserList() {
       switch (action) {
         case 'approve':
           console.log(`📤 Making PUT request to /admin/approve-therapist/${user.username}`);
-          response = await api.put(`/admin/approve-therapist/${user.username}`);
+          response = await api.put(`/api/admin/approve-therapist/${user.username}`);
           console.log(`✅ Approve response:`, response);
           break;
         case 'suspend':
           console.log(`📤 Making PUT request to /admin/users/${user.username}/suspend`);
-          response = await api.put(`/admin/users/${user.username}/suspend`);
+          response = await api.put(`/api/admin/users/${user.username}/suspend`);
           console.log(`✅ Suspend response:`, response);
           break;
         case 'activate':
           console.log(`📤 Making PUT request to /admin/users/${user.username}/activate`);
-          response = await api.put(`/admin/users/${user.username}/activate`);
+          response = await api.put(`/api/admin/users/${user.username}/activate`);
           console.log(`✅ Activate response:`, response);
           break;
         default:

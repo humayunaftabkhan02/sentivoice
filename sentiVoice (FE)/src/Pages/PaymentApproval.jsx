@@ -56,7 +56,7 @@ export default function PaymentApproval() {
     try {
       setLoading(true);
       setError(null);
-      const data = await api.get("/admin/pending-payments");
+      const data = await api.get("/api/admin/pending-payments");
       setPayments(Array.isArray(data) ? data : []);
     } catch (err) {
       setError("Failed to fetch payments");
@@ -69,11 +69,11 @@ export default function PaymentApproval() {
   const fetchPendingCounts = async () => {
     try {
       // Fetch pending therapist approvals
-      const pendingApprovals = await api.get("/admin/pending-therapists");
+      const pendingApprovals = await api.get("/api/admin/pending-therapists");
       const approvalsCount = Array.isArray(pendingApprovals) ? pendingApprovals.length : 0;
 
       // Fetch pending payments
-      const pendingPayments = await api.get("/admin/pending-payments");
+      const pendingPayments = await api.get("/api/admin/pending-payments");
       const paymentsCount = Array.isArray(pendingPayments) ? pendingPayments.length : 0;
 
       setPendingCounts({
@@ -88,7 +88,7 @@ export default function PaymentApproval() {
 
   const fetchPaymentStats = async () => {
     try {
-      const stats = await api.get("/admin/payment-stats");
+      const stats = await api.get("/api/admin/payment-stats");
       setPaymentStats(stats);
     } catch (error) {
       console.error('Error fetching payment stats:', error);
@@ -100,7 +100,7 @@ export default function PaymentApproval() {
   const handleStatusChange = async (payment, status) => {
     try {
       setProcessing(payment._id);
-      await api.put(`/admin/payments/${payment._id}/status`, { status });
+      await api.put(`/api/admin/payments/${payment._id}/status`, { status });
       
       // Show success feedback
       setTimeout(() => {

@@ -3,7 +3,7 @@ import { FaCommentDots } from "react-icons/fa";
 import { io } from "socket.io-client";
 import { api } from "../../utils/api";
 
-const socket = io(import.meta.env.VITE_API_URL || "http://localhost:3000"); // same as backend
+const socket = io((import.meta.env.VITE_API_URL || "http://localhost:3000") + '/api'); // same as backend
 
 const MessageIcon = ({ username }) => {
   const [unreadCount, setUnreadCount] = useState(0);
@@ -11,7 +11,7 @@ const MessageIcon = ({ username }) => {
   const fetchUnreadMessages = async () => {
     if (!username) return;
     try {
-      const data = await api.get(`/unread-count/${username}`);
+      const data = await api.get(`/api/unread-count/${username}`);
       
       // Ensure we're getting a number and handle edge cases
       const count = typeof data.unreadCount === 'number' ? data.unreadCount : 0;

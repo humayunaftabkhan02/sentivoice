@@ -71,7 +71,7 @@ const ContactContent = () => {
 
         if (Object.keys(validationErrors).length === 0) {
             try {
-                const response = await api.post('/contact', {
+                const response = await api.post('/api/contact', {
                     name: formData.name.trim(),
                     email: formData.email.trim(),
                     message: formData.message.trim()

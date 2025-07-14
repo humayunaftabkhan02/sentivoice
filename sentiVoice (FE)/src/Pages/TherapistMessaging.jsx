@@ -56,7 +56,7 @@ const TherapistMessaging = () => {
 
   // Initialize socket connection
   useEffect(() => {
-    socketRef.current = io(import.meta.env.VITE_API_URL || "http://localhost:3000", {
+    socketRef.current = io((import.meta.env.VITE_API_URL || "http://localhost:3000") + '/api', {
       transports: ['websocket', 'polling']
     });
 
@@ -86,7 +86,7 @@ const TherapistMessaging = () => {
     const storedUsername = localStorage.getItem("username");
     if (storedUsername) {
       setUsername(storedUsername);
-      api.get(`/user-info/${storedUsername}`)
+      api.get(`/api/user-info/${storedUsername}`)
         .then(data => {
           if (data.user?.info?.firstName && data.user?.info?.lastName) {
             setFullName(`${data.user.info.firstName} ${data.user.info.lastName}`);
@@ -97,7 +97,7 @@ const TherapistMessaging = () => {
               setProfilePicture(pic);
             } else if (pic.startsWith('/uploads/')) {
               const filename = pic.split('/').pop();
-              api.get(`/uploads/profile-pictures/${filename}`)
+              api.get(`/api/uploads/profile-pictures/${filename}`)
                 .then(response => {
                   if (response.image) setProfilePicture(response.image);
                 })
@@ -113,7 +113,7 @@ const TherapistMessaging = () => {
 
   useEffect(() => {
     if (username) {
-      api.get(`/appointments?username=${username}&role=therapist`)
+      api.get(`/api/appointments?username=${username}&role=therapist`)
         .then(data => {
           const accepted = data.appointments.filter((a) => a.status === "Accepted");
           setAppointments(accepted);
@@ -209,7 +209,7 @@ const TherapistMessaging = () => {
 
   const loadMessages = async (appointmentId) => {
     try {
-      const data = await api.get(`/messages/${appointmentId}`);
+      const data = await api.get(`/api/messages/${appointmentId}`);
       setMessages(data.messages || []);
     } catch (err) {
       console.error("Failed to load messages:", err);
@@ -290,7 +290,7 @@ const TherapistMessaging = () => {
         formData.append('appointmentId', selectedAppointment._id);
         formData.append('messageType', 'file');
         
-        response = await api.post("/messages/attachment", formData);
+        response = await api.post("/api/messages/attachment", formData);
         
         messageData.content = `📎 ${selectedFile.name}`;
         messageData.attachment = {
@@ -305,7 +305,7 @@ const TherapistMessaging = () => {
         messageData.content = trimmedMessage;
         messageData.messageType = 'text';
         
-        response = await api.post("/messages", {
+        response = await api.post("/api/messages", {
           senderUsername: username,
           receiverUsername: selectedAppointment.patientUsername,
           message: trimmedMessage,
@@ -368,7 +368,7 @@ const TherapistMessaging = () => {
   const downloadAttachment = async (messageId) => {
     try {
       // Get the message to find the original filename and MIME type
-      const messageResponse = await api.get(`/messages/${selectedAppointment._id}`);
+      const messageResponse = await api.get(`/api/messages/${selectedAppointment._id}`);
       const message = messageResponse.messages.find(msg => msg._id === messageId);
       
       if (!message?.attachment) {

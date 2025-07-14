@@ -64,7 +64,7 @@ export default function PaymentHistory() {
       try {
         setLoading(true);
       setError(null);
-        const data = await api.get("/admin/payment-history");
+        const data = await api.get("/api/admin/payment-history");
       setPayments(Array.isArray(data) ? data : []);
       } catch (err) {
       setError("Failed to fetch payment history");
@@ -77,11 +77,11 @@ export default function PaymentHistory() {
   const fetchPendingCounts = async () => {
     try {
       // Fetch pending therapist approvals
-      const pendingApprovals = await api.get("/admin/pending-therapists");
+      const pendingApprovals = await api.get("/api/admin/pending-therapists");
       const approvalsCount = Array.isArray(pendingApprovals) ? pendingApprovals.length : 0;
 
       // Fetch pending payments
-      const pendingPayments = await api.get("/admin/pending-payments");
+      const pendingPayments = await api.get("/api/admin/pending-payments");
       const paymentsCount = Array.isArray(pendingPayments) ? pendingPayments.length : 0;
 
       setPendingCounts({
@@ -103,7 +103,7 @@ export default function PaymentHistory() {
 
     try {
       setProcessing(payment._id);
-      await api.put(`/admin/payments/${payment._id}/refund`);
+      await api.put(`/api/admin/payments/${payment._id}/refund`);
       
       // Show success feedback
       setTimeout(() => {

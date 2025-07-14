@@ -84,7 +84,7 @@ const TherapistAppointmentCalendar = () => {
   useEffect(() => {
     const storedUsername = localStorage.getItem('username');
     if (storedUsername) {
-      api.get(`/user-info/${storedUsername}`)
+      api.get(`/api/user-info/${storedUsername}`)
         .then(data => {
           if (data.user?.info?.firstName && data.user?.info?.lastName) {
             setFullName(`${data.user.info.firstName} ${data.user.info.lastName}`);
@@ -95,7 +95,7 @@ const TherapistAppointmentCalendar = () => {
               setProfilePicture(pic);
             } else if (pic.startsWith('/uploads/')) {
               const filename = pic.split('/').pop();
-              api.get(`/uploads/profile-pictures/${filename}`)
+              api.get(`/api/uploads/profile-pictures/${filename}`)
                 .then(response => {
                   if (response.image) setProfilePicture(response.image);
                 })
@@ -123,7 +123,7 @@ const TherapistAppointmentCalendar = () => {
   const fetchAppointments = async (therapistUsername) => {
     try {
       setLoading(true);
-      const data = await api.get(`/appointments?username=${therapistUsername}&role=therapist`);
+      const data = await api.get(`/api/appointments?username=${therapistUsername}&role=therapist`);
       setAppointments(data.appointments || []);
     } catch (err) {
       console.error("Error fetching appointments:", err);
@@ -155,7 +155,7 @@ const TherapistAppointmentCalendar = () => {
     if (!newPatientUsername || !newDate || !newTime) return;
 
     try {
-      await api.post('/appointments', {
+      await api.post('/api/appointments', {
         patientUsername: newPatientUsername,
         therapistUsername: username,
         date: newDate,
@@ -193,7 +193,7 @@ const TherapistAppointmentCalendar = () => {
   
   const cancelAppointment = async (appointmentId, reason) => {
     try {
-      await api.put(`/appointments/${appointmentId}/cancel`, { reason });
+      await api.put(`/api/appointments/${appointmentId}/cancel`, { reason });
       alert("Appointment canceled.");
       fetchAppointments(username);
     } catch (err) {
@@ -214,7 +214,7 @@ const TherapistAppointmentCalendar = () => {
   
   const handleConfirmReschedule = async (newDate, newTime, reason) => {
     try {
-      await api.put(`/appointments/${reschedulingApp._id}/reschedule`, {
+      await api.put(`/api/appointments/${reschedulingApp._id}/reschedule`, {
         newDate,
         newTime,
         reason,
@@ -234,7 +234,7 @@ const TherapistAppointmentCalendar = () => {
     if (!selectedAppointment) return;
 
     try {
-      const res = await api.put(`/appointments/${selectedAppointment._id}/reschedule`, {
+      const res = await api.put(`/api/appointments/${selectedAppointment._id}/reschedule`, {
         newDate: rescheduleDate,
         newTime: rescheduleTime,
         reason: "Rescheduled by therapist",

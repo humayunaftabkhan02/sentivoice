@@ -418,7 +418,7 @@ export const generateAndSendPatientReport = async (patient, history, therapistUs
     // Send to backend using the api utility for proper authentication
     const { api } = await import('../utils/api.js');
     
-    const response = await api.post('/reports/send', {
+    const response = await api.post('/api/reports/send', {
       patientUsername: patient.username,
       therapistUsername: therapistUsername,
       patientName: `${patient.info?.firstName || ""} ${patient.info?.lastName || ""}`.trim(),

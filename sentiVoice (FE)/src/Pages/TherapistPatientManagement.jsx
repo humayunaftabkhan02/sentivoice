@@ -103,7 +103,7 @@ const TherapistPatientManagement = () => {
   useEffect(() => {
     const storedUsername = localStorage.getItem("username");
     if (storedUsername) {
-      api.get(`/user-info/${storedUsername}`)
+      api.get(`/api/user-info/${storedUsername}`)
         .then(data => {
           if (data.user?.info?.firstName && data.user?.info?.lastName) {
             setFullName(`${data.user.info.firstName} ${data.user.info.lastName}`);
@@ -114,7 +114,7 @@ const TherapistPatientManagement = () => {
               setProfilePicture(pic);
             } else if (pic.startsWith('/uploads/')) {
               const filename = pic.split('/').pop();
-              api.get(`/uploads/profile-pictures/${filename}`)
+              api.get(`/api/uploads/profile-pictures/${filename}`)
                 .then(response => {
                   if (response.image) setProfilePicture(response.image);
                 })
@@ -146,7 +146,7 @@ const TherapistPatientManagement = () => {
 
   const fetchTherapistPatients = async (therapistUsername) => {
     try {
-      const data = await api.get(`/therapist/${therapistUsername}/patients`);
+      const data = await api.get(`/api/therapist/${therapistUsername}/patients`);
       const patientsData = data.patients || [];
       console.log('🔍 Fetched patients data:', patientsData.map(p => ({
         username: p.username,
@@ -210,7 +210,7 @@ const TherapistPatientManagement = () => {
 
   const updateSessionNote = async (appointmentId, note) => {
     try {
-      await api.put(`/appointments/${appointmentId}/session-note`, { note });
+      await api.put(`/api/appointments/${appointmentId}/session-note`, { note });
       alert("Session note saved.");
       setAppointmentHistory((prev) =>
         prev.map((a) =>
@@ -230,7 +230,7 @@ const TherapistPatientManagement = () => {
   
   const handleDeleteNote = async (appointmentId, noteIndex) => {
     try {
-      await api.delete(`/appointments/${appointmentId}/session-note/${noteIndex}`);
+      await api.delete(`/api/appointments/${appointmentId}/session-note/${noteIndex}`);
       alert("Note deleted successfully.");
       handleViewAppointmentHistory(selectedPatient, currentPage);
     } catch (err) {
@@ -279,7 +279,7 @@ const TherapistPatientManagement = () => {
 
   const handleViewAppointmentHistory = async (patient, page = 1) => {
     try {
-      const data = await api.get(`/therapist/${username}/patient/${patient.username}/appointments?page=${page}`);
+      const data = await api.get(`/api/therapist/${username}/patient/${patient.username}/appointments?page=${page}`);
       setAppointmentHistory(data.appointments || []);
       setSelectedPatient(patient);
       setCurrentPage(data.page);
@@ -307,7 +307,7 @@ const TherapistPatientManagement = () => {
       // Only send valid plan items (non-empty step)
       const updatedTherapyPlan = therapyPlan?.filter(item => item.step && item.step.trim() !== '');
 
-      const data = await api.put(`/therapist/manage-patient/${patientUsername}`, { 
+      const data = await api.put(`/api/therapist/manage-patient/${patientUsername}`, { 
         diagnosis, 
         pastSessionSummary: updatedPastSessionSummary, 
         therapyPlan: updatedTherapyPlan 
@@ -350,7 +350,7 @@ const TherapistPatientManagement = () => {
   const handleExportCompleteReport = async (patient) => {
     try {
       // Fetch all appointment history for this patient (without pagination)
-      const response = await api.get(`/appointments?username=${username}&role=therapist&patientUsername=${patient.username}&all=true`);
+      const response = await api.get(`/api/appointments?username=${username}&role=therapist&patientUsername=${patient.username}&all=true`);
       const appointmentHistory = response.appointments || [];
       
       // Generate the complete report

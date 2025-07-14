@@ -26,9 +26,9 @@ export default function AdminSystemSettings() {
 
   const fetchPendingCounts = async () => {
     try {
-      const pendingApprovals = await api.get("/admin/pending-therapists");
+      const pendingApprovals = await api.get("/api/admin/pending-therapists");
       const approvalsCount = Array.isArray(pendingApprovals) ? pendingApprovals.length : 0;
-      const pendingPayments = await api.get("/admin/pending-payments");
+      const pendingPayments = await api.get("/api/admin/pending-payments");
       const paymentsCount = Array.isArray(pendingPayments) ? pendingPayments.length : 0;
 
       setPendingCounts({
@@ -44,7 +44,7 @@ export default function AdminSystemSettings() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const data = await api.get("/admin/settings");
+        const data = await api.get("/api/admin/settings");
         setSettings(data);
       } catch (err) {
         setError("Failed to fetch settings");
@@ -60,7 +60,7 @@ export default function AdminSystemSettings() {
     setSuccess(null);
     
     try {
-      await api.put("/admin/settings", settings);
+      await api.put("/api/admin/settings", settings);
       setSuccess("Settings saved successfully!");
     } catch (err) {
       setError(err.response?.data?.error || "Failed to update settings");
@@ -75,8 +75,8 @@ export default function AdminSystemSettings() {
     
     setSaving(true);
     try {
-      await api.post("/admin/settings/reset");
-      const data = await api.get("/admin/settings");
+      await api.post("/api/admin/settings/reset");
+      const data = await api.get("/api/admin/settings");
       setSettings(data);
       setSuccess("Settings reset to defaults successfully!");
     } catch (err) {
@@ -87,7 +87,7 @@ export default function AdminSystemSettings() {
 
   const handleExport = async () => {
     try {
-      const response = await api.get("/admin/settings/export");
+      const response = await api.get("/api/admin/settings/export");
       const blob = new Blob([JSON.stringify(response, null, 2)], { type: 'application/json' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');

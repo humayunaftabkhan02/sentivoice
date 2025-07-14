@@ -53,7 +53,7 @@ class SessionValidator {
       console.log('🔍 Checking session validity...');
       console.log('📋 Current token:', localStorage.getItem('token') ? 'Present' : 'Missing');
       
-      const response = await api.get('/auth/validate-session');
+      const response = await api.get('/api/auth/validate-session');
       
       console.log('📋 Session validation response:', response);
       
