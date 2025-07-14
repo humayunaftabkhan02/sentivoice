@@ -77,7 +77,7 @@ export default function AdminUserList() {
         setUsers(data);
       
       // Fetch user statistics from backend
-      const stats = await api.get("/admin/user-stats");
+      const stats = await api.get("/api/admin/user-stats");
       setUserStats(stats);
       } catch (err) {
         setError("Failed to fetch users");
