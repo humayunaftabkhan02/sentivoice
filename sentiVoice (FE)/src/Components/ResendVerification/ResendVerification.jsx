@@ -17,7 +17,7 @@ const ResendVerification = () => {
     setMessage('');
 
     try {
-      const response = await api.post('/resend-verification', { email });
+      const response = await api.post('/api/resend-verification', { email });
 
       // The API utility already parses the JSON response
       if (response && response.message) {

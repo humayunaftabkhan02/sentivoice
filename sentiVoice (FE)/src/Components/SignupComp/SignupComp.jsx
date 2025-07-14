@@ -125,7 +125,7 @@ const SignupComp = () => {
                     formData.append('cvDocument', cvFile);
                 }
 
-                const response = await api.post('/signup', formData);
+                const response = await api.post('/api/signup', formData);
 
                 if (response && response.message) {
                     setMessage('Account created successfully! Please check your email for verification.');

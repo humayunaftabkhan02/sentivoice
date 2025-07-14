@@ -44,7 +44,7 @@ const EmailVerification = () => {
     });
 
     try {
-      const response = await api.post('/verify-email', { token: verificationToken, email: userEmail });
+      const response = await api.post('/api/verify-email', { token: verificationToken, email: userEmail });
 
       // The API utility already parses the JSON response
       // So response is already the data object, not a Response object
@@ -73,7 +73,7 @@ const EmailVerification = () => {
     setCountdown(60); // 60 second cooldown
 
     try {
-      const response = await api.post('/resend-verification', { email });
+      const response = await api.post('/api/resend-verification', { email });
 
       // The API utility already parses the JSON response
       if (response && response.message) {
