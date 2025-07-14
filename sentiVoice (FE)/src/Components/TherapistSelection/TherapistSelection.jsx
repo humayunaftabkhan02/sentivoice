@@ -87,9 +87,6 @@ const TherapistSelection = ({
   const handleTherapistSelect = (therapist) => {
     setSelectedTherapistDetails(therapist);
     onTherapistSelect(therapist.username);
-    if (therapist.info?.availableSlots) {
-      onAvailabilityUpdate(therapist.info.availableSlots);
-    }
     setShowTherapistList(false); // Close the list after selection
   };
 
@@ -446,23 +443,37 @@ const TherapistSelection = ({
                         </div>
                       )}
 
-                      {/* Availability */}
-                      {therapist.info?.availableSlots && therapist.info.availableSlots.length > 0 && (
+                      {/* In-Person and Online Availability */}
+                      {(therapist.info?.availability?.inPerson?.length > 0 || therapist.info?.availability?.online?.length > 0) && (
                         <div className="space-y-2">
                           <div className="flex items-center text-sm text-gray-600">
                             <FaClock className="mr-2 text-green-500" />
-                            <span className="font-medium"><strong>Available Days:</strong></span>
+                            <span className="font-medium"><strong>Availability:</strong></span>
                           </div>
-                          <div className="flex flex-wrap gap-1">
-                            {therapist.info.availableSlots.map((slot, index) => (
-                              <span 
-                                key={index}
-                                className="inline-block px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium"
-                              >
-                                {slot.day}
-                              </span>
-                            ))}
-                          </div>
+                          {therapist.info?.availability?.inPerson?.length > 0 && (
+                            <div className="mb-1">
+                              <span className="text-xs font-semibold text-blue-700">In-Person:</span>
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {therapist.info.availability.inPerson.map((slot, idx) => (
+                                  <span key={idx} className="inline-block px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
+                                    {slot.day}: {slot.start} - {slot.end}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {therapist.info?.availability?.online?.length > 0 && (
+                            <div>
+                              <span className="text-xs font-semibold text-purple-700">Online:</span>
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {therapist.info.availability.online.map((slot, idx) => (
+                                  <span key={idx} className="inline-block px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-medium">
+                                    {slot.day}: {slot.start} - {slot.end}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

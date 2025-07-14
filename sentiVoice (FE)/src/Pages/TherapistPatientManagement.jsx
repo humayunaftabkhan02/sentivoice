@@ -44,6 +44,7 @@ import { generatePatientProfilePDF, generateAppointmentHistoryPDF } from '../uti
 import { api } from "../utils/api";
 import TherapistSidebar from '../Components/TherapistSidebar/TherapistSidebar.jsx';
 import { generateCompletePatientReport } from '../utils/generatePDF';
+import UserTopBar from '../Components/UserTopBar';
 
 const TherapistPatientManagement = () => {
   const [username, setUsername] = useState("");
@@ -51,6 +52,7 @@ const TherapistPatientManagement = () => {
   const [patients, setPatients] = useState([]);
   const [filteredPatients, setFilteredPatients] = useState([]);
   const [fullName, setFullName] = useState("");
+  const [profilePicture, setProfilePicture] = useState(null);
 
   // Search and filter states
   const [searchTerm, setSearchTerm] = useState("");
@@ -95,6 +97,9 @@ const TherapistPatientManagement = () => {
   
   const emotionOptions = Object.keys(emotionEmojiMap);
 
+  // Utility to generate a unique id for therapy plan items
+  const generatePlanId = () => Math.random().toString(36).substr(2, 9);
+
   useEffect(() => {
     const storedUsername = localStorage.getItem("username");
     if (storedUsername) {
@@ -103,8 +108,23 @@ const TherapistPatientManagement = () => {
           if (data.user?.info?.firstName && data.user?.info?.lastName) {
             setFullName(`${data.user.info.firstName} ${data.user.info.lastName}`);
           }
+          const pic = data.user?.info?.profilePicture;
+          if (pic) {
+            if (pic.startsWith('data:image')) {
+              setProfilePicture(pic);
+            } else if (pic.startsWith('/uploads/')) {
+              const filename = pic.split('/').pop();
+              api.get(`/uploads/profile-pictures/${filename}`)
+                .then(response => {
+                  if (response.image) setProfilePicture(response.image);
+                })
+                .catch(() => setProfilePicture(null));
+            } else {
+              setProfilePicture(pic);
+            }
+          }
         })
-        .catch(console.error);
+        .catch(() => setProfilePicture(null));
     }
   }, []);
 
@@ -238,15 +258,19 @@ const TherapistPatientManagement = () => {
       ...patient,
       info: {
         ...patient.info,
-        therapyPlan: patient.info?.therapyPlan?.map(item => {
+        therapyPlan: (patient.info?.therapyPlan || []).map(item => {
           if (typeof item === 'string') {
-            return item;
+            return { id: generatePlanId(), step: item, timestamp: new Date().toISOString() };
           }
           if (item && typeof item === 'object' && item.step) {
-            return item.step;
+            return {
+              id: item.id || generatePlanId(),
+              step: item.step,
+              timestamp: item.timestamp || new Date().toISOString()
+            };
           }
-          return '';
-        }) || []
+          return { id: generatePlanId(), step: '', timestamp: new Date().toISOString() };
+        })
       }
     };
     setManagePatient(processedPatient);
@@ -280,35 +304,8 @@ const TherapistPatientManagement = () => {
         timestamp: new Date().toISOString()
       } : pastSessionSummary;
 
-      // Convert therapy plan to proper format - ensure all items are strings for backend processing
-      const updatedTherapyPlan = therapyPlan?.map((item) => {
-        // If it's already a string, return as is
-        if (typeof item === 'string') {
-          return item;
-        }
-        // If it's an object, extract the step
-        if (item && typeof item === 'object' && item.step) {
-          return item.step;
-        }
-        // If it's an object without step, return empty string
-        return '';
-      }).filter(item => item.trim() !== ''); // Remove empty items
-
-      // Debug: Log the data being sent
-      console.log('🔍 Frontend Debug - Data being sent:', {
-        patientUsername,
-        diagnosis: diagnosis || 'empty',
-        pastSessionSummary: updatedPastSessionSummary ? 'present' : 'missing',
-        therapyPlan: updatedTherapyPlan ? `array with ${updatedTherapyPlan.length} items` : 'missing',
-        therapyPlanItems: updatedTherapyPlan,
-        therapyPlanRaw: therapyPlan
-      });
-
-      console.log('🔍 Full request payload:', {
-        diagnosis, 
-        pastSessionSummary: updatedPastSessionSummary, 
-        therapyPlan: updatedTherapyPlan 
-      });
+      // Only send valid plan items (non-empty step)
+      const updatedTherapyPlan = therapyPlan?.filter(item => item.step && item.step.trim() !== '');
 
       const data = await api.put(`/therapist/manage-patient/${patientUsername}`, { 
         diagnosis, 
@@ -371,30 +368,14 @@ const TherapistPatientManagement = () => {
       {/* Main Content */}
       <div className="flex-1 p-6 space-y-6 ml-64">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">
               Patient Management
             </h1>
-            <p className="text-gray-600">
-              Manage your patients, track progress, and maintain treatment plans
-            </p>
+            <p className="text-gray-600">Manage your patients and their therapy plans</p>
           </div>
-          <div className="flex items-center space-x-4">
-            <NotificationBell username={username} />
-            <div className="relative cursor-pointer">
-              <MessageIcon username={username} />
-            </div>
-            <div
-              className="flex items-center space-x-2 cursor-pointer hover:opacity-80"
-              onClick={() => navigate("/th-settings")}
-            >
-              <FaUser className="text-2xl" />
-              <span className="ml-2 text-lg">
-                Dr. {fullName}
-              </span>
-            </div>
-          </div>
+          <UserTopBar username={username} fullName={fullName} role={"therapist"} profilePicture={profilePicture} />
         </div>
 
         {/* Stats Cards */}
@@ -761,10 +742,10 @@ const TherapistPatientManagement = () => {
                   </h3>
                   <div className="space-y-2">
                     {selectedPatient.info.therapyPlan.map((plan, index) => (
-                      <div key={index} className="flex items-start p-3 bg-orange-50 rounded-lg">
+                      <div key={plan.id} className="flex items-start p-3 bg-orange-50 rounded-lg">
                         <span className="text-orange-600 mr-3 mt-1">•</span>
                         <span className="text-gray-700">
-                          {typeof plan === 'string' ? plan : plan.step || 'No step description'}
+                          {plan.step}
                         </span>
                       </div>
                     ))}
@@ -878,6 +859,9 @@ const TherapistPatientManagement = () => {
                         <div className="text-sm text-gray-600">
                           <FaCalendarAlt className="inline mr-1" />
                           {app.date} at {app.time}
+                          <span className="ml-2 text-xs text-gray-500">
+                            Session Type: {app.sessionType === 'in-person' ? 'In-person' : app.sessionType === 'online' ? 'Online' : 'N/A'}
+                          </span>
                         </div>
                       </div>
                       <button
@@ -1210,15 +1194,18 @@ const TherapistPatientManagement = () => {
                 </label>
                 <div className="space-y-3">
                   {managePatient.info?.therapyPlan?.map((plan, index) => (
-                    <div key={index} className="flex items-center space-x-3">
+                    <div key={plan.id || index} className="flex items-center space-x-3">
                       <input
                         type="text"
                         className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        value={typeof plan === 'string' ? plan : plan?.step || ''}
+                        value={plan.step}
                         onChange={(e) => {
                           const updatedPlans = [...managePatient.info.therapyPlan];
-                          // Ensure we're always working with strings in the frontend
-                          updatedPlans[index] = e.target.value;
+                          updatedPlans[index] = {
+                            ...updatedPlans[index],
+                            step: e.target.value,
+                            timestamp: new Date().toISOString() // update timestamp on edit
+                          };
                           setManagePatient({
                             ...managePatient,
                             info: {
@@ -1229,6 +1216,7 @@ const TherapistPatientManagement = () => {
                         }}
                         placeholder={`Therapy plan item ${index + 1}...`}
                       />
+                      <span className="text-xs text-gray-400 min-w-[120px]">{plan.timestamp ? new Date(plan.timestamp).toLocaleString() : ''}</span>
                       <button
                         className="p-3 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
                         onClick={() => {
@@ -1251,8 +1239,7 @@ const TherapistPatientManagement = () => {
                     className="flex items-center px-4 py-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
                     onClick={() => {
                       const updatedPlans = [...(managePatient.info?.therapyPlan || [])];
-                      // Add new item as empty string - backend will convert to object
-                      updatedPlans.push("");
+                      updatedPlans.push({ id: generatePlanId(), step: '', timestamp: new Date().toISOString() });
                       setManagePatient({
                         ...managePatient,
                         info: {

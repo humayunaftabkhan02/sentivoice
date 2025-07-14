@@ -31,6 +31,7 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../utils/api";
 import TherapistSidebar from '../Components/TherapistSidebar/TherapistSidebar.jsx';
 import EmojiPicker from '../Components/EmojiPicker/EmojiPicker.jsx';
+import UserTopBar from '../Components/UserTopBar';
 
 const TherapistMessaging = () => {
   const [username, setUsername] = useState("");
@@ -51,10 +52,11 @@ const TherapistMessaging = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const fileInputRef = useRef(null);
+  const [profilePicture, setProfilePicture] = useState(null);
 
   // Initialize socket connection
   useEffect(() => {
-    socketRef.current = io("http://localhost:3000", {
+    socketRef.current = io("${import.meta.env.VITE_API_URL}", {
       transports: ['websocket', 'polling']
     });
 
@@ -89,8 +91,23 @@ const TherapistMessaging = () => {
           if (data.user?.info?.firstName && data.user?.info?.lastName) {
             setFullName(`${data.user.info.firstName} ${data.user.info.lastName}`);
           }
+          const pic = data.user?.info?.profilePicture;
+          if (pic) {
+            if (pic.startsWith('data:image')) {
+              setProfilePicture(pic);
+            } else if (pic.startsWith('/uploads/')) {
+              const filename = pic.split('/').pop();
+              api.get(`/uploads/profile-pictures/${filename}`)
+                .then(response => {
+                  if (response.image) setProfilePicture(response.image);
+                })
+                .catch(() => setProfilePicture(null));
+            } else {
+              setProfilePicture(pic);
+            }
+          }
         })
-        .catch(console.error);
+        .catch(() => setProfilePicture(null));
     }
   }, []);
 
@@ -361,7 +378,7 @@ const TherapistMessaging = () => {
       
       // Make direct fetch request for blob response
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/api/messages/${messageId}/attachment`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/messages/${messageId}/attachment`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -461,36 +478,16 @@ const TherapistMessaging = () => {
       <TherapistSidebar current="messages" />
       
       {/* Main Content */}
-      <div className="flex-1 flex flex-col h-full ml-64">
+      <div className="flex-1 ml-64 p-6">
         {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800">Messages</h1>
-              <p className="text-gray-600">Communicate with your patients</p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <NotificationBell username={username} />
-              <div className="relative cursor-pointer">
-                <MessageIcon username={username} />
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className={`w-2 h-2 rounded-full ${socketConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                <span className="text-xs text-gray-500">
-                  {socketConnected ? 'Connected' : 'Disconnected'}
-                </span>
-              </div>
-              <div
-                className="flex items-center space-x-2 cursor-pointer hover:opacity-80"
-                onClick={() => navigate("/th-settings")}
-              >
-                <FaUser className="text-xl text-gray-600" />
-                <span className="text-gray-700 font-medium">
-                  Dr.&nbsp;{fullName}
-                </span>
-              </div>
-            </div>
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-800">
+              Messages
+            </h1>
+            <p className="text-gray-600 mt-1">Chat with your patients and manage your conversations</p>
           </div>
+          <UserTopBar username={username} fullName={fullName} role={"therapist"} profilePicture={profilePicture} />
         </div>
 
         {/* Profile Completion Banner */}

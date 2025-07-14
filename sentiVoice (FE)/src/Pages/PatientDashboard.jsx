@@ -40,6 +40,7 @@ import { generateAndSendPatientReport } from "../utils/generatePDF.js";
 import { api } from "../utils/api";
 import PatientSidebar from "../Components/PatientSidebar/PatientSidebar.jsx";
 import { useSessionCheck } from "../utils/useSessionCheck.js";
+import UserTopBar from '../Components/UserTopBar';
 
 const P_Dashboard = () => {
   // Add session check hook
@@ -48,7 +49,8 @@ const P_Dashboard = () => {
   const [username, setUsername] = useState("");
   const [role, setRole] = useState("");
   const [fullName, setFullName] = useState("");
-  const [user, setUser] = useState(null);  
+  const [user, setUser] = useState(null);
+  const [profilePicture, setProfilePicture] = useState(null);
   const [reschedulingApp, setReschedulingApp] = useState(null);
   const [appointments, setAppointments] = useState([]);
   const [cancelAppId, setCancelAppId] = useState(null);
@@ -165,6 +167,21 @@ const P_Dashboard = () => {
       const data = await api.get(`/user-info/${uname}`);
       if (data.user) {
         setUser(data.user);
+        const pic = data.user.info?.profilePicture;
+        if (pic) {
+          if (pic.startsWith('data:image')) {
+            setProfilePicture(pic);
+          } else if (pic.startsWith('/uploads/')) {
+            const filename = pic.split('/').pop();
+            api.get(`/uploads/profile-pictures/${filename}`)
+              .then(response => {
+                if (response.image) setProfilePicture(response.image);
+              })
+              .catch(() => setProfilePicture(null));
+          } else {
+            setProfilePicture(pic);
+          }
+        }
       }
     } catch (err) {
       console.error("Error fetching user data:", err);
@@ -292,19 +309,7 @@ const P_Dashboard = () => {
             </h1>
             <p className="text-gray-600 mt-1">Welcome to your therapy dashboard</p>
           </div>
-          <div className="flex items-center space-x-4">
-            <NotificationBell username={username} />
-            <div className="relative cursor-pointer">
-              <MessageIcon username={username} />
-            </div>
-            <div
-              className="flex items-center space-x-2 cursor-pointer hover:opacity-80"
-              onClick={() => navigate("/pa-settings")}
-            >
-              <FaUser className="text-2xl text-gray-600" />
-              <span className="ml-2 text-lg font-medium">{fullName}</span>
-            </div>
-          </div>
+          <UserTopBar username={username} fullName={fullName} role={role} profilePicture={profilePicture} />
         </div>
 
         {/* Stats Overview */}
@@ -489,7 +494,13 @@ const P_Dashboard = () => {
                           <p className="font-semibold text-gray-800">
                             {app.date} at {app.time}
                           </p>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-xs text-gray-500 font-medium mb-1">
+                            Therapist: {app.therapistFullName || app.therapistUsername || 'N/A'}
+                          </p>
+                          <p className="text-xs text-gray-500 font-medium mb-1">
+                            Session Type: {app.sessionType === 'in-person' ? 'In-person' : app.sessionType === 'online' ? 'Online' : 'N/A'}
+                          </p>
+                          <p className="text-sm text-gray-600 mt-1">
                             Status: <span className={`font-medium ${
                               app.status === 'Accepted' ? 'text-green-600' : 
                               app.status === 'Pending' ? 'text-yellow-600' : 'text-gray-600'

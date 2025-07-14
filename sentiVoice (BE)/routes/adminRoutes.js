@@ -15,6 +15,7 @@ router.get("/pending-payments", authenticate, authorize('admin'), paymentControl
 router.put("/payments/:id/status", authenticate, authorize('admin'), paymentController.updateStatus);
 router.get("/payment-history", authenticate, authorize('admin'), paymentController.listHistory);
 router.put("/payments/:id/refund", authenticate, authorize('admin'), paymentController.markRefunded);
+router.get("/refund-requests", authenticate, authorize('admin'), paymentController.listRefundRequests);
 
 // Settings routes
 router.get("/settings", authenticate, authorize('admin'), settingsController.getSettings);

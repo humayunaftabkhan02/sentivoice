@@ -96,18 +96,31 @@ exports.updatePatientInfo = async (req, res) => {
     }
     
     if (therapyPlan) {
+      // If therapyPlan is an array of objects with id, step, timestamp, update only changed/new steps
+      const prevPlan = (patient.info.therapyPlan || []).reduce((acc, item) => {
+        if (item.id) acc[item.id] = item;
+        return acc;
+      }, {});
       patient.info.therapyPlan = therapyPlan.map(item => {
-        // Handle both string and object formats
-        if (typeof item === 'string') {
+        // If item has no id, it's new
+        if (!item.id) {
           return {
-            step: item,
-            timestamp: new Date()
+            id: Math.random().toString(36).substr(2, 9),
+            step: item.step || item,
+            timestamp: new Date().toISOString()
           };
         }
-        // If it's an object, ensure it has a timestamp
+        // If step text changed, update timestamp
+        if (prevPlan[item.id] && prevPlan[item.id].step !== item.step) {
+          return {
+            ...item,
+            timestamp: new Date().toISOString()
+          };
+        }
+        // Otherwise, keep as is
         return {
           ...item,
-          timestamp: item.timestamp ? new Date(item.timestamp) : new Date()
+          timestamp: item.timestamp || new Date().toISOString()
         };
       });
     }
@@ -153,9 +166,6 @@ exports.updatePatientInfo = async (req, res) => {
     if (!patient.info.medicalConditions) {
       patient.info.medicalConditions = [];
     }
-    if (!patient.info.availableSlots) {
-      patient.info.availableSlots = [];
-    }
 
     // Remove undefined values to prevent validation errors
     Object.keys(patient.info).forEach(key => {
@@ -187,7 +197,7 @@ exports.updatePatientInfo = async (req, res) => {
     
     try {
       const savedPatient = await patient.save();
-      console.log('✅ Patient saved successfully');
+    console.log('✅ Patient saved successfully');
       console.log('🔍 Saved patient info:', {
         username: savedPatient.username,
         therapyPlan: savedPatient.info?.therapyPlan,

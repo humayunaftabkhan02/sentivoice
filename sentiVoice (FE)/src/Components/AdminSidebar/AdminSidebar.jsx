@@ -5,7 +5,8 @@ import {
   FaMoneyCheckAlt,
   FaSignOutAlt,
   FaCog,
-  FaUsers
+  FaUsers,
+  FaUndoAlt
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/logo.png';
@@ -101,6 +102,12 @@ export default function AdminSidebar({ current, pendingApprovals = 0, pendingPay
           icon={<FaMoneyCheckAlt />} 
           to="/payments"
           badge={pendingPayments}
+        />
+        <Item 
+          id="refunds" 
+          label="Refund Requests" 
+          icon={<FaUndoAlt />} 
+          to="/refund-requests"
         />
         
         <Item 

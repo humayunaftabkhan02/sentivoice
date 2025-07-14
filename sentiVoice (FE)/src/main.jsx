@@ -34,6 +34,7 @@ import PaymentHistory from "./Pages/PaymentHistory.jsx";
 import PaymentSettings from "./Pages/PaymentSettings.jsx";
 import AdminSettings from "./Pages/AdminSettings.jsx";
 import AdminUserList from "./Pages/AdminUserList.jsx";
+import RefundRequests from './Pages/RefundRequests.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -171,6 +172,9 @@ createRoot(document.getElementById('root')).render(
         }/>
         <Route path="/admin-user-list" element={
           <ProtectedRoute requiredRole="admin"><AdminUserList /></ProtectedRoute>
+        }/>
+        <Route path="/refund-requests" element={
+          <ProtectedRoute requiredRole="admin"><RefundRequests /></ProtectedRoute>
         }/>
         {/* Catch-all: If no route matches, go to /home */}
         <Route path="*" element={<Navigate to="/home" />} />

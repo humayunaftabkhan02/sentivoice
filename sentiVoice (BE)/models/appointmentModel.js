@@ -7,6 +7,7 @@ const appointmentSchema = new Schema({
   date: { type: String, required: true },
   time: { type: String, required: true },
   status: { type: String, default: 'Pending' },
+  sessionType: { type: String },
   paymentId : { type: mongoose.Schema.Types.ObjectId, ref: "Payment" },
   paymentVerified : { type: Boolean, default: false },
   reason: { type: String },

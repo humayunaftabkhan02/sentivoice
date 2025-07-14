@@ -19,6 +19,7 @@ import {
 import NotificationBell from "../Components/NotificationBell/NotificationBell.jsx";
 import { useNavigate } from "react-router-dom";
 import MessageIcon from "../Components/MessageIcon/MessageIcon.jsx";
+import UserTopBar from '../Components/UserTopBar';
 
 import { api } from "../utils/api";
 import TherapistSidebar from "../Components/TherapistSidebar/TherapistSidebar.jsx";
@@ -57,10 +58,16 @@ const TherapistSettings = () => {
     profilePicture: null
   });
   const [message, setMessage] = useState("");
-  const [day, setDay] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
-  const [availableSlots, setAvailableSlots] = useState([]);
+  // Separate state for in-person and online selectors
+  const [inPersonDay, setInPersonDay] = useState("");
+  const [inPersonStartTime, setInPersonStartTime] = useState("");
+  const [inPersonEndTime, setInPersonEndTime] = useState("");
+  const [onlineDay, setOnlineDay] = useState("");
+  const [onlineStartTime, setOnlineStartTime] = useState("");
+  const [onlineEndTime, setOnlineEndTime] = useState("");
+  // Separate availability for in-person and online
+  const [inPersonSlots, setInPersonSlots] = useState([]);
+  const [onlineSlots, setOnlineSlots] = useState([]);
   const [customSpecialization, setCustomSpecialization] = useState("");
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -68,6 +75,7 @@ const TherapistSettings = () => {
   const [error, setError] = useState(null);
   const [info, setInfo] = useState({});
   const [profileImagePreview, setProfileImagePreview] = useState(null);
+  const [profilePicture, setProfilePicture] = useState(null);
 
   const navigate = useNavigate();
 
@@ -119,40 +127,37 @@ const TherapistSettings = () => {
           });
           
           // Set profile image preview if exists
-          if (userInfo.profilePicture) {
-            console.log('🔍 Profile picture found:', userInfo.profilePicture);
-            // Handle both file paths and base64 data
-            if (userInfo.profilePicture.startsWith('data:image')) {
-              console.log('📸 Setting base64 profile picture');
-              setProfileImagePreview(userInfo.profilePicture);
-            } else if (userInfo.profilePicture.startsWith('/uploads/')) {
-              // Fetch the image as base64 from the API
-              const filename = userInfo.profilePicture.split('/').pop();
-              console.log('📸 Fetching profile picture as base64:', filename);
-              
+          const pic = userInfo.profilePicture;
+          if (pic) {
+            if (pic.startsWith('data:image')) {
+              setProfileImagePreview(pic);
+              setProfilePicture(pic);
+            } else if (pic.startsWith('/uploads/')) {
+              const filename = pic.split('/').pop();
               api.get(`/uploads/profile-pictures/${filename}`)
                 .then(response => {
                   if (response.image) {
-                    console.log('✅ Profile picture loaded as base64');
                     setProfileImagePreview(response.image);
-                  } else {
-                    console.log('❌ No image data in response');
+                    setProfilePicture(response.image);
                   }
                 })
-                .catch(error => {
-                  console.error('❌ Error loading profile picture:', error);
+                .catch(() => {
+                  setProfileImagePreview(null);
+                  setProfilePicture(null);
                 });
             } else {
-              console.log('📸 Setting other profile picture:', userInfo.profilePicture);
-              setProfileImagePreview(userInfo.profilePicture);
+              setProfileImagePreview(pic);
+              setProfilePicture(pic);
             }
           } else {
-            console.log('❌ No profile picture found');
+            setProfileImagePreview(null);
+            setProfilePicture(null);
           }
           
-          // Populate available slots if they exist
-          if (userInfo.availableSlots && Array.isArray(userInfo.availableSlots)) {
-            setAvailableSlots(userInfo.availableSlots);
+          // Populate in-person and online slots if they exist
+          if (userInfo.availability) {
+            setInPersonSlots(userInfo.availability.inPerson || []);
+            setOnlineSlots(userInfo.availability.online || []);
           }
           
           // Handle custom specialization
@@ -195,6 +200,28 @@ const TherapistSettings = () => {
     }
   };
 
+  // Add slot handlers
+  const addSlot = (type) => {
+    if (type === 'inPerson') {
+      if (!inPersonDay || !inPersonStartTime || !inPersonEndTime) return;
+      const newSlot = { day: inPersonDay, start: inPersonStartTime, end: inPersonEndTime };
+      setInPersonSlots([...inPersonSlots, newSlot]);
+      setInPersonDay(""); setInPersonStartTime(""); setInPersonEndTime("");
+    } else {
+      if (!onlineDay || !onlineStartTime || !onlineEndTime) return;
+      const newSlot = { day: onlineDay, start: onlineStartTime, end: onlineEndTime };
+      setOnlineSlots([...onlineSlots, newSlot]);
+      setOnlineDay(""); setOnlineStartTime(""); setOnlineEndTime("");
+    }
+  };
+  const removeSlot = (type, idx) => {
+    if (type === 'inPerson') {
+      setInPersonSlots(inPersonSlots.filter((_, i) => i !== idx));
+    } else {
+      setOnlineSlots(onlineSlots.filter((_, i) => i !== idx));
+    }
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -205,6 +232,9 @@ const TherapistSettings = () => {
         finalSpecialization = customSpecialization.trim();
       }
       
+      // Prepare availability object
+      const availability = { inPerson: inPersonSlots, online: onlineSlots };
+
       // Create FormData for file upload
       const formDataToSend = new FormData();
       formDataToSend.append('firstName', formData.firstName);
@@ -218,7 +248,7 @@ const TherapistSettings = () => {
       formDataToSend.append('email', formData.email);
       formDataToSend.append('address', formData.address);
       formDataToSend.append('languages', formData.languages);
-      formDataToSend.append('availableSlots', JSON.stringify(availableSlots));
+      formDataToSend.append('availability', JSON.stringify(availability));
       
       if (formData.profilePicture) {
         formDataToSend.append('profilePicture', formData.profilePicture);
@@ -266,6 +296,57 @@ const TherapistSettings = () => {
     setSaving(false);
   };
 
+  // --- Availability Editors ---
+  const renderAvailabilityEditor = (type, slots, day, setDay, startTime, setStartTime, endTime, setEndTime) => (
+    <div className="mb-6">
+      <h3 className="font-semibold text-gray-800 mb-2">
+        {type === 'inPerson' ? 'In-Person Availability' : 'Online Availability'}
+      </h3>
+      <div className="flex space-x-2 mb-2">
+        <select value={day} onChange={e => setDay(e.target.value)} className="border rounded px-2 py-1">
+          <option value="">Day</option>
+          {['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'].map(d => (
+            <option key={d} value={d}>{d}</option>
+          ))}
+        </select>
+        <select value={startTime} onChange={e => setStartTime(e.target.value)} className="border rounded px-2 py-1">
+          <option value="">Start</option>
+          {timeOptions.map(t => <option key={t} value={t}>{t}</option>)}
+        </select>
+        <select value={endTime} onChange={e => setEndTime(e.target.value)} className="border rounded px-2 py-1">
+          <option value="">End</option>
+          {timeOptions.map(t => <option key={t} value={t}>{t}</option>)}
+        </select>
+        <button type="button" className="bg-blue-500 text-white px-3 py-1 rounded" onClick={() => addSlot(type)}>
+          <FaPlus />
+        </button>
+      </div>
+      <ul className="flex flex-wrap gap-2 mt-2">
+        {slots.map((slot, idx) => (
+          <li
+            key={idx}
+            className="flex items-center bg-blue-50 border border-blue-200 rounded-full px-4 py-1 shadow-sm text-sm font-medium text-blue-900"
+          >
+            <span className="mr-2">
+              <span className="font-semibold">{slot.day}:</span> {slot.start} - {slot.end}
+            </span>
+            <button
+              type="button"
+              className="ml-2 w-6 h-6 flex items-center justify-center rounded-full bg-red-100 hover:bg-red-200 text-red-600 transition"
+              onClick={() => removeSlot(type, idx)}
+              title="Remove slot"
+            >
+              <FaTimes className="text-xs" />
+            </button>
+          </li>
+        ))}
+        {slots.length === 0 && (
+          <li className="text-gray-400 text-xs">No slots set</li>
+        )}
+      </ul>
+    </div>
+  );
+
   return (
     <div className="flex min-h-screen bg-[#EBEDE9]">
       <TherapistSidebar current="settings" />
@@ -273,30 +354,14 @@ const TherapistSettings = () => {
       {/* Main Content */}
       <div className="flex-1 p-8 space-y-6 ml-64">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">
-              Profile Settings
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+              Therapist Settings
             </h1>
-            <p className="text-gray-600 mt-2">
-              Manage your professional profile and availability
-            </p>
+            <p className="text-gray-600">Manage your professional and personal information</p>
           </div>
-          <div className="flex space-x-4">
-            <NotificationBell username={username} />
-            <div className="relative cursor-pointer">
-              <MessageIcon username={username} />
-            </div>
-            <div
-              className="flex items-center space-x-2 cursor-pointer hover:opacity-80"
-              onClick={() => navigate("/th-settings")}
-            >
-              <FaUser className="text-2xl" />
-              <span className="ml-2 text-lg">
-                Dr. {fullName || "Therapist"}
-              </span>
-            </div>
-          </div>
+          <UserTopBar username={username} fullName={fullName} role={"therapist"} profilePicture={profilePicture} />
         </div>
 
         {/* Profile Completion Banner */}
@@ -593,103 +658,14 @@ const TherapistSettings = () => {
                   </div>
                 </div>
 
-                {/* Availability Section */}
+                {/* In-Person and Online Availability Sections */}
                 <div className="bg-white rounded-xl shadow-sm p-6">
                   <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
                     <FaClock className="mr-2 text-blue-600" />
-                    Availability Schedule
+                    Session Availability
                   </h2>
-                  
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <select
-                        value={day}
-                        onChange={(e) => setDay(e.target.value)}
-                        disabled={loading}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
-                      >
-                        <option value="">Select Day</option>
-                        {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((d) => (
-                          <option key={d} value={d}>{d}</option>
-                        ))}
-                      </select>
-                      
-                      <select
-                        value={startTime}
-                        onChange={(e) => setStartTime(e.target.value)}
-                        disabled={loading}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
-                      >
-                        <option value="">Start Time</option>
-                        {timeOptions.map((time) => (
-                          <option key={time} value={time}>{time}</option>
-                        ))}
-                      </select>
-                      
-                      <select
-                        value={endTime}
-                        onChange={(e) => setEndTime(e.target.value)}
-                        disabled={loading}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
-                      >
-                        <option value="">End Time</option>
-                        {timeOptions.map((time) => (
-                          <option key={time} value={time}>{time}</option>
-                        ))}
-                      </select>
-                    </div>
-                    
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (!day || !startTime || !endTime) return alert("Please fill all fields");
-                        const convertTo24 = (timeStr) => {
-                          const [time, modifier] = timeStr.split(" ");
-                          let [hours, minutes] = time.split(":").map(Number);
-                        
-                          if (modifier === "PM" && hours !== 12) hours += 12;
-                          if (modifier === "AM" && hours === 12) hours = 0;
-                        
-                          return hours * 60 + minutes;
-                        };
-                        
-                        if (convertTo24(startTime) >= convertTo24(endTime)) {
-                          return alert("Start time must be before end time");
-                        }
-
-                        setAvailableSlots((prev) => [
-                          ...prev,
-                          { day, start: startTime, end: endTime }
-                        ]);
-
-                        setDay(""); setStartTime(""); setEndTime("");
-                      }}
-                      disabled={loading}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
-                    >
-                      <FaPlus className="mr-2" />
-                      Add Time Slot
-                    </button>
-
-                    {/* Display added slots */}
-                    <div className="space-y-2">
-                      {availableSlots.map((slot, index) => (
-                        <div key={index} className="flex justify-between items-center bg-blue-50 border border-blue-200 p-3 rounded-lg">
-                          <span className="font-medium">
-                            {slot.day} — {slot.start} to {slot.end}
-                          </span>
-                          <button 
-                            onClick={() => {
-                              setAvailableSlots(availableSlots.filter((_, i) => i !== index));
-                            }} 
-                            className="text-red-600 hover:text-red-800 transition-colors"
-                          >
-                            <FaTimes />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  {renderAvailabilityEditor('inPerson', inPersonSlots, inPersonDay, setInPersonDay, inPersonStartTime, setInPersonStartTime, inPersonEndTime, setInPersonEndTime)}
+                  {renderAvailabilityEditor('online', onlineSlots, onlineDay, setOnlineDay, onlineStartTime, setOnlineStartTime, onlineEndTime, setOnlineEndTime)}
                 </div>
 
                 {/* Save Button */}

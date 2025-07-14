@@ -9,7 +9,7 @@ exports.listPendingTherapists = async (_req, res) => {
      isTherapistApproved: { $ne: true },   // false OR undefined
      isEmailVerified: true                 // Only show verified therapists
     }).select('-password');
-    res.json(pending);              // ← the front-end expects an ARRAY
+    res.json(pending); // info.cvDocument will be included if present
   } catch (err) {
     if (process.env.NODE_ENV === 'development') {
       console.error('Error:', err.message);

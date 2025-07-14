@@ -20,6 +20,7 @@ const SignupComp = () => {
     const [messageType, setMessageType] = useState('')
     const [isLoading, setIsLoading] = useState(false)
     const navigate = useNavigate()
+    const [cvFile, setCvFile] = useState(null);
 
     const allowedEmailDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 'live.com']
     const disposableDomains = ['mailinator.com', 'tempmail.com', '10minutemail.com', 'guerrillamail.com']
@@ -102,44 +103,46 @@ const SignupComp = () => {
     }
 
     const handleSignup = async (e) => {
-        e.preventDefault()
-        const validationErrors = validate()
-        setErrors(validationErrors)
+        e.preventDefault();
+        const validationErrors = validate();
+        if (role === 'therapist' && !cvFile) {
+            validationErrors.cvFile = 'CV/Document is required for therapists';
+        }
+        setErrors(validationErrors);
 
         if (Object.keys(validationErrors).length === 0) {
-            setIsLoading(true)
-            setMessage('')
-
+            setIsLoading(true);
+            setMessage('');
             try {
-                const userData = {
-                    firstName: firstName.trim(),
-                    lastName: lastName.trim(),
-                    username: username.trim(),
-                    email: email.trim(),
-                    password: password.trim(),
-                    role,
+                const formData = new FormData();
+                formData.append('firstName', firstName.trim());
+                formData.append('lastName', lastName.trim());
+                formData.append('username', username.trim());
+                formData.append('email', email.trim());
+                formData.append('password', password.trim());
+                formData.append('role', role);
+                if (role === 'therapist' && cvFile) {
+                    formData.append('cvDocument', cvFile);
                 }
 
-                const response = await api.post('/signup', userData);
+                const response = await api.post('/signup', formData);
 
-                // The API utility already parses the JSON response
-                // So response is already the data object, not a Response object
                 if (response && response.message) {
-                    setMessage('Account created successfully! Please check your email for verification.')
-                    setMessageType('success')
-                    setTimeout(() => navigate(`/email-verification?email=${encodeURIComponent(email.trim())}`), 2000)
+                    setMessage('Account created successfully! Please check your email for verification.');
+                    setMessageType('success');
+                    setTimeout(() => navigate(`/email-verification?email=${encodeURIComponent(email.trim())}`), 2000);
                 } else {
-                    setMessage('Signup failed - unexpected response format')
-                    setMessageType('error')
+                    setMessage('Signup failed - unexpected response format');
+                    setMessageType('error');
                 }
             } catch (err) {
-                setMessage('Error: ' + err.message)
-                setMessageType('error')
+                setMessage('Error: ' + err.message);
+                setMessageType('error');
             } finally {
-                setIsLoading(false)
+                setIsLoading(false);
             }
         }
-    }
+    };
 
     return (
         <div className="min-h-screen flex bg-gradient-to-br from-[#EBEDE9] to-[#B5D1D4]">
@@ -197,13 +200,15 @@ const SignupComp = () => {
                         )}
 
                         {/* form */}
-                        <form className="space-y-4" onSubmit={handleSignup} noValidate>
+                        <form className="space-y-4" onSubmit={handleSignup} noValidate encType="multipart/form-data">
                             {/* Name Fields */}
                             <div className="grid grid-cols-2 gap-3">
                                 {/* First Name */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        First Name
+                                    <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="firstName">
+                                        <span className="flex items-center">
+                                            First Name <span className="text-red-500 ml-1">*</span>
+                                        </span>
                                     </label>
                                     <div className="relative">
                                         <FaUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
@@ -222,8 +227,10 @@ const SignupComp = () => {
 
                                 {/* Last Name */}
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Last Name
+                                    <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="lastName">
+                                        <span className="flex items-center">
+                                            Last Name <span className="text-red-500 ml-1">*</span>
+                                        </span>
                                     </label>
                                     <div className="relative">
                                         <FaUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
@@ -243,8 +250,10 @@ const SignupComp = () => {
 
                             {/* Username */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Username
+                                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="username">
+                                    <span className="flex items-center">
+                                        Username <span className="text-red-500 ml-1">*</span>
+                                    </span>
                                 </label>
                                 <div className="relative">
                                     <FaUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
@@ -263,8 +272,10 @@ const SignupComp = () => {
 
                             {/* Email */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Email Address
+                                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="email">
+                                    <span className="flex items-center">
+                                        Email <span className="text-red-500 ml-1">*</span>
+                                    </span>
                                 </label>
                                 <div className="relative">
                                     <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -283,8 +294,10 @@ const SignupComp = () => {
 
                             {/* Password */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Password
+                                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="password">
+                                    <span className="flex items-center">
+                                        Password <span className="text-red-500 ml-1">*</span>
+                                    </span>
                                 </label>
                                 <div className="relative">
                                     <input
@@ -309,8 +322,10 @@ const SignupComp = () => {
 
                             {/* Confirm Password */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Confirm Password
+                                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="confirmPassword">
+                                    <span className="flex items-center">
+                                        Confirm Password <span className="text-red-500 ml-1">*</span>
+                                    </span>
                                 </label>
                                 <div className="relative">
                                     <input
@@ -335,8 +350,10 @@ const SignupComp = () => {
 
                             {/* Role Selection */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-3">
-                                    I am a:
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <span className="flex items-center">
+                                        Role <span className="text-red-500 ml-1">*</span>
+                                    </span>
                                 </label>
                                 <div className="grid grid-cols-2 gap-3">
                                     <button
@@ -373,6 +390,36 @@ const SignupComp = () => {
                                 </div>
                                 {errors.role && <p className="text-red-500 text-xs mt-2">{errors.role}</p>}
                             </div>
+
+                            {/* CV/Document Upload for Therapists */}
+                            {role === 'therapist' && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <span className="flex items-center">
+                                            Upload CV/Document <span className="text-red-500 ml-1">*</span>
+                                        </span>
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            type="file"
+                                            accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                                            onChange={e => setCvFile(e.target.files[0])}
+                                            className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                                                errors.cvFile
+                                                    ? 'border-red-400 bg-red-50'
+                                                    : 'border-gray-300 hover:border-blue-400 bg-white'
+                                            }`}
+                                            required
+                                        />
+                                        {cvFile && (
+                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 truncate max-w-[60%]">{cvFile.name}</span>
+                                        )}
+                                    </div>
+                                    {errors.cvFile && (
+                                        <p className="text-red-500 text-xs mt-1">{errors.cvFile}</p>
+                                    )}
+                                </div>
+                            )}
 
                             {/* Submit */}
                             <button

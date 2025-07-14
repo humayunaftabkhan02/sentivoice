@@ -6,6 +6,7 @@ import RescheduleModal from "../Components/RescheduleModal/RescheduleModal.jsx";
 import CancelModal from "../Components/CancelModal/CancelModal.jsx";
 import MessageIcon from "../Components/MessageIcon/MessageIcon.jsx";
 import ProfileCompletionBanner from "../Components/ProfileCompletionBanner/ProfileCompletionBanner.jsx";
+import UserTopBar from '../Components/UserTopBar';
 
 import { api } from "../utils/api";
 import TherapistSidebar from "../Components/TherapistSidebar/TherapistSidebar.jsx";
@@ -29,6 +30,7 @@ const TherapistDashboard = () => {
   const [availableSlots, setAvailableSlots] = useState([]);
   const [cancelAppId, setCancelAppId] = useState(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [profilePicture, setProfilePicture] = useState(null);
 
   // Pagination states
   const [pendingPage, setPendingPage] = useState(1);
@@ -65,6 +67,26 @@ const TherapistDashboard = () => {
       } else {
         setFullName(storedUsername);
       }
+      // Fetch profile picture
+      api.get(`/user-info/${storedUsername}`)
+        .then(data => {
+          const pic = data.user?.info?.profilePicture;
+          if (pic) {
+            if (pic.startsWith('data:image')) {
+              setProfilePicture(pic);
+            } else if (pic.startsWith('/uploads/')) {
+              const filename = pic.split('/').pop();
+              api.get(`/uploads/profile-pictures/${filename}`)
+                .then(response => {
+                  if (response.image) setProfilePicture(response.image);
+                })
+                .catch(() => setProfilePicture(null));
+            } else {
+              setProfilePicture(pic);
+            }
+          }
+        })
+        .catch(() => setProfilePicture(null));
     }
   }, []);
 
@@ -260,28 +282,14 @@ const TherapistDashboard = () => {
       {/* Main Content */}
       <div className="flex-1 p-8 space-y-6 ml-64">
         {/* Header */}
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold">
-            Good Morning{" "}
-            <span className="text-blue-600">
-              Dr. {fullName}!
-            </span>
-          </h1>
-          <div className="flex space-x-4">
-            <NotificationBell username={username} />
-            <div className="relative cursor-pointer hover:scale-105 transition-transform">
-              <MessageIcon username={username} />
-            </div>
-            <div
-              className="flex items-center space-x-2 cursor-pointer hover:opacity-80 hover:scale-105 transition-all duration-200"
-              onClick={() => navigate("/th-settings")}
-            >
-              <FaUser className="text-2xl" />
-              <span className="ml-2 text-lg">
-                Dr.&nbsp;{fullName}
-              </span>
-            </div>
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+              Therapist Dashboard
+            </h1>
+            <p className="text-gray-600">Welcome to your therapist dashboard</p>
           </div>
+          <UserTopBar username={username} fullName={fullName} role={"therapist"} profilePicture={profilePicture} />
         </div>
 
         {/* Profile Completion Banner */}
@@ -432,6 +440,9 @@ const TherapistDashboard = () => {
                           <p className="text-sm text-gray-600">
                             {formatDate(app.date)} @ {app.time}
                           </p>
+                          <p className="text-xs text-gray-500">
+                            Session Type: {app.sessionType === 'in-person' ? 'In-person' : app.sessionType === 'online' ? 'Online' : 'N/A'}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -545,6 +556,9 @@ const TherapistDashboard = () => {
                           </p>
                           <p className="text-sm text-gray-600">
                             {formatDate(app.date)} @ {app.time}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Session Type: {app.sessionType === 'in-person' ? 'In-person' : app.sessionType === 'online' ? 'Online' : 'N/A'}
                           </p>
                         </div>
                       </div>

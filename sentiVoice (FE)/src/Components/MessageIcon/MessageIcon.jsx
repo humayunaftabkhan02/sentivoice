@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { FaEnvelope } from "react-icons/fa";
+import { FaCommentDots } from "react-icons/fa";
 import { io } from "socket.io-client";
 import { api } from "../../utils/api";
 
-const socket = io("http://localhost:3000"); // same as backend
+const socket = io("${import.meta.env.VITE_API_URL}"); // same as backend
 
 const MessageIcon = ({ username }) => {
   const [unreadCount, setUnreadCount] = useState(0);
@@ -47,7 +47,7 @@ const MessageIcon = ({ username }) => {
 
   return (
     <div className="relative cursor-pointer" onClick={() => (window.location.href = username.includes("therapist") ? '/th-messaging' : '/pa-messaging')}>
-      <FaEnvelope className="text-2xl" />
+      <FaCommentDots className="text-2xl" />
       {unreadCount > 0 && (
         <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
           {unreadCount}

@@ -2,6 +2,7 @@
 const Appointment = require('../models/appointmentModel');
 const Notification = require('../models/notificationModel');
 const User = require('../models/dataModel');
+const Payment = require('../models/paymentModel');
 
 /**
  * CREATE (schedule) a new appointment.
@@ -14,7 +15,7 @@ const User = require('../models/dataModel');
  */
 exports.createAppointment = async (req, res) => {
   try {
-    const { patientUsername, therapistUsername, date, time, initiatorRole } = req.body;
+    const { patientUsername, therapistUsername, date, time, initiatorRole, sessionType } = req.body;
 
     // 🛡️ Validate users
     const patient = await User.findOne({ username: patientUsername, role: 'patient' });
@@ -73,7 +74,8 @@ exports.createAppointment = async (req, res) => {
       date,
       time,
       status: 'Pending',
-      initiatorRole
+      initiatorRole,
+      sessionType
     });
     await appointment.save();
 
@@ -83,13 +85,13 @@ exports.createAppointment = async (req, res) => {
 
     // 🔔 Notifications for both users
     await Notification.create({
-      recipientUsername: initiatorRole === 'patient' ? patientUsername : therapistUsername,
-      message: `Appointment created! (Date: ${date}, Time: ${time}, Pending)`,
+      recipientUsername: patientUsername,
+      message: `Your appointment has been created for ${date} at ${time}. Awaiting therapist approval.`,
       appointmentId: appointment._id,
     });
     await Notification.create({
-      recipientUsername: initiatorRole === 'patient' ? therapistUsername : patientUsername,
-      message: `New appointment request from ${initiatorRole === 'patient' ? patientFullName : therapistUsername}. (Date: ${date}, Time: ${time})`,
+      recipientUsername: therapistUsername,
+      message: `New appointment request from ${patientFullName} for ${date} at ${time}.`,
       appointmentId: appointment._id,
     });
 
@@ -124,12 +126,12 @@ exports.acceptAppointment = async (req, res) => {
     // e.g. "Appointment on 2025-03-05 at 10:00 AM was accepted."
     await Notification.create({
       recipientUsername: userA,
-      message: `Appointment on ${appointment.date} at ${appointment.time} was accepted.`,
+      message: `Your appointment on ${appointment.date} at ${appointment.time} was accepted by the therapist.`,
       appointmentId: appointment._id,
     });
     await Notification.create({
       recipientUsername: userB,
-      message: `Appointment on ${appointment.date} at ${appointment.time} was accepted.`,
+      message: `You accepted an appointment for ${appointment.date} at ${appointment.time}.`,
       appointmentId: appointment._id,
     });
 
@@ -156,18 +158,32 @@ exports.rejectAppointment = async (req, res) => {
     appointment.status = 'Rejected';
     await appointment.save();
 
+    // If appointment has a payment and payment is approved, set to Refund Pending
+    if (appointment.paymentId) {
+      const payment = await Payment.findById(appointment.paymentId);
+      if (payment && payment.status === 'Approved') {
+        payment.status = 'Refund Pending';
+        await payment.save();
+        await Notification.create({
+          recipientUsername: appointment.patientUsername,
+          message: `Your payment is being refunded because your appointment was not accepted. The refund is being processed.`,
+          paymentId: payment._id,
+        });
+      }
+    }
+
     // Notify both parties
     const userA = appointment.patientUsername;
     const userB = appointment.therapistUsername;
 
     await Notification.create({
       recipientUsername: userA,
-      message: `Appointment on ${appointment.date} at ${appointment.time} was rejected.`,
+      message: `Your appointment on ${appointment.date} at ${appointment.time} was rejected by the therapist.`,
       appointmentId: appointment._id,
     });
     await Notification.create({
       recipientUsername: userB,
-      message: `Appointment on ${appointment.date} at ${appointment.time} was rejected.`,
+      message: `You rejected an appointment for ${appointment.date} at ${appointment.time}.`,
       appointmentId: appointment._id,
     });
 
@@ -199,15 +215,29 @@ exports.cancelAppointment = async (req, res) => {
     }
     await appointment.save();
 
+    // If appointment has a payment and payment is approved, set to Refund Pending
+    if (appointment.paymentId) {
+      const payment = await Payment.findById(appointment.paymentId);
+      if (payment && payment.status === 'Approved') {
+        payment.status = 'Refund Pending';
+        await payment.save();
+        await Notification.create({
+          recipientUsername: appointment.patientUsername,
+          message: `Your payment is being refunded because your appointment was canceled. The refund is being processed.`,
+          paymentId: payment._id,
+        });
+      }
+    }
+
     // Notify both sides
     await Notification.create({
       recipientUsername: appointment.patientUsername,
-      message: `Appointment on ${appointment.date} at ${appointment.time} was canceled. Reason: ${reason || 'N/A'}`,
+      message: `Your appointment on ${appointment.date} at ${appointment.time} was canceled.`,
       appointmentId: appointment._id,
     });
     await Notification.create({
       recipientUsername: appointment.therapistUsername,
-      message: `Appointment on ${appointment.date} at ${appointment.time} was canceled. Reason: ${reason || 'N/A'}`,
+      message: `Appointment on ${appointment.date} at ${appointment.time} was canceled.`,
       appointmentId: appointment._id,
     });
 
@@ -254,12 +284,12 @@ exports.rescheduleAppointment = async (req, res) => {
     // Notify both parties
     await Notification.create({
       recipientUsername: appointment.patientUsername,
-      message: `Appointment was rescheduled to ${newDate} at ${newTime}. Reason: ${reason || 'N/A'}`,
+      message: `Your appointment was rescheduled to ${newDate} at ${newTime}. Awaiting therapist approval.`,
       appointmentId: appointment._id,
     });
     await Notification.create({
       recipientUsername: appointment.therapistUsername,
-      message: `Appointment was rescheduled to ${newDate} at ${newTime}. Reason: ${reason || 'N/A'}`,
+      message: `Appointment rescheduled to ${newDate} at ${newTime}. Awaiting your approval.`,
       appointmentId: appointment._id,
     });
 
@@ -377,11 +407,23 @@ exports.getTherapistAvailability = async (req, res) => {
   try {
     const therapist = await User.findOne({ username: therapistUsername, role: 'therapist' });
 
-    if (!therapist || !therapist.info?.availableSlots) {
-      return res.status(404).json({ error: 'Therapist not found or no availability set' });
+    if (!therapist || !therapist.info?.availability) {
+      return res.status(404).json({ error: 'Therapist or availability not found' });
     }
-
-    return res.status(200).json({ slots: therapist.info.availableSlots });
+    // Optionally filter by session type if provided in query
+    const { sessionType } = req.query;
+    let slots = [];
+    if (sessionType === 'in-person') {
+      slots = therapist.info.availability.inPerson || [];
+    } else if (sessionType === 'online') {
+      slots = therapist.info.availability.online || [];
+    } else {
+      slots = [
+        ...(therapist.info.availability.inPerson || []),
+        ...(therapist.info.availability.online || [])
+      ];
+    }
+    return res.status(200).json({ slots });
       } catch (error) {
       if (process.env.NODE_ENV === 'development') {
         console.error("Error fetching availability:", error.message);

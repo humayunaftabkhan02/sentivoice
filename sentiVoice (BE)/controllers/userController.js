@@ -29,6 +29,13 @@ exports.signup = async (req, res) => {
            ────────────────────────────────────────
            • every therapist gets isTherapistApproved:false
            • other roles omit the flag (so schema default applies) */
+    const info = {
+      firstName: firstName?.trim() || '',
+      lastName: lastName?.trim() || ''
+    };
+    if (cleanRole === 'therapist' && req.file) {
+      info.cvDocument = `/uploads/attachments/${req.file.filename}`;
+    }
     const newUser = new User({
       username,
       email: email.toLowerCase(),
@@ -38,10 +45,7 @@ exports.signup = async (req, res) => {
       isEmailVerified: false,
       emailVerificationToken: verificationToken,
       emailVerificationExpires: verificationExpires,
-      info: {
-        firstName: firstName?.trim() || '',
-        lastName: lastName?.trim() || ''
-      }
+      info
     });
 
     await newUser.save();
@@ -66,9 +70,7 @@ exports.signup = async (req, res) => {
     });
 
   } catch (err) {
-            if (process.env.NODE_ENV === 'development') {
-          console.error('Error signing up user:', err.message);
-        }
+    console.error('Error signing up user:', err);
     return res.status(500).json({ error: 'Error signing up user' });
   }
 };
@@ -492,6 +494,19 @@ exports.updateProfile = async (req, res) => {
       console.log('✅ Available slots updated:', user.info.availableSlots);
     }
 
+    /* Handle availability (new structure) if sent as JSON string or object */
+    if (typeof data.availability === 'string') {
+      try {
+        user.info.availability = JSON.parse(data.availability);
+        console.log('✅ Availability updated:', user.info.availability);
+      } catch (e) {
+        return res.status(400).json({ error: 'Invalid availability format' });
+      }
+    } else if (typeof data.availability === 'object' && data.availability !== null) {
+      user.info.availability = data.availability;
+      console.log('✅ Availability updated:', user.info.availability);
+    }
+
     /* Validate availableSlots if provided */
     if (user.info.availableSlots && Array.isArray(user.info.availableSlots) && user.info.availableSlots.length) {
       const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -583,9 +598,13 @@ exports.getAllTherapists = async (_req, res) => {
       const hasEmail = therapist.email && therapist.email.toString().trim() !== '';
       
       // Also check if they have at least one availability slot
-      const hasAvailability = info.availableSlots && 
-        Array.isArray(info.availableSlots) && 
-        info.availableSlots.length > 0;
+      const hasAvailability = (
+        info.availability &&
+        (
+          (Array.isArray(info.availability.inPerson) && info.availability.inPerson.length > 0) ||
+          (Array.isArray(info.availability.online) && info.availability.online.length > 0)
+        )
+      );
       
       return hasCompleteProfile && hasAvailability && hasEmail;
     });
@@ -597,9 +616,9 @@ exports.getAllTherapists = async (_req, res) => {
     
     return res.status(200).json({ therapists: therapistsWithPictures });
   } catch (err) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error fetching therapists:', err.message);
-    }
+            if (process.env.NODE_ENV === 'development') {
+          console.error('Error fetching therapists:', err.message);
+        }
     return res.status(500).json({ error: 'Server error' });
   }
 };
@@ -645,10 +664,14 @@ exports.checkTherapistProfileComplete = async (req, res) => {
     // Also check if email exists (stored at root level)
     const hasEmail = therapist.email && therapist.email.toString().trim() !== '';
     
-    // Also check if they have at least one availability slot
-    const hasAvailability = info.availableSlots && 
-      Array.isArray(info.availableSlots) && 
-      info.availableSlots.length > 0;
+    // Also check if they have at least one availability slot (new schema)
+    const hasAvailability = (
+      info.availability &&
+      (
+        (Array.isArray(info.availability.inPerson) && info.availability.inPerson.length > 0) ||
+        (Array.isArray(info.availability.online) && info.availability.online.length > 0)
+      )
+    );
     
     const isComplete = hasCompleteProfile && hasAvailability && hasEmail;
     

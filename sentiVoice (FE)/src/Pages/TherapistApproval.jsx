@@ -188,6 +188,8 @@ export default function TherapistApproval() {
     }
   };
 
+  const apiOrigin = import.meta.env.VITE_API_ORIGIN || "${import.meta.env.VITE_API_URL}";
+
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <AdminSidebar 
@@ -413,21 +415,14 @@ export default function TherapistApproval() {
                                 <span>{therapist.info.specialization}</span>
                               </div>
                             )}
-                            {therapist.createdAt && (
-                              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                                <FaCalendarAlt className="text-gray-400" />
-                                <span>Applied: {formatDate(therapist.createdAt)}</span>
+                            {therapist.info?.bio && (
+                              <div className="mb-4">
+                                <p className="text-sm text-gray-600 line-clamp-2">
+                                  {therapist.info.bio}
+                                </p>
                               </div>
                             )}
                           </div>
-
-                          {therapist.info?.bio && (
-                            <div className="mb-4">
-                              <p className="text-sm text-gray-600 line-clamp-2">
-                                {therapist.info.bio}
-                              </p>
-                            </div>
-                          )}
                         </div>
 
                         <div className="flex items-center space-x-3 ml-6">
@@ -455,6 +450,17 @@ export default function TherapistApproval() {
                             )}
                             <span>{approving === therapist.username ? 'Approving...' : 'Approve'}</span>
                           </button>
+                          {therapist.info?.cvDocument && (
+                            <a
+                              href={`${apiOrigin.replace(/\/$/, "")}/${therapist.info.cvDocument.replace(/^\//, "").replace(/\\/g, "/")}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg shadow-sm hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
+                            >
+                              <FaEye className="w-4 h-4 mr-2" />
+                              View CV / Document
+                            </a>
+                          )}
                         </div>
                       </div>
               </div>

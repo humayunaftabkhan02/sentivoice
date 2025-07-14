@@ -48,7 +48,8 @@ exports.createPayment = async (req, res) => {
       method,
       referenceNo,
       receiptUrl: `uploads/${req.file.filename}`,
-      bookingInfo: { date, time, therapistUsername }
+      bookingInfo: { date, time, therapistUsername },
+      sessionType: req.body.sessionType // Store sessionType in Payment
     };
 
     // Add voice recording data if provided
@@ -62,6 +63,12 @@ exports.createPayment = async (req, res) => {
     }
 
     const payment = await Payment.create(paymentData);
+
+    // Notify patient: payment uploaded, pending admin approval
+    await Notification.create({
+      recipientUsername: patientUsername,
+      message: `Your payment receipt has been uploaded. Your appointment is now pending payment approval from an admin.`,
+    });
 
     res.status(201).json({ message: "Payment uploaded; pending admin review", payment });
   } catch (err) {
@@ -134,6 +141,9 @@ exports.listPending = async (_req, res) => {
       th?.info?.firstName && th?.info?.lastName
         ? `Dr. ${th.info.firstName} ${th.info.lastName}`
         : `Dr. ${therapistUname || "N/A"}`;
+
+    // Ensure createdAt is present (it should be by default, but make explicit)
+    p.requestedAt = p.createdAt;
   }
 
   res.json(pending);
@@ -142,13 +152,46 @@ exports.listPending = async (_req, res) => {
 // GET  /api/admin/payment-history   – all Approved or Declined
 exports.listHistory = async (_req, res) => {
   const payments = await Payment.find({
-    status: { $in: ["Approved", "Declined", "Refunded"] }
+    status: { $in: ["Pending", "Approved", "Declined", "Refund Pending", "Refunded"] }
   })
   .sort({ updatedAt: -1 })
   .lean();
 
-  // attach patient & therapist full names
+  // attach patient & therapist full names and booking status
   for (let p of payments) {
+    const patient = await User.findOne({ username: p.patientUsername });
+    p.patientFullName =
+      patient?.info?.firstName && patient?.info?.lastName
+        ? `${patient.info.firstName} ${patient.info.lastName}`
+        : p.patientUsername;
+
+    const tUname = p.bookingInfo?.therapistUsername;
+    const th     = tUname ? await User.findOne({ username: tUname }) : null;
+    p.therapistFullName =
+      th?.info?.firstName && th?.info?.lastName
+        ? `Dr. ${th.info.firstName} ${th.info.lastName}`
+        : `Dr. ${tUname || "N/A"}`;
+
+    // Ensure createdAt is present (it should be by default, but make explicit)
+    p.requestedAt = p.createdAt;
+
+    // Add booking status if appointment exists
+    if (p.appointmentId) {
+      const appt = await Appointment.findById(p.appointmentId);
+      p.bookingStatus = appt ? appt.status : 'N/A';
+    } else {
+      p.bookingStatus = 'N/A';
+    }
+  }
+
+  res.json(payments);
+};
+
+// GET /api/admin/refund-requests - List all payments with status 'Refund Pending'
+exports.listRefundRequests = async (_req, res) => {
+  const refunds = await Payment.find({ status: 'Refund Pending' }).sort({ updatedAt: -1 }).lean();
+
+  for (let p of refunds) {
     const patient = await User.findOne({ username: p.patientUsername });
     p.patientFullName =
       patient?.info?.firstName && patient?.info?.lastName
@@ -163,7 +206,7 @@ exports.listHistory = async (_req, res) => {
         : `Dr. ${tUname || "N/A"}`;
   }
 
-  res.json(payments);
+  res.json(refunds);
 };
 
 // PUT /api/admin/payments/:id/refund   – mark a Declined payment as Refunded
@@ -173,8 +216,8 @@ exports.markRefunded = async (req, res) => {
   const payment = await Payment.findById(id);
   if (!payment) return res.status(404).json({ error: "Payment not found" });
 
-  if (payment.status !== "Declined")
-    return res.status(400).json({ error: "Only declined payments can be refunded" });
+  if (payment.status !== "Declined" && payment.status !== "Refund Pending")
+    return res.status(400).json({ error: "Only declined or refund pending payments can be refunded" });
 
   payment.status = "Refunded";
   await payment.save();
@@ -221,7 +264,8 @@ exports.updateStatus = async (req, res) => {
         status: "Pending",
         initiatorRole: "patient",
         paymentId: payment._id,
-        paymentVerified: true
+        paymentVerified: true,
+        sessionType: payment.sessionType // Pass sessionType to Appointment
       });
 
       // Notify patient & therapist of appointment creation
@@ -367,18 +411,24 @@ exports.updateStatus = async (req, res) => {
     }
   }
 
-  // Notify patient of payment decision
+  // After payment status update (approval/decline/refund), notify patient
   if (status === "Approved") {
     await Notification.create({
       recipientUsername: payment.patientUsername,
-      message: `Your payment has been accepted. Your appointment request is now pending therapist approval.`,
-      appointmentId: payment.appointmentId || null
+      message: `Your payment was approved. Appointment booked for ${payment.bookingInfo.date} at ${payment.bookingInfo.time}.`,
+      paymentId: payment._id,
     });
   } else if (status === "Declined") {
     await Notification.create({
       recipientUsername: payment.patientUsername,
-      message: `Your payment has been declined by the admin. If you were charged, you should receive a refund within 5 business days.`,
-      appointmentId: null
+      message: `Your payment was declined. Please review and resubmit your payment details.`,
+      paymentId: payment._id,
+    });
+  } else if (status === "Refunded") {
+    await Notification.create({
+      recipientUsername: payment.patientUsername,
+      message: `Your payment has been refunded. Please check your account.`,
+      paymentId: payment._id,
     });
   }
 

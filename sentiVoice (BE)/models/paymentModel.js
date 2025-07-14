@@ -38,7 +38,10 @@ const paymentSchema = new mongoose.Schema(
       emotionResult: String,
       reportSent: { type: Boolean, default: false }
     },
-    status : { type: String, enum: ["Pending", "Approved", "Declined", "Refunded"], default: "Pending" }
+    status : { type: String, enum: ["Pending", "Approved", "Declined", "Refund Pending", "Refunded"], default: "Pending" },
+    sessionType: { type: String }, // Add sessionType to store the session type selected by the patient
+    refundNote: { type: String }, // Optional note for refund reason/details
+    refundReference: { type: String }, // Optional reference for refund transaction
   },
   { timestamps: true }
 );

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import TherapistSidebar from "../Components/TherapistSidebar/TherapistSidebar.jsx";
 import NotificationBell from '../Components/NotificationBell/NotificationBell.jsx';
 import MessageIcon from "../Components/MessageIcon/MessageIcon.jsx";
+import UserTopBar from '../Components/UserTopBar';
 import { api } from "../utils/api";
 
 const TherapistReports = () => {
@@ -13,6 +14,7 @@ const TherapistReports = () => {
   const [filteredReports, setFilteredReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [profilePicture, setProfilePicture] = useState(null);
 
   // Filter states
   const [showFilters, setShowFilters] = useState(false);
@@ -30,14 +32,29 @@ const TherapistReports = () => {
     const storedUsername = localStorage.getItem('username');
     if (storedUsername) {
       setUsername(storedUsername);
-      // Fetch user info for display name
+      // Fetch user info for display name and profile picture
       api.get(`/user-info/${storedUsername}`)
         .then(data => {
           if (data.user?.info?.firstName && data.user?.info?.lastName) {
             setFullName(`${data.user.info.firstName} ${data.user.info.lastName}`);
           }
+          const pic = data.user?.info?.profilePicture;
+          if (pic) {
+            if (pic.startsWith('data:image')) {
+              setProfilePicture(pic);
+            } else if (pic.startsWith('/uploads/')) {
+              const filename = pic.split('/').pop();
+              api.get(`/uploads/profile-pictures/${filename}`)
+                .then(response => {
+                  if (response.image) setProfilePicture(response.image);
+                })
+                .catch(() => setProfilePicture(null));
+            } else {
+              setProfilePicture(pic);
+            }
+          }
         })
-        .catch(console.error);
+        .catch(() => setProfilePicture(null));
       
       // Fetch reports
       fetchReports(storedUsername);
@@ -171,7 +188,7 @@ const TherapistReports = () => {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch(`http://localhost:3000/api/reports/download/${reportId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/reports/download/${reportId}`, {
         method: 'GET',
         headers
       });
@@ -273,30 +290,14 @@ const TherapistReports = () => {
       {/* Main Content */}
       <div className="flex-1 p-8 space-y-6 ml-64">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-800 mb-2">
-              Patient Reports
+              Reports
             </h1>
-            <p className="text-gray-600">
-              View and manage all patient reports and analysis results
-            </p>
+            <p className="text-gray-600">View and download your patient reports</p>
           </div>
-          <div className="flex items-center space-x-4">
-            <NotificationBell username={username} />
-            <div className="relative cursor-pointer">
-              <MessageIcon username={username} />
-            </div>
-            <div
-              className="flex items-center space-x-2 cursor-pointer hover:opacity-80"
-              onClick={() => navigate("/th-settings")}
-            >
-              <FaUser className="text-2xl text-gray-600" />
-              <span className="ml-2 text-lg text-gray-700">
-                Dr.&nbsp;{fullName}
-              </span>
-            </div>
-          </div>
+          <UserTopBar username={username} fullName={fullName} role={"therapist"} profilePicture={profilePicture} />
         </div>
 
         {/* Stats Cards */}

@@ -32,6 +32,7 @@ import CancelModal from "../Components/CancelModal/CancelModal.jsx";
 import MessageIcon from "../Components/MessageIcon/MessageIcon.jsx";
 import { api } from "../utils/api";
 import TherapistSidebar from '../Components/TherapistSidebar/TherapistSidebar.jsx';
+import UserTopBar from '../Components/UserTopBar';
 
 // Utility to convert "HH:MM AM/PM" to 24-hour "HH:MM"
 const parseTimeTo24Hour = (timeStr) => {
@@ -58,6 +59,7 @@ const TherapistAppointmentCalendar = () => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelAppId, setCancelAppId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [profilePicture, setProfilePicture] = useState(null);
 
   // schedule modal
   const [scheduleModalIsOpen, setScheduleModalIsOpen] = useState(false);
@@ -87,8 +89,23 @@ const TherapistAppointmentCalendar = () => {
           if (data.user?.info?.firstName && data.user?.info?.lastName) {
             setFullName(`${data.user.info.firstName} ${data.user.info.lastName}`);
           }
+          const pic = data.user?.info?.profilePicture;
+          if (pic) {
+            if (pic.startsWith('data:image')) {
+              setProfilePicture(pic);
+            } else if (pic.startsWith('/uploads/')) {
+              const filename = pic.split('/').pop();
+              api.get(`/uploads/profile-pictures/${filename}`)
+                .then(response => {
+                  if (response.image) setProfilePicture(response.image);
+                })
+                .catch(() => setProfilePicture(null));
+            } else {
+              setProfilePicture(pic);
+            }
+          }
         })
-        .catch(console.error);
+        .catch(() => setProfilePicture(null));
     }
   }, []);
 
@@ -245,30 +262,14 @@ const TherapistAppointmentCalendar = () => {
       {/* Main Content */}
       <div className="flex-1 p-8 space-y-6 ml-64">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">
               Appointment Calendar
             </h1>
-            <p className="text-gray-600 mt-2">
-              Manage your appointments and schedule
-            </p>
+            <p className="text-gray-600">Manage and view your therapy appointments</p>
           </div>
-          <div className="flex items-center space-x-4">
-            <NotificationBell username={username} />
-            <div className="relative cursor-pointer">
-              <MessageIcon username={username} />
-            </div>
-            <div
-              className="flex items-center space-x-2 cursor-pointer hover:opacity-80"
-              onClick={() => navigate("/th-settings")}
-            >
-              <FaUser className="text-2xl" />
-              <span className="ml-2 text-lg">
-                Dr. {fullName}
-              </span>
-            </div>
-          </div>
+          <UserTopBar username={username} fullName={fullName} role={"therapist"} profilePicture={profilePicture} />
         </div>
 
         {/* Stats Cards */}
@@ -440,6 +441,12 @@ const TherapistAppointmentCalendar = () => {
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <p className="text-sm text-gray-600">Time</p>
                   <p className="font-semibold">{selectedAppointment.time}</p>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg col-span-2">
+                  <p className="text-sm text-gray-600">Session Type</p>
+                  <p className="font-semibold">
+                    {selectedAppointment.sessionType === 'in-person' ? 'In-person' : selectedAppointment.sessionType === 'online' ? 'Online' : 'N/A'}
+                  </p>
                 </div>
               </div>
 

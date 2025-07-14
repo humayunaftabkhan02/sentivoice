@@ -186,7 +186,9 @@ router.post('/predict', authenticate, upload.single('audio'), async (req, res) =
 });
 
 // Public routes (no authentication required)
+const uploadAttachment = require('./middleware/uploadAttachment');
 router.post('/signup', [
+  uploadAttachment.single('cvDocument'),
   sanitizeEmail('email'),
   sanitizeUsername('username'),
   sanitizePassword('password'),
@@ -335,8 +337,6 @@ function getMimeType(filename) {
 
 router.get('/appointments/booked', authenticate, appointmentController.getBookedTimes);
 
-// Import attachment upload middleware
-const uploadAttachment = require('./middleware/uploadAttachment');
 
 router.post("/messages", [
   authenticate,

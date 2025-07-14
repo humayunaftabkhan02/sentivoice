@@ -20,6 +20,7 @@ import MessageIcon from "../Components/MessageIcon/MessageIcon.jsx";
 import { api } from "../utils/api";
 import PatientSidebar from '../Components/PatientSidebar/PatientSidebar.jsx';
 import { useNavigate } from 'react-router-dom';
+import UserTopBar from '../Components/UserTopBar';
 
 const AppointmentHistory = () => {
   const [username, setUsername] = useState("");
@@ -34,6 +35,7 @@ const AppointmentHistory = () => {
   const [sortOrder, setSortOrder] = useState("desc");
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [profilePicture, setProfilePicture] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -42,6 +44,25 @@ const AppointmentHistory = () => {
       setUsername(storedUsername);
       fetchAppointments(storedUsername);
       fetchUserData(storedUsername);
+      api.get(`/user-info/${storedUsername}`)
+        .then(data => {
+          const pic = data.user?.info?.profilePicture;
+          if (pic) {
+            if (pic.startsWith('data:image')) {
+              setProfilePicture(pic);
+            } else if (pic.startsWith('/uploads/')) {
+              const filename = pic.split('/').pop();
+              api.get(`/uploads/profile-pictures/${filename}`)
+                .then(response => {
+                  if (response.image) setProfilePicture(response.image);
+                })
+                .catch(() => setProfilePicture(null));
+            } else {
+              setProfilePicture(pic);
+            }
+          }
+        })
+        .catch(() => setProfilePicture(null));
     }
   }, []);
 
@@ -76,10 +97,7 @@ const AppointmentHistory = () => {
   const filteredAppointments = appointments
     .filter(appt => {
       const matchesSearch = 
-        appt.therapistFullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        appt.therapistUsername?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        appt.date?.includes(searchTerm) ||
-        appt.time?.toLowerCase().includes(searchTerm.toLowerCase());
+        appt.therapistFullName?.toLowerCase().includes(searchTerm.toLowerCase());
       
       let matchesStatus = true;
       if (statusFilter !== "all") {
@@ -100,7 +118,7 @@ const AppointmentHistory = () => {
           comparison = new Date(a.date) - new Date(b.date);
           break;
         case "therapist":
-          comparison = (a.therapistFullName || a.therapistUsername || "").localeCompare(b.therapistFullName || b.therapistUsername || "");
+          comparison = (a.therapistFullName || "").localeCompare(b.therapistFullName || "");
           break;
         case "status":
           comparison = a.status.localeCompare(b.status);
@@ -181,8 +199,8 @@ const AppointmentHistory = () => {
       ...filteredAppointments.map(appt => [
         formatDate(appt.date),
         formatTime(appt.time),
-        appt.therapistFullName || appt.therapistUsername,
-        appt.sessionType || 'N/A',
+        appt.therapistFullName,
+        appt.sessionType === 'in-person' ? 'In-person' : appt.sessionType === 'online' ? 'Online' : 'N/A',
         appt.status,
         appt.notes || 'N/A'
       ].join(','))
@@ -221,16 +239,7 @@ const AppointmentHistory = () => {
             </h1>
             <p className="text-gray-600 mt-1">Track your therapy sessions and appointments</p>
           </div>
-          <div className="flex items-center space-x-4">
-            <NotificationBell username={username} />
-            <div className="relative cursor-pointer">
-              <MessageIcon username={username} />
-            </div>
-            <div className="flex items-center space-x-2">
-              <FaUser className="text-2xl text-gray-600" />
-              <span className="ml-2 text-lg font-medium">{fullName}</span>
-            </div>
-          </div>
+          <UserTopBar username={username} fullName={fullName} role={"patient"} profilePicture={profilePicture} />
         </div>
 
         {/* Statistics Cards */}
@@ -408,17 +417,14 @@ const AppointmentHistory = () => {
                             </div>
                             <div>
                               <div className="text-sm font-medium text-gray-900">
-                                {appointment.therapistFullName || appointment.therapistUsername}
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                {appointment.therapistUsername}
+                                {appointment.therapistFullName}
                               </div>
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">
-                            {appointment.sessionType || "Standard Session"}
+                            {appointment.sessionType === 'in-person' ? 'In-person' : appointment.sessionType === 'online' ? 'Online' : 'N/A'}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -519,44 +525,45 @@ const AppointmentHistory = () => {
 
         {/* Appointment Details Modal */}
         {showDetails && selectedAppointment && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-              <div className="mt-3">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium text-gray-900">Appointment Details</h3>
-                  <button
-                    onClick={() => setShowDetails(false)}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    <FaTimesCircle />
-                  </button>
+          <>
+            {/* Overlay */}
+            <div className="fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-300 animate-fadeIn" style={{ background: 'rgba(0,0,0,0.10)' }}>
+              <div className="fixed left-64 top-0 w-[calc(100vw-16rem)] h-full flex items-center justify-center pointer-events-none">
+                {/* Modal Content */}
+                <div
+                  className="relative bg-white bg-opacity-95 rounded-2xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto border-2 border-gray-300 p-6 transform transition-all duration-300 animate-scaleIn pointer-events-auto"
+                  role="dialog"
+                  aria-modal="true"
+                  tabIndex={-1}
+                >
+                {/* Close Button */}
+                <button
+                  onClick={() => setShowDetails(false)}
+                  className="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-2xl focus:outline-none focus:ring-2 focus:ring-red-400 rounded-full transition-colors duration-200"
+                  aria-label="Close modal"
+                >
+                  <FaTimesCircle />
+                </button>
+                <div className="mb-4">
+                  <h3 className="text-2xl font-semibold text-gray-900">Appointment Details</h3>
                 </div>
-                
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Date</label>
                     <p className="text-sm text-gray-900">{formatDate(selectedAppointment.date)}</p>
                   </div>
-                  
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Time</label>
                     <p className="text-sm text-gray-900">{formatTime(selectedAppointment.time)}</p>
                   </div>
-                  
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Therapist</label>
-                    <p className="text-sm text-gray-900">
-                      {selectedAppointment.therapistFullName || selectedAppointment.therapistUsername}
-                    </p>
+                    <p className="text-sm text-gray-900">{selectedAppointment.therapistFullName}</p>
                   </div>
-                  
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Session Type</label>
-                    <p className="text-sm text-gray-900">
-                      {selectedAppointment.sessionType || "Standard Session"}
-                    </p>
+                    <p className="text-sm text-gray-900">{selectedAppointment.sessionType === 'in-person' ? 'In-person' : selectedAppointment.sessionType === 'online' ? 'Online' : 'N/A'}</p>
                   </div>
-                  
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Status</label>
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(selectedAppointment.status)}`}>
@@ -564,7 +571,6 @@ const AppointmentHistory = () => {
                       <span className="ml-1">{selectedAppointment.status}</span>
                     </span>
                   </div>
-                  
                   {selectedAppointment.notes && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Notes</label>
@@ -572,11 +578,10 @@ const AppointmentHistory = () => {
                     </div>
                   )}
                 </div>
-                
                 <div className="mt-6 flex justify-end space-x-3">
                   <button
                     onClick={() => setShowDetails(false)}
-                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
                   >
                     Close
                   </button>
@@ -584,6 +589,14 @@ const AppointmentHistory = () => {
               </div>
             </div>
           </div>
+            <style>{`
+              @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+              .animate-fadeIn { animation: fadeIn 0.2s ease; }
+              @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+              .animate-scaleIn { animation: scaleIn 0.2s cubic-bezier(0.4,0,0.2,1); }
+              body { overflow: hidden !important; }
+            `}</style>
+          </>
         )}
       </div>
     </div>

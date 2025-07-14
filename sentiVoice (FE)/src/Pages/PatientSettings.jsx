@@ -26,6 +26,7 @@ import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { api } from "../utils/api";
 import { handleAuthError } from "../utils/auth";
 import PatientSidebar from '../Components/PatientSidebar/PatientSidebar.jsx';
+import UserTopBar from '../Components/UserTopBar';
 
 const PatientSettings = () => {
   const [username, setUsername] = useState("");
@@ -385,19 +386,12 @@ const PatientSettings = () => {
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">Patient Settings</h1>
-            <p className="text-gray-600 mt-1">Manage your profile and preferences</p>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+              Account Settings
+            </h1>
+            <p className="text-gray-600">Manage your personal and medical information</p>
           </div>
-          <div className="flex items-center space-x-4">
-          <NotificationBell username={username} />
-              <div className="relative cursor-pointer">
-                <MessageIcon username={username} />
-              </div>
-            <div className="flex items-center space-x-2">
-              <FaUser className="text-2xl text-gray-600" />
-              <span className="ml-2 text-lg font-medium">{fullName}</span>
-            </div>
-          </div>
+          <UserTopBar username={username} fullName={fullName} role={"patient"} profilePicture={profileImagePreview} />
         </div>
 
         {/* Success/Error Messages */}

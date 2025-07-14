@@ -28,6 +28,7 @@ import AudioRecorderComponent from "../Components/AudioRecorder/AudioRecorder.js
 import { api } from "../utils/api";
 import PatientSidebar from '../Components/PatientSidebar/PatientSidebar.jsx';
 import TherapistSelection from '../Components/TherapistSelection/TherapistSelection.jsx';
+import UserTopBar from '../Components/UserTopBar';
 
 const checkDuplicateBooking = async (patientUsername, therapistUsername) => {
   try {
@@ -94,6 +95,7 @@ const BookAppointment = () => {
   const [timer, setTimer] = useState(0);
   const [timerActive, setTimerActive] = useState(false);
   const [patientData, setPatientData] = useState(null);
+  const [profilePicture, setProfilePicture] = useState(null);
 
   // Payment state
   const [paymentMethod, setPaymentMethod] = useState("");
@@ -145,22 +147,22 @@ const BookAppointment = () => {
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    let interval;
-    if (timerActive && timer > 0) {
-      interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
-      }, 1000);
-    } else if (timer === 0) {
-      setTimerActive(false);
-    }
-    return () => clearInterval(interval);
-  }, [timerActive, timer]);
+useEffect(() => {
+  let interval;
+  if (timerActive && timer > 0) {
+    interval = setInterval(() => {
+      setTimer((prev) => prev - 1);
+    }, 1000);
+  } else if (timer === 0) {
+    setTimerActive(false);
+  }
+  return () => clearInterval(interval);
+}, [timerActive, timer]);
 
   useEffect(() => {
     if (therapistUsername && date) {
-      api.get(`/appointments/booked?therapist=${therapistUsername}&date=${date}`)
-        .then(data => {
+              api.get(`/appointments/booked?therapist=${therapistUsername}&date=${date}`)
+          .then(data => {
           setBookedSlots(data.bookedTimes || []);
         })
         .catch(console.error);
@@ -191,12 +193,12 @@ const BookAppointment = () => {
   useEffect(() => {
     const storedUsername = localStorage.getItem("username");
     if (storedUsername) {
-      api.get(`/user-info/${storedUsername}`)
-        .then((data) => {
-          if (data.user?.info?.firstName && data.user?.info?.lastName) {
-            setFullName(`${data.user.info.firstName} ${data.user.info.lastName}`);
-          }
-        });
+          api.get(`/user-info/${storedUsername}`)
+      .then((data) => {
+        if (data.user?.info?.firstName && data.user?.info?.lastName) {
+          setFullName(`${data.user.info.firstName} ${data.user.info.lastName}`);
+        }
+      });
     }
   }, []);
 
@@ -236,6 +238,31 @@ const BookAppointment = () => {
       .finally(() => {
         setLoadingPaymentSettings(false);
       });
+  }, []);
+
+  useEffect(() => {
+    const storedUsername = localStorage.getItem("username");
+    if (storedUsername) {
+      api.get(`/user-info/${storedUsername}`)
+        .then(data => {
+          const pic = data.user?.info?.profilePicture;
+          if (pic) {
+            if (pic.startsWith('data:image')) {
+              setProfilePicture(pic);
+            } else if (pic.startsWith('/uploads/')) {
+              const filename = pic.split('/').pop();
+              api.get(`/uploads/profile-pictures/${filename}`)
+                .then(response => {
+                  if (response.image) setProfilePicture(response.image);
+                })
+                .catch(() => setProfilePicture(null));
+            } else {
+              setProfilePicture(pic);
+            }
+          }
+        })
+        .catch(() => setProfilePicture(null));
+    }
   }, []);
 
   const nextStep = () => {
@@ -311,6 +338,12 @@ const BookAppointment = () => {
       fd.append("therapistUsername", therapistUsername);
       fd.append("date", date);
       fd.append("time", time);
+      // Normalize sessionType to 'in-person' or 'online'
+      let normalizedSessionType = sessionType.trim().toLowerCase();
+      if (normalizedSessionType === 'in-person session' || normalizedSessionType === 'in-person') normalizedSessionType = 'in-person';
+      else if (normalizedSessionType === 'online session' || normalizedSessionType === 'online') normalizedSessionType = 'online';
+      else normalizedSessionType = '';
+      fd.append("sessionType", normalizedSessionType);
       
       // Add voice recording data if available
       if (voiceRecordingData && voiceFileName) {
@@ -420,24 +453,10 @@ const BookAppointment = () => {
           <div>
             <h1 className="text-3xl font-bold text-gray-800 mb-2">
               Book Your Session
-            </h1>
+          </h1>
             <p className="text-gray-600">Schedule your therapy appointment in just a few steps</p>
           </div>
-          <div className="flex items-center space-x-4">
-            <NotificationBell username={username} />
-            <div className="relative cursor-pointer">
-              <MessageIcon username={username} />
-            </div>
-            <div
-              className="flex items-center space-x-3 cursor-pointer hover:bg-white/50 rounded-lg px-3 py-2 transition-colors"
-              onClick={() => navigate("/pa-settings")}
-            >
-              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                <FaUser className="text-white text-sm" />
-              </div>
-              <span className="text-gray-700 font-medium">{savedFullName || username}</span>
-            </div>
-          </div>
+          <UserTopBar username={username} fullName={fullName} role={role} profilePicture={profilePicture} />
         </div>
 
         {/* Progress Steps */}
@@ -446,19 +465,19 @@ const BookAppointment = () => {
             {[1, 2, 3, 4].map((stepNumber) => (
               <div key={stepNumber} className="flex items-center">
                 <div className="flex flex-col items-center">
-                  <div
+                <div
                     className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
-                      step >= stepNumber
+                    step >= stepNumber
                         ? "bg-blue-600 text-white shadow-lg"
                         : "bg-gray-200 text-gray-500"
-                    }`}
-                  >
+                  }`}
+                >
                     {step > stepNumber ? (
                       <FaCheck className="text-white" />
                     ) : (
                       stepNumber
                     )}
-                  </div>
+                </div>
                   <div className="mt-2 text-center">
                     <div className={`text-xs font-medium ${
                       step >= stepNumber ? "text-blue-600" : "text-gray-500"
@@ -502,40 +521,40 @@ const BookAppointment = () => {
                     {Math.round((step / 4) * 100)}% Complete
                   </div>
                 </div>
-              </div>
-            </div>
+          </div>
+        </div>
 
             {/* Step Content */}
             <div className="p-8">
-              {step === 1 && (
+            {step === 1 && (
                 <div className="space-y-6">
                   {/* Personal Information */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
+              <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         <FaUser className="inline mr-2 text-blue-600" />
                         Full Name
                       </label>
-                      <input
-                        type="text"
+                  <input
+                    type="text"
                         placeholder="Enter your full name"
                         className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                           hasStoredFullName 
                             ? 'bg-gray-50 border-gray-200 cursor-not-allowed' 
                             : 'border-gray-300 hover:border-blue-400'
                         }`}
-                        value={fullName}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          if (!hasStoredFullName && (val === "" || isValidName(val))) {
-                            setFullName(val);
-                          }
-                        }}
-                        readOnly={hasStoredFullName}
-                      />
-                      {!hasStoredFullName && fullName && !isValidName(fullName) && (
-                        <p className="text-red-500 text-sm mt-1">Only letters and spaces are allowed.</p>
-                      )}
+                    value={fullName}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (!hasStoredFullName && (val === "" || isValidName(val))) {
+                        setFullName(val);
+                      }
+                    }}
+                    readOnly={hasStoredFullName}
+                  />
+                  {!hasStoredFullName && fullName && !isValidName(fullName) && (
+                    <p className="text-red-500 text-sm mt-1">Only letters and spaces are allowed.</p>
+                  )}
                     </div>
 
                     <div>
@@ -543,28 +562,28 @@ const BookAppointment = () => {
                         <FaPhone className="inline mr-2 text-blue-600" />
                         Phone Number
                       </label>
-                      <input
-                        type="text"
+                  <input
+                    type="text"
                         placeholder="03XXXXXXXXX or +923XXXXXXXXX"
                         className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                           hasStoredPhone 
                             ? 'bg-gray-50 border-gray-200 cursor-not-allowed' 
                             : 'border-gray-300 hover:border-blue-400'
                         }`}
-                        value={phone}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          if (!hasStoredPhone && /^(\+)?[0-9]*$/.test(val)) {
-                            setPhone(val);
-                          }
-                        }}
-                        readOnly={hasStoredPhone}
-                      />
-                      {!hasStoredPhone && phone && !/^((\+92)|(0))3[0-9]{9}$/.test(phone) && (
-                        <p className="text-red-500 text-sm mt-1">
+                    value={phone}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (!hasStoredPhone && /^(\+)?[0-9]*$/.test(val)) {
+                        setPhone(val);
+                      }
+                    }}
+                    readOnly={hasStoredPhone}
+                  />
+                  {!hasStoredPhone && phone && !/^((\+92)|(0))3[0-9]{9}$/.test(phone) && (
+                    <p className="text-red-500 text-sm mt-1">
                           Invalid phone number. Use 03XXXXXXXXX or +923XXXXXXXXX format.
-                        </p>
-                      )}
+                    </p>
+                  )}
                     </div>
                   </div>
 
@@ -580,13 +599,20 @@ const BookAppointment = () => {
                       onTherapistSelect={(username) => {
                         setTherapistUsername(username);
                         const selectedTherapist = therapistList.find(t => t.username === username);
-                        if (selectedTherapist?.info?.availableSlots) {
-                          setAvailableSlots(selectedTherapist.info.availableSlots);
+                        // Set available slots based on current sessionType
+                        if (selectedTherapist?.info?.availability) {
+                          if (sessionType === 'in-person') {
+                            setAvailableSlots(selectedTherapist.info.availability.inPerson || []);
+                          } else if (sessionType === 'online') {
+                            setAvailableSlots(selectedTherapist.info.availability.online || []);
+                          } else {
+                            setAvailableSlots([]);
+                          }
                         } else {
                           setAvailableSlots([]);
                         }
                       }}
-                      onAvailabilityUpdate={(slots) => setAvailableSlots(slots)}
+                      onAvailabilityUpdate={() => {}}
                     />
                   </div>
 
@@ -596,16 +622,31 @@ const BookAppointment = () => {
                       <FaComments className="inline mr-2 text-blue-600" />
                       Session Type
                     </label>
-                    <select
-                      value={sessionType}
-                      onChange={(e) => setSessionType(e.target.value)}
-                      className="w-full px-4 py-3 rounded-lg border-2 border-gray-300 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      required
-                    >
-                      <option value="">Select session type</option>
-                      <option value="Online">Online Session</option>
-                      <option value="In-person">In-person Session</option>
-                    </select>
+                  <select
+                    value={sessionType}
+                    onChange={(e) => {
+                      setSessionType(e.target.value);
+                      // Update available slots based on session type and selected therapist
+                      const selectedTherapist = therapistList.find(t => t.username === therapistUsername);
+                      if (selectedTherapist?.info?.availability) {
+                        if (e.target.value === 'in-person' || e.target.value === 'In-person') {
+                          setAvailableSlots(selectedTherapist.info.availability.inPerson || []);
+                        } else if (e.target.value === 'online' || e.target.value === 'Online') {
+                          setAvailableSlots(selectedTherapist.info.availability.online || []);
+                        } else {
+                          setAvailableSlots([]);
+                        }
+                      } else {
+                        setAvailableSlots([]);
+                      }
+                    }}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  >
+                      <option value="">Select Session Type</option>
+                      <option value="online">Online</option>
+                      <option value="in-person">In-person</option>
+                  </select>
                   </div>
 
                   {/* Date and Time Selection */}
@@ -615,24 +656,24 @@ const BookAppointment = () => {
                         <FaCalendarAlt className="inline mr-2 text-blue-600" />
                         Appointment Date
                       </label>
-                      <input
-                        type="date"
+                  <input
+                      type="date"
                         className="w-full px-4 py-3 rounded-lg border-2 border-gray-300 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                        value={date}
-                        onChange={(e) => {
-                          const selected = e.target.value;
+                      value={date}
+                      onChange={(e) => {
+                        const selected = e.target.value;
                           setDate(selected);
                           setSelectedDate(selected);
-                          const selectedDay = new Date(selected).toLocaleDateString("en-US", {
-                            weekday: "long"
-                          });
-                          setSelectedDay(selectedDay);
-                        }}
-                        required
-                        min={new Date().toISOString().split("T")[0]}
-                        max={new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split("T")[0]}
-                        onKeyDown={(e) => e.preventDefault()}
-                      />
+                        const selectedDay = new Date(selected).toLocaleDateString("en-US", {
+                          weekday: "long"
+                        });
+                        setSelectedDay(selectedDay);
+                      }}
+                      required
+                      min={new Date().toISOString().split("T")[0]}
+                      max={new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split("T")[0]}
+                      onKeyDown={(e) => e.preventDefault()}
+                    />
                     </div>
 
                     <div>
@@ -640,61 +681,61 @@ const BookAppointment = () => {
                         <FaClock className="inline mr-2 text-blue-600" />
                         Available Time
                       </label>
-                      <select
-                        value={time}
-                        onChange={(e) => setTime(e.target.value)}
+                  <select
+                    value={time}
+                    onChange={(e) => setTime(e.target.value)}
                         className="w-full px-4 py-3 rounded-lg border-2 border-gray-300 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                        required
-                      >
+                    required
+                  >
                         <option value="">Select available time</option>
-                        {getTimesForDay(selectedDay).map((slot, idx) => {
-                          const isBooked = bookedSlots.includes(slot);
-                          return (
-                            <option key={idx} value={slot} disabled={isBooked}>
-                              {isBooked ? `🛑 ${slot} (Booked)` : slot}
-                            </option>
-                          );
-                        })}
-                      </select>
+                    {getTimesForDay(selectedDay).map((slot, idx) => {
+                      const isBooked = bookedSlots.includes(slot);
+                      return (
+                        <option key={idx} value={slot} disabled={isBooked}>
+                          {isBooked ? `🛑 ${slot} (Booked)` : slot}
+                        </option>
+                      );
+                    })}
+                  </select>
                     </div>
                   </div>
 
                   {/* Continue Button */}
                   <div className="flex justify-end pt-6">
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        if (!therapistUsername || !sessionType || !date || !time || !phone) {
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!therapistUsername || !sessionType || !date || !time || !phone) {
                           alert("Please fill out all required fields before proceeding.");
-                          return;
-                        }
-                        
-                        if (!/^((\+92)|(0))3[0-9]{9}$/.test(phone)) {
+                        return;
+                      }
+                      
+                      if (!/^((\+92)|(0))3[0-9]{9}$/.test(phone)) {
                           alert("Invalid phone number. Use 03XXXXXXXXX or +923XXXXXXXXX format.");
-                          return;
-                        }
-                      
-                        const hasDuplicate = await checkDuplicateBooking(username, therapistUsername);
-                        if (hasDuplicate) {
+                        return;
+                      }
+                    
+                      const hasDuplicate = await checkDuplicateBooking(username, therapistUsername);
+                      if (hasDuplicate) {
                           alert("You already have a pending or accepted appointment with this therapist.");
-                          return;
-                        }
-                      
-                        nextStep();
-                      }}
+                        return;
+                      }
+                    
+                      nextStep();
+                    }}
                       className="flex items-center px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl"
-                    >
+                  >
                       Continue to Payment
                       <FaArrowRight className="ml-2" />
-                    </button>
+                  </button>
                   </div>
-                </div>
-              )}
+              </div>
+            )}
 
-              {step === 2 && (
+            {step === 2 && (
                 <div className="space-y-6">
                   {/* Payment Method Selection */}
-                  <div>
+              <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       <FaCreditCard className="inline mr-2 text-blue-600" />
                       Payment Method
@@ -757,13 +798,13 @@ const BookAppointment = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Transaction Reference Number
                       </label>
-                      <input
-                        type="text"
+                    <input
+                      type="text"
                         placeholder="Enter your transaction reference number"
-                        value={referenceNo}
-                        onChange={(e) => setReferenceNo(e.target.value)}
+                      value={referenceNo}
+                      onChange={(e) => setReferenceNo(e.target.value)}
                         className="w-full px-4 py-3 rounded-lg border-2 border-gray-300 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      />
+                    />
                     </div>
                   )}
 
@@ -775,21 +816,21 @@ const BookAppointment = () => {
                         Payment Screenshot
                       </label>
                       <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files[0];
-                            if (file) {
-                              setSlipFile(file);
-                              setUploadProgress(30);
-                              setTimeout(() => setUploadProgress(70), 300);
-                              setTimeout(() => setUploadProgress(100), 600);
-                            } else {
-                              setSlipFile(null);
-                              setUploadProgress(0);
-                            }
-                          }}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            setSlipFile(file);
+                            setUploadProgress(30);
+                            setTimeout(() => setUploadProgress(70), 300);
+                            setTimeout(() => setUploadProgress(100), 600);
+                          } else {
+                            setSlipFile(null);
+                            setUploadProgress(0);
+                          }
+                        }}
                           className="hidden"
                           id="file-upload"
                         />
@@ -822,15 +863,15 @@ const BookAppointment = () => {
                               className={`h-2 rounded-full transition-all duration-300 ${
                                 uploadProgress === 100 ? 'bg-green-500' : 'bg-blue-600'
                               }`}
-                              style={{ width: `${uploadProgress}%` }}
-                            ></div>
+                            style={{ width: `${uploadProgress}%` }}
+                          ></div>
                           </div>
                           {uploadProgress === 100 && (
                             <div className="mt-2 text-sm text-green-600 flex items-center">
                               <FaCheck className="mr-1" />
                               File uploaded successfully
-                            </div>
-                          )}
+                        </div>
+                      )}
                         </div>
                       )}
 
@@ -864,8 +905,8 @@ const BookAppointment = () => {
 
                   {/* Action Buttons */}
                   <div className="flex justify-between pt-6">
-                    <button
-                      type="button"
+                  <button
+                    type="button"
                       onClick={prevStep}
                       className="flex items-center px-6 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-all duration-200"
                     >
@@ -882,7 +923,7 @@ const BookAppointment = () => {
                           ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl' 
                           : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       }`}
-                    >
+                  >
                       {step2Valid ? (
                         <>
                           Continue to Voice Recording
@@ -891,12 +932,12 @@ const BookAppointment = () => {
                       ) : (
                         'Complete payment details to continue'
                       )}
-                    </button>
-                  </div>
+                  </button>
                 </div>
-              )}
+              </div>
+            )}
 
-              {step === 3 && (
+            {step === 3 && (
                 <div className="space-y-6">
                   {/* Voice Recording Section */}
                   <div className="text-center">
@@ -913,12 +954,12 @@ const BookAppointment = () => {
 
                   {/* Audio Recorder */}
                   <div className="bg-gray-50 rounded-lg p-6">
-                    <AudioRecorderComponent
-                      therapistUsername={therapistUsername}
-                      therapistFullName={therapistList.find(t => t.username === therapistUsername)?.info?.firstName && therapistList.find(t => t.username === therapistUsername)?.info?.lastName
-                        ? `Dr. ${therapistList.find(t => t.username === therapistUsername).info.firstName} ${therapistList.find(t => t.username === therapistUsername).info.lastName}`
-                        : `Dr. ${therapistUsername}`}
-                      patientData={patientData}
+                  <AudioRecorderComponent
+                    therapistUsername={therapistUsername}
+                    therapistFullName={therapistList.find(t => t.username === therapistUsername)?.info?.firstName && therapistList.find(t => t.username === therapistUsername)?.info?.lastName
+                      ? `Dr. ${therapistList.find(t => t.username === therapistUsername).info.firstName} ${therapistList.find(t => t.username === therapistUsername).info.lastName}`
+                      : `Dr. ${therapistUsername}`}
+                    patientData={patientData}
                       onReportSent={handleReportSent}
                     />
                   </div>
@@ -936,8 +977,8 @@ const BookAppointment = () => {
 
                   {/* Action Buttons */}
                   <div className="flex justify-between pt-6">
-                    <button
-                      type="button"
+                  <button
+                    type="button"
                       onClick={prevStep}
                       className="flex items-center px-6 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-all duration-200"
                     >
@@ -954,7 +995,7 @@ const BookAppointment = () => {
                           ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl' 
                           : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       }`}
-                    >
+                  >
                       {step3Valid ? (
                         <>
                           Continue to Review
@@ -963,10 +1004,10 @@ const BookAppointment = () => {
                       ) : (
                         'Record your voice to continue'
                       )}
-                    </button>
-                  </div>
+                  </button>
                 </div>
-              )}
+              </div>
+            )}
 
               {step === 4 && (
                 <div className="space-y-6">

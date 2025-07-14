@@ -99,6 +99,9 @@ const userSchema = new mongoose.Schema(
       certifications: String, // Professional certifications and licenses
       bio: String, // Professional bio/description
       languages: String, // Languages spoken
+      
+      // CV/Document for therapist verification
+      cvDocument: String,
 
       // Contact Information
       phone: String,
@@ -107,14 +110,23 @@ const userSchema = new mongoose.Schema(
       // Profile Picture
       profilePicture: String, // Base64 encoded image or file path
 
-      // Availability
-      availableSlots: [
-        {
-          day: String,
-          start: String,
-          end: String
-        }
-      ],
+      // Availability (separate for in-person and online)
+      availability: {
+        inPerson: [
+          {
+            day: String,
+            start: String,
+            end: String
+          }
+        ],
+        online: [
+          {
+            day: String,
+            start: String,
+            end: String
+          }
+        ]
+      },
 
       // Patient-specific fields
       pastSessionSummary: {

@@ -107,7 +107,12 @@ export const generateCompletePatientReport = async (patient, appointmentHistory 
   
   if (patient.info?.therapyPlan && patient.info.therapyPlan.length > 0) {
     patient.info.therapyPlan.forEach((plan, index) => {
-      const planText = `${index + 1}. ${plan}`;
+      let planText;
+      if (typeof plan === 'object' && plan !== null) {
+        planText = `${index + 1}. ${plan.step ? plan.step : JSON.stringify(plan)}`;
+      } else {
+        planText = `${index + 1}. ${plan}`;
+      }
       const height = addTextWithSpacing(planText, margin + 10, currentY, contentWidth - 10, 11, 1.4);
       currentY += height + 8; // Add extra spacing between plan items
     });
@@ -178,6 +183,7 @@ export const generateCompletePatientReport = async (patient, appointmentHistory 
       
       currentY = addField('Date', appointment.date, currentY);
       currentY = addField('Time', appointment.time, currentY);
+      currentY = addField('Session Type', appointment.sessionType === 'in-person' ? 'In-person' : appointment.sessionType === 'online' ? 'Online' : 'N/A', currentY);
       currentY = addField('Reason', appointment.reason, currentY);
       
       // Session notes

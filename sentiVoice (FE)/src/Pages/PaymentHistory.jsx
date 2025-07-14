@@ -58,7 +58,7 @@ export default function PaymentHistory() {
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
 
-  const apiOrigin = import.meta.env.VITE_API_ORIGIN || "http://localhost:3000";
+  const apiOrigin = import.meta.env.VITE_API_ORIGIN || "${import.meta.env.VITE_API_URL}";
 
     const fetchHistory = async () => {
       try {
@@ -197,6 +197,40 @@ export default function PaymentHistory() {
     }
   };
 
+  // Add booking status badge/icon logic
+  const getBookingStatusIcon = (status) => {
+    switch (status) {
+      case 'Accepted':
+        return <FaCheckCircle className="text-green-600" />;
+      case 'Pending':
+        return <FaClock className="text-amber-600" />;
+      case 'Rejected':
+        return <FaTimesCircle className="text-red-600" />;
+      case 'Canceled':
+        return <FaBan className="text-gray-500" />;
+      case 'Finished':
+        return <FaHistory className="text-blue-600" />;
+      default:
+        return <FaClock className="text-gray-400" />;
+    }
+  };
+  const getBookingStatusBadge = (status) => {
+    switch (status) {
+      case 'Accepted':
+        return "bg-green-100 text-green-800 border-green-200";
+      case 'Pending':
+        return "bg-amber-100 text-amber-800 border-amber-200";
+      case 'Rejected':
+        return "bg-red-100 text-red-800 border-red-200";
+      case 'Canceled':
+        return "bg-gray-100 text-gray-800 border-gray-200";
+      case 'Finished':
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
+
   // Calculate statistics
   const stats = {
     total: payments.length,
@@ -230,6 +264,10 @@ export default function PaymentHistory() {
       case 'date':
         aValue = new Date(a.bookingInfo?.date || 0);
         bValue = new Date(b.bookingInfo?.date || 0);
+        break;
+      case 'request':
+        aValue = new Date(a.requestedAt || a.createdAt || 0);
+        bValue = new Date(b.requestedAt || b.createdAt || 0);
         break;
       case 'amount':
         aValue = parseFloat(a.amount) || 0;
@@ -461,6 +499,7 @@ export default function PaymentHistory() {
                   <option value="Approved">Approved</option>
                   <option value="Declined">Declined</option>
                   <option value="Refunded">Refunded</option>
+                  <option value="Refund Pending">Refund Pending</option>
                   <option value="Pending">Pending</option>
                 </select>
                 
@@ -514,8 +553,8 @@ export default function PaymentHistory() {
               <>
           <div className="space-y-4">
                   {/* Sortable Headers */}
-                  <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-gray-50 rounded-lg text-sm font-medium text-gray-700">
-                    <div className="col-span-3">
+                  <div className="grid grid-cols-14 gap-4 px-4 py-3 bg-gray-50 rounded-lg text-sm font-medium text-gray-700">
+                    <div className="col-span-2">
                       <button 
                         onClick={() => handleSort('patient')}
                         className="flex items-center space-x-1 hover:text-blue-600"
@@ -538,8 +577,17 @@ export default function PaymentHistory() {
                         onClick={() => handleSort('date')}
                         className="flex items-center space-x-1 hover:text-blue-600"
                       >
-                        <span>Date</span>
+                        <span>Appt. Date</span>
                         {getSortIcon('date')}
+                      </button>
+                    </div>
+                    <div className="col-span-2">
+                      <button 
+                        onClick={() => handleSort('request')}
+                        className="flex items-center space-x-1 hover:text-blue-600"
+                      >
+                        <span>Request Date</span>
+                        {getSortIcon('request')}
                       </button>
                     </div>
                     <div className="col-span-2">
@@ -551,7 +599,8 @@ export default function PaymentHistory() {
                         {getSortIcon('amount')}
                       </button>
                     </div>
-                    <div className="col-span-1 text-center">Status</div>
+                    <div className="col-span-1 text-center">Payment Status</div>
+                    <div className="col-span-1 text-center">Booking Status</div>
                     <div className="col-span-2 text-center">Actions</div>
                   </div>
 
@@ -559,8 +608,8 @@ export default function PaymentHistory() {
                     const safeUrl = `${apiOrigin}/${payment.receiptUrl.replace(/\\/g, "/")}`;
                     return (
                       <div key={payment._id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-                        <div className="grid grid-cols-12 gap-4 items-center">
-                          <div className="col-span-3">
+                        <div className="grid grid-cols-14 gap-4 items-center">
+                          <div className="col-span-2">
                             <div className="flex items-center space-x-3">
                               <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                                 <FaUser className="text-white text-sm" />
@@ -591,6 +640,14 @@ export default function PaymentHistory() {
                           </div>
                           
                           <div className="col-span-2">
+                            <span className="text-sm text-gray-700">
+                              {formatDate(payment.requestedAt || payment.createdAt)}
+                              {" "}
+                              <span className="text-xs text-gray-400">{payment.requestedAt ? new Date(payment.requestedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
+                            </span>
+                          </div>
+                          
+                          <div className="col-span-2">
                             <div className="flex items-center space-x-2">
                               {getPaymentMethodIcon(payment.method)}
                               <span className="font-semibold text-green-600">
@@ -603,6 +660,12 @@ export default function PaymentHistory() {
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusBadge(payment.status)}`}>
                               {getStatusIcon(payment.status)}
                               <span className="ml-1">{payment.status}</span>
+                            </span>
+                          </div>
+                          <div className="col-span-1 text-center">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getBookingStatusBadge(payment.bookingStatus)}`}>
+                              {getBookingStatusIcon(payment.bookingStatus)}
+                              <span className="ml-1">{payment.bookingStatus || 'N/A'}</span>
                             </span>
                           </div>
                           
@@ -740,122 +803,125 @@ export default function PaymentHistory() {
 
         {/* Payment Details Modal */}
         {selectedPayment && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-semibold text-gray-900">
-                    Payment Details
-                  </h3>
+          <>
+            {/* Overlay */}
+            <div className="fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-300 animate-fadeIn" style={{ background: 'rgba(0,0,0,0.10)' }}>
+              <div className="fixed left-64 top-0 w-[calc(100vw-16rem)] h-full flex items-center justify-center pointer-events-none">
+                <div
+                  className="relative bg-white bg-opacity-95 rounded-2xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto border-2 border-gray-300 p-6 transform transition-all duration-300 animate-scaleIn pointer-events-auto"
+                  role="dialog"
+                  aria-modal="true"
+                  tabIndex={-1}
+                >
+                  {/* Close Button */}
                   <button
                     onClick={() => setSelectedPayment(null)}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-2xl focus:outline-none focus:ring-2 focus:ring-red-400 rounded-full transition-colors duration-200"
+                    aria-label="Close modal"
                   >
-                    <FaTimes className="w-6 h-6" />
+                    <FaTimes />
                   </button>
-                </div>
-              </div>
-              
-              <div className="p-6">
-                <div className="flex items-center space-x-4 mb-6">
-                  <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                    <FaUser className="text-white text-2xl" />
+                  <div className="mb-4">
+                    <h3 className="text-2xl font-semibold text-gray-900">Payment Details</h3>
                   </div>
-                  <div>
-                    <h4 className="text-xl font-semibold text-gray-900">
-                      {selectedPayment.patientFullName || 'Patient'}
-                    </h4>
-                    <p className="text-gray-600">Reference: {selectedPayment.referenceNo}</p>
+                  <div className="flex items-center space-x-4 mb-6">
+                    <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                      <FaUser className="text-white text-2xl" />
+                    </div>
+                    <div>
+                      <h4 className="text-xl font-semibold text-gray-900">
+                        {selectedPayment.patientFullName || 'Patient'}
+                      </h4>
+                      <p className="text-gray-600">Reference: {selectedPayment.referenceNo}</p>
+                    </div>
                   </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Patient</label>
-                    <p className="text-gray-900">{selectedPayment.patientFullName || 'N/A'}</p>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Patient</label>
+                      <p className="text-gray-900">{selectedPayment.patientFullName || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Therapist</label>
+                      <p className="text-gray-900">{selectedPayment.therapistFullName || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Appointment</label>
+                      <p className="text-gray-900">
+                        {formatDate(selectedPayment.bookingInfo?.date)} at {formatTime(selectedPayment.bookingInfo?.time)}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                      <p className="text-gray-900">{selectedPayment.method?.toUpperCase() || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Reference Number</label>
+                      <p className="text-gray-900">{selectedPayment.referenceNo || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                      <p className="text-2xl font-bold text-green-600">{selectedPayment.amount} PKR</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusBadge(selectedPayment.status)}`}>
+                        {getStatusIcon(selectedPayment.status)}
+                        <span className="ml-2">{selectedPayment.status}</span>
+                      </span>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Receipt</label>
+                      <a
+                        href={`${apiOrigin}/${selectedPayment.receiptUrl.replace(/\\/g, "/")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-700"
+                      >
+                        <FaDownload className="w-4 h-4" />
+                        <span>View Receipt</span>
+                      </a>
+                    </div>
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Therapist</label>
-                    <p className="text-gray-900">{selectedPayment.therapistFullName || 'N/A'}</p>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Appointment</label>
-                    <p className="text-gray-900">
-                      {formatDate(selectedPayment.bookingInfo?.date)} at {formatTime(selectedPayment.bookingInfo?.time)}
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
-                    <p className="text-gray-900">{selectedPayment.method?.toUpperCase() || 'N/A'}</p>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Reference Number</label>
-                    <p className="text-gray-900">{selectedPayment.referenceNo || 'N/A'}</p>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-                    <p className="text-2xl font-bold text-green-600">{selectedPayment.amount} PKR</p>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusBadge(selectedPayment.status)}`}>
-                      {getStatusIcon(selectedPayment.status)}
-                      <span className="ml-2">{selectedPayment.status}</span>
-                    </span>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Receipt</label>
-                    <a
-                      href={`${apiOrigin}/${selectedPayment.receiptUrl.replace(/\\/g, "/")}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-700"
-                    >
-                      <FaDownload className="w-4 h-4" />
-                      <span>View Receipt</span>
-                    </a>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-end space-x-3 mt-6 pt-6 border-t border-gray-200">
-                  <button
-                    onClick={() => setSelectedPayment(null)}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                  >
-                    Close
-                  </button>
-                  {selectedPayment.status === "Declined" && (
+                  <div className="flex items-center justify-end space-x-3 mt-6 pt-6 border-t border-gray-200">
                     <button
-                      onClick={() => {
-                        handleRefund(selectedPayment);
-                        setSelectedPayment(null);
-                      }}
-                      disabled={processing === selectedPayment._id}
-                      className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
-                        processing === selectedPayment._id
-                          ? 'bg-gray-400 cursor-not-allowed'
-                          : 'bg-orange-600 hover:bg-orange-700'
-                      }`}
+                      onClick={() => setSelectedPayment(null)}
+                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                     >
-                      {processing === selectedPayment._id ? (
-                        <FaSpinner className="animate-spin w-4 h-4" />
-                      ) : (
-                        <FaUndoAlt className="w-4 h-4" />
-                      )}
-                      <span>{processing === selectedPayment._id ? 'Processing...' : 'Mark as Refunded'}</span>
+                      Close
                     </button>
-                  )}
+                    {selectedPayment.status === "Declined" && (
+                      <button
+                        onClick={() => {
+                          handleRefund(selectedPayment);
+                          setSelectedPayment(null);
+                        }}
+                        disabled={processing === selectedPayment._id}
+                        className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
+                          processing === selectedPayment._id
+                            ? 'bg-gray-400 cursor-not-allowed'
+                            : 'bg-orange-600 hover:bg-orange-700'
+                        }`}
+                      >
+                        {processing === selectedPayment._id ? (
+                          <FaSpinner className="animate-spin w-4 h-4" />
+                        ) : (
+                          <FaUndoAlt className="w-4 h-4" />
+                        )}
+                        <span>{processing === selectedPayment._id ? 'Processing...' : 'Mark as Refunded'}</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+            <style>{`
+              @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+              .animate-fadeIn { animation: fadeIn 0.2s ease; }
+              @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+              .animate-scaleIn { animation: scaleIn 0.2s cubic-bezier(0.4,0,0.2,1); }
+              body { overflow: hidden !important; }
+            `}</style>
+          </>
         )}
       </div>
     </div>

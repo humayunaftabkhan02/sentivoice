@@ -200,7 +200,7 @@ export default function PaymentApproval() {
     setCurrentPage(1); // Reset to first page
   };
 
-  const apiOrigin = import.meta.env.VITE_API_ORIGIN || "http://localhost:3000";
+  const apiOrigin = import.meta.env.VITE_API_ORIGIN || "${import.meta.env.VITE_API_URL}";
 
   useEffect(() => {
     fetchPayments();
@@ -614,131 +614,135 @@ export default function PaymentApproval() {
 
         {/* Payment Details Modal */}
         {selectedPayment && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-semibold text-gray-900">
-                    Payment Details
-                  </h3>
+          <>
+            {/* Overlay */}
+            <div className="fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-300 animate-fadeIn" style={{ background: 'rgba(0,0,0,0.10)' }}>
+              <div className="fixed left-64 top-0 w-[calc(100vw-16rem)] h-full flex items-center justify-center pointer-events-none">
+                <div
+                  className="relative bg-white bg-opacity-95 rounded-2xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto border-2 border-gray-300 p-6 transform transition-all duration-300 animate-scaleIn pointer-events-auto"
+                  role="dialog"
+                  aria-modal="true"
+                  tabIndex={-1}
+                >
+                  {/* Close Button */}
                   <button
                     onClick={() => setSelectedPayment(null)}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-2xl focus:outline-none focus:ring-2 focus:ring-red-400 rounded-full transition-colors duration-200"
+                    aria-label="Close modal"
                   >
-                    <FaTimesCircle className="w-6 h-6" />
+                    <FaTimesCircle />
                   </button>
+                  <div className="mb-4">
+                    <h3 className="text-2xl font-semibold text-gray-900">Payment Details</h3>
+                  </div>
+                  <div className="flex items-center space-x-4 mb-6">
+                    <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
+                      <FaMoneyBillWave className="text-white text-2xl" />
+                    </div>
+                    <div>
+                      <h4 className="text-xl font-semibold text-gray-900">
+                        {selectedPayment.patientFullName || 'Patient'}
+                      </h4>
+                      <p className="text-gray-600">Reference: {selectedPayment.referenceNo}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Patient</label>
+                      <p className="text-gray-900">{selectedPayment.patientFullName || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Therapist</label>
+                      <p className="text-gray-900">{selectedPayment.therapistFullName || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Appointment</label>
+                      <p className="text-gray-900">
+                        {formatDate(selectedPayment.bookingInfo?.date)} at {formatTime(selectedPayment.bookingInfo?.time)}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                      <p className="text-gray-900">{selectedPayment.method?.toUpperCase() || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Reference Number</label>
+                      <p className="text-gray-900">{selectedPayment.referenceNo || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                      <p className="text-2xl font-bold text-green-600">{selectedPayment.amount} PKR</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Receipt</label>
+                      <a
+                        href={`${apiOrigin}/${selectedPayment.receiptUrl.replace(/\\/g, "/")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-700"
+                      >
+                        <FaDownload className="w-4 h-4" />
+                        <span>View Receipt</span>
+                      </a>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-end space-x-3 mt-6 pt-6 border-t border-gray-200">
+                    <button
+                      onClick={() => setSelectedPayment(null)}
+                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                    >
+                      Close
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleStatusChange(selectedPayment, "Declined");
+                        setSelectedPayment(null);
+                      }}
+                      disabled={processing === selectedPayment._id}
+                      className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
+                        processing === selectedPayment._id
+                          ? 'bg-gray-400 cursor-not-allowed'
+                          : 'bg-red-600 hover:bg-red-700'
+                      }`}
+                    >
+                      {processing === selectedPayment._id ? (
+                        <FaSpinner className="animate-spin w-4 h-4" />
+                      ) : (
+                        <FaTimes className="w-4 h-4" />
+                      )}
+                      <span>{processing === selectedPayment._id ? 'Processing...' : 'Decline Payment'}</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleStatusChange(selectedPayment, "Approved");
+                        setSelectedPayment(null);
+                      }}
+                      disabled={processing === selectedPayment._id}
+                      className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
+                        processing === selectedPayment._id
+                          ? 'bg-gray-400 cursor-not-allowed'
+                          : 'bg-green-600 hover:bg-green-700'
+                      }`}
+                    >
+                      {processing === selectedPayment._id ? (
+                        <FaSpinner className="animate-spin w-4 h-4" />
+                      ) : (
+                        <FaCheck className="w-4 h-4" />
+                      )}
+                      <span>{processing === selectedPayment._id ? 'Processing...' : 'Approve Payment'}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
-              
-              <div className="p-6">
-                <div className="flex items-center space-x-4 mb-6">
-                  <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
-                    <FaMoneyBillWave className="text-white text-2xl" />
-                  </div>
-                  <div>
-                    <h4 className="text-xl font-semibold text-gray-900">
-                      {selectedPayment.patientFullName || 'Patient'}
-                    </h4>
-                    <p className="text-gray-600">Reference: {selectedPayment.referenceNo}</p>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Patient</label>
-                    <p className="text-gray-900">{selectedPayment.patientFullName || 'N/A'}</p>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Therapist</label>
-                    <p className="text-gray-900">{selectedPayment.therapistFullName || 'N/A'}</p>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Appointment</label>
-                    <p className="text-gray-900">
-                      {formatDate(selectedPayment.bookingInfo?.date)} at {formatTime(selectedPayment.bookingInfo?.time)}
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
-                    <p className="text-gray-900">{selectedPayment.method?.toUpperCase() || 'N/A'}</p>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Reference Number</label>
-                    <p className="text-gray-900">{selectedPayment.referenceNo || 'N/A'}</p>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-                    <p className="text-2xl font-bold text-green-600">{selectedPayment.amount} PKR</p>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Receipt</label>
-                    <a
-                      href={`${apiOrigin}/${selectedPayment.receiptUrl.replace(/\\/g, "/")}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-700"
-                    >
-                      <FaDownload className="w-4 h-4" />
-                      <span>View Receipt</span>
-                    </a>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-end space-x-3 mt-6 pt-6 border-t border-gray-200">
-                  <button
-                    onClick={() => setSelectedPayment(null)}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                  >
-                    Close
-                  </button>
-                    <button
-                    onClick={() => {
-                      handleStatusChange(selectedPayment, "Declined");
-                      setSelectedPayment(null);
-                    }}
-                    disabled={processing === selectedPayment._id}
-                    className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
-                      processing === selectedPayment._id
-                        ? 'bg-gray-400 cursor-not-allowed'
-                        : 'bg-red-600 hover:bg-red-700'
-                    }`}
-                  >
-                    {processing === selectedPayment._id ? (
-                      <FaSpinner className="animate-spin w-4 h-4" />
-                    ) : (
-                      <FaTimes className="w-4 h-4" />
-                    )}
-                    <span>{processing === selectedPayment._id ? 'Processing...' : 'Decline Payment'}</span>
-                    </button>
-                    <button
-                    onClick={() => {
-                      handleStatusChange(selectedPayment, "Approved");
-                      setSelectedPayment(null);
-                    }}
-                    disabled={processing === selectedPayment._id}
-                    className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
-                      processing === selectedPayment._id
-                        ? 'bg-gray-400 cursor-not-allowed'
-                        : 'bg-green-600 hover:bg-green-700'
-                    }`}
-                  >
-                    {processing === selectedPayment._id ? (
-                      <FaSpinner className="animate-spin w-4 h-4" />
-                    ) : (
-                      <FaCheck className="w-4 h-4" />
-                    )}
-                    <span>{processing === selectedPayment._id ? 'Processing...' : 'Approve Payment'}</span>
-                    </button>
-                  </div>
-                </div>
             </div>
-          </div>
+            <style>{`
+              @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+              .animate-fadeIn { animation: fadeIn 0.2s ease; }
+              @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+              .animate-scaleIn { animation: scaleIn 0.2s cubic-bezier(0.4,0,0.2,1); }
+              body { overflow: hidden !important; }
+            `}</style>
+          </>
         )}
       </div>
     </div>

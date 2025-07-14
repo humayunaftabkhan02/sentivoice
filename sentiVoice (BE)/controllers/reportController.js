@@ -60,7 +60,7 @@ exports.sendVoiceAnalysisReport = async (req) => {
         
         return { reportId: savedReport._id };
     } catch (error) {
-        console.error('Error sending voice analysis report:', error.message);
+          console.error('Error sending voice analysis report:', error.message);
         console.error('Error stack:', error.stack);
         throw error;
     }
