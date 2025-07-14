@@ -305,7 +305,7 @@ exports.updateStatus = async (req, res) => {
           let flaskResponse;
           try {
             flaskResponse = await axios.post(
-              'http://localhost:5000/api/predict',
+              'https://sentivoice-flask-273777154059.us-central1.run.app/api/predict',
               { file_path: tempFilePath },
               { headers: { 'Content-Type': 'application/json' } }
             );

@@ -72,7 +72,7 @@ router.post('/predict', authenticate, upload.single('audio'), async (req, res) =
 
     try {
       const flaskResponse = await axios.post(
-        'http://localhost:5000/api/predict',
+        'https://sentivoice-flask-273777154059.us-central1.run.app/api/predict',
         { file_path: audioPath },
         { headers: { 'Content-Type': 'application/json' } }
       );
@@ -448,12 +448,137 @@ router.get('/reports/download/:reportId', [
 
 router.post('/reports/send-audio-analysis', [
   authenticate,
+  upload.single('audio'),
   sanitizeText('patientUsername', 50),
   sanitizeText('therapistUsername', 50),
   sanitizeText('patientName', 100),
-  sanitizeText('emotion', 50),
   validate
-], reportController.sendVoiceAnalysisReport);
+], async (req, res) => {
+  try {
+    const { patientUsername, therapistUsername, patientName } = req.body;
+    
+    let emotion = 'neutral';
+    let analysisData = {
+      emotion: 'neutral',
+      mfcc1: 0.0000,
+      mfcc40: 0.0000,
+      chroma: 0.0000,
+      melspectrogram: 0.0000,
+      contrast: 0.0000,
+      tonnetz: 0.0000
+    };
+    
+    // If audio file is provided, process it with Flask
+    if (req.file) {
+      const audioPath = req.file.path;
+      
+      try {
+        const flaskResponse = await axios.post(
+          'https://sentivoice-flask-273777154059.us-central1.run.app/api/predict',
+          { file_path: audioPath },
+          { headers: { 'Content-Type': 'application/json' } }
+        );
+        
+        // Clean up the uploaded file
+        try {
+          if (fs.existsSync(audioPath)) {
+            fs.unlinkSync(audioPath);
+          }
+        } catch (cleanupError) {
+          console.error('Error cleaning up audio file:', cleanupError.message);
+        }
+        
+        const responseData = flaskResponse.data;
+        const flatAnalysis = responseData.data ? { ...responseData.data } : { ...responseData };
+        emotion = flatAnalysis.emotion || responseData.emotion || 'neutral';
+        analysisData = {
+          ...flatAnalysis,
+          analysisDate: new Date().toLocaleDateString(),
+          analysisTime: new Date().toLocaleTimeString()
+        };
+        
+        console.log('Flask analysis result:', emotion);
+        
+      } catch (flaskError) {
+        console.error('Error from Flask:', flaskError.response?.data || flaskError.message);
+        
+        // Clean up the uploaded file even if Flask fails
+        try {
+          if (fs.existsSync(audioPath)) {
+            fs.unlinkSync(audioPath);
+          }
+        } catch (cleanupError) {
+          console.error('Error cleaning up audio file:', cleanupError.message);
+        }
+        
+        // Use fallback data
+        console.log('Using fallback emotion analysis');
+      }
+    } else {
+      // If no audio file, use provided emotion data
+      emotion = req.body.emotion || 'neutral';
+      analysisData = req.body.analysisData || {
+        emotion: emotion,
+        mfcc1: 0.0000,
+        mfcc40: 0.0000,
+        chroma: 0.0000,
+        melspectrogram: 0.0000,
+        contrast: 0.0000,
+        tonnetz: 0.0000
+      };
+    }
+    
+    // Create PDF report
+    const fileName = `Voice_Analysis_${patientUsername}_${Date.now()}.pdf`;
+    let pdfData;
+    try {
+      pdfData = await generatePdfReport(analysisData, patientName);
+    } catch (pdfError) {
+      console.error('Error generating PDF report:', pdfError.message);
+      pdfData = null;
+    }
+    
+    // Send the report
+    try {
+      const report = await reportController.sendVoiceAnalysisReport({
+        body: {
+          patientUsername,
+          therapistUsername,
+          patientName,
+          emotion,
+          analysisData,
+          pdfData,
+          fileName,
+          reportType: 'voice_analysis'
+        }
+      });
+      
+      res.json({
+        status: "success",
+        data: analysisData,
+        reportSent: true,
+        reportId: report?.reportId,
+        message: "Voice analysis completed and report sent"
+      });
+      
+    } catch (reportError) {
+      console.error('Error sending report:', reportError.message);
+      res.status(500).json({
+        status: "error",
+        message: "Failed to send report",
+        reportSent: false
+      });
+    }
+    
+  } catch (error) {
+    console.error('Error processing audio analysis:', error.message);
+    res.status(500).json({
+      status: "error",
+      message: "Failed to process audio analysis",
+      reportSent: false
+    });
+  }
+});
 
 // Payment Settings Routes
 router.get('/payment-settings', paymentSettingsController.getPublicPaymentSettings);

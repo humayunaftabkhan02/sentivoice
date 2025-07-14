@@ -17,7 +17,7 @@ router.post('/predict', upload.single('audio'), async (req, res) => {
     try {
       // Get emotion prediction from Flask
       const flaskResponse = await axios.post(
-        'http://localhost:5000/api/predict',
+        'https://sentivoice-flask-273777154059.us-central1.run.app/api/predict',
         { file_path: audioPath },
         { headers: { 'Content-Type': 'application/json' } }
       );
