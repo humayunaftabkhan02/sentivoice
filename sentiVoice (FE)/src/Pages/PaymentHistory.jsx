@@ -58,7 +58,7 @@ export default function PaymentHistory() {
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
 
-  const apiOrigin = import.meta.env.VITE_API_ORIGIN || "${import.meta.env.VITE_API_URL}";
+  const apiOrigin = import.meta.env.VITE_API_ORIGIN || import.meta.env.VITE_API_URL || "http://localhost:3000";
 
     const fetchHistory = async () => {
       try {

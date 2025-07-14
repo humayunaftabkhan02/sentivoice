@@ -200,7 +200,7 @@ export default function PaymentApproval() {
     setCurrentPage(1); // Reset to first page
   };
 
-  const apiOrigin = import.meta.env.VITE_API_ORIGIN || "${import.meta.env.VITE_API_URL}";
+  const apiOrigin = import.meta.env.VITE_API_ORIGIN || import.meta.env.VITE_API_URL || "http://localhost:3000";
 
   useEffect(() => {
     fetchPayments();
