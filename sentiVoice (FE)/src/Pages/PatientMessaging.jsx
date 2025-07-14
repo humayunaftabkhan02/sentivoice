@@ -57,7 +57,7 @@ const PatientMessaging = () => {
 
   // Initialize socket connection
   useEffect(() => {
-    socketRef.current = io("${import.meta.env.VITE_API_URL}", {
+    socketRef.current = io(import.meta.env.VITE_API_URL || "http://localhost:3000", {
       transports: ['websocket', 'polling']
     });
 
@@ -462,7 +462,7 @@ const PatientMessaging = () => {
       
       // Make direct fetch request for blob response
       const token = localStorage.getItem('token');
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/messages/${messageId}/attachment`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:3000"}/api/messages/${messageId}/attachment`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`

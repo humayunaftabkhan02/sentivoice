@@ -102,9 +102,8 @@ app.use(cors({
       'http://127.0.0.1:5173',
       'http://127.0.0.1:3000',
       process.env.FRONTEND_URL,
-      // Add your Netlify domain here
-      'https://your-app-name.netlify.app',
-      'https://your-app-name.netlify.app/'
+      'https://sentivoice.netlify.app',
+      'https://sentivoice.netlify.app/'
     ].filter(Boolean);
     
     if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
