@@ -26,6 +26,12 @@ export default function RefundRequests() {
   const [note, setNote] = useState("");
   const [reference, setReference] = useState("");
   const [selected, setSelected] = useState(null);
+  const [pendingCounts, setPendingCounts] = useState({
+    approvals: 0,
+    payments: 0,
+    refunds: 0,
+    notifications: 0
+  });
 
   const apiOrigin = import.meta.env.VITE_API_ORIGIN || import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -69,8 +75,28 @@ export default function RefundRequests() {
     }
   };
 
+  const fetchPendingCounts = async () => {
+    try {
+      const pendingApprovals = await api.get("/api/admin/pending-therapists");
+      const approvalsCount = Array.isArray(pendingApprovals) ? pendingApprovals.length : 0;
+      const pendingPayments = await api.get("/api/admin/pending-payments");
+      const paymentsCount = Array.isArray(pendingPayments) ? pendingPayments.length : 0;
+      const refundRes = await api.get("/api/admin/refund-requests-count");
+      const refundsCount = refundRes.count || 0;
+      setPendingCounts({
+        approvals: approvalsCount,
+        payments: paymentsCount,
+        refunds: refundsCount,
+        notifications: 0
+      });
+    } catch (error) {
+      console.error('Error fetching pending counts:', error);
+    }
+  };
+
   useEffect(() => {
     fetchRefunds();
+    fetchPendingCounts();
   }, []);
 
   const getStatusIcon = (status) => {
@@ -96,11 +122,34 @@ export default function RefundRequests() {
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <AdminSidebar current="refunds" />
+      <AdminSidebar 
+        current="refunds" 
+        pendingApprovals={pendingCounts.approvals}
+        pendingPayments={pendingCounts.payments}
+        pendingRefunds={pendingCounts.refunds}
+        notifications={pendingCounts.notifications}
+      />
       <div className="flex-1 ml-64 p-6 lg:p-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Refund Requests</h1>
-          <p className="text-gray-600">All payments pending refund action</p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Refund Requests</h1>
+            <p className="text-gray-600">All payments pending refund action</p>
+          </div>
+          <div className="flex items-center space-x-4">
+            <div className="bg-white rounded-lg px-4 py-2 shadow-sm border">
+              <div className="flex items-center space-x-2">
+                <FaClock className="text-gray-400" />
+                <span className="text-sm text-gray-600">
+                  {new Date().toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="p-6">

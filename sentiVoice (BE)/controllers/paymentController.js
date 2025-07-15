@@ -8,10 +8,21 @@ const { generatePdfReport } = require("../utils/pdfGenerator");
 // POST  /api/payments
 exports.createPayment = async (req, res) => {
   try {
+    console.log('🔍 Payment creation started');
+    console.log('📁 Request file:', req.file ? 'File present' : 'No file');
+    console.log('📋 Request body keys:', Object.keys(req.body));
+    console.log('🎤 Voice recording data present:', !!req.body.voiceRecordingData);
+    console.log('📄 Voice file name:', req.body.voiceFileName);
+    
     // Check if file was uploaded
     if (!req.file) {
+      console.log('❌ No file uploaded');
       return res.status(400).json({ error: "No file uploaded. Please select a payment receipt image." });
     }
+
+    console.log('✅ File uploaded successfully:', req.file.filename);
+    console.log('📊 File size:', req.file.size);
+    console.log('🎯 File mimetype:', req.file.mimetype);
 
     const {
       patientUsername,
@@ -26,6 +37,7 @@ exports.createPayment = async (req, res) => {
 
     // Validate required fields
     if (!patientUsername || !method || !referenceNo || !date || !time || !therapistUsername) {
+      console.log('❌ Missing required fields');
       return res.status(400).json({ 
         error: "Missing required fields. Please fill in all payment details." 
       });
@@ -38,10 +50,13 @@ exports.createPayment = async (req, res) => {
     ];
     
     if (!validMethods.includes(method)) {
+      console.log('❌ Invalid payment method:', method);
       return res.status(400).json({ 
         error: `Invalid payment method: ${method}. Allowed methods: ${validMethods.join(', ')}` 
       });
     }
+
+    console.log('✅ All validations passed');
 
     const paymentData = {
       patientUsername,
@@ -54,15 +69,20 @@ exports.createPayment = async (req, res) => {
 
     // Add voice recording data if provided
     if (voiceRecordingData && voiceFileName) {
+      console.log('🎤 Adding voice recording data to payment');
       paymentData.voiceRecording = {
         audioData: voiceRecordingData,
         fileName: voiceFileName,
         processed: false,
         reportSent: false
       };
+    } else {
+      console.log('⚠️ No voice recording data provided');
     }
 
+    console.log('💾 Creating payment in database...');
     const payment = await Payment.create(paymentData);
+    console.log('✅ Payment created successfully:', payment._id);
 
     // Notify patient: payment uploaded, pending admin approval
     await Notification.create({
@@ -70,9 +90,11 @@ exports.createPayment = async (req, res) => {
       message: `Your payment receipt has been uploaded. Your appointment is now pending payment approval from an admin.`,
     });
 
+    console.log('✅ Notification created');
     res.status(201).json({ message: "Payment uploaded; pending admin review", payment });
   } catch (err) {
-    console.error('Payment creation error:', err.message);
+    console.error('❌ Payment creation error:', err.message);
+    console.error('❌ Error stack:', err.stack);
     
     // Check if it's a validation error
     if (err.name === 'ValidationError') {
@@ -209,6 +231,17 @@ exports.listRefundRequests = async (_req, res) => {
   res.json(refunds);
 };
 
+// GET /api/admin/refund-requests-count - Get count of refund requests
+exports.getRefundRequestsCount = async (_req, res) => {
+  try {
+    const count = await Payment.countDocuments({ status: 'Refund Pending' });
+    res.json({ count });
+  } catch (error) {
+    console.error('Error fetching refund requests count:', error);
+    res.status(500).json({ error: 'Failed to fetch refund requests count' });
+  }
+};
+
 // PUT /api/admin/payments/:id/refund   – mark a Declined payment as Refunded
 exports.markRefunded = async (req, res) => {
   const { id } = req.params;
@@ -286,30 +319,26 @@ exports.updateStatus = async (req, res) => {
 
       // Process voice recording and send report to therapist if available
       if (payment.voiceRecording && payment.voiceRecording.audioData && !payment.voiceRecording.processed) {
+        console.log('🎤 Processing voice recording in payment controller');
+        console.log('📁 Voice recording present:', !!payment.voiceRecording.audioData);
+        console.log('🔍 Already processed:', payment.voiceRecording.processed);
+        
         try {
           // Import required modules for voice processing
-          const fs = require('fs');
-          const path = require('path');
           const axios = require('axios');
-
-          // Create temporary file for voice analysis
-          const tempDir = path.join(__dirname, '..', 'uploads');
-          const tempFileName = `temp_voice_${Date.now()}.wav`;
-          const tempFilePath = path.join(tempDir, tempFileName);
-
-          // Convert base64 to file
-          const audioBuffer = Buffer.from(payment.voiceRecording.audioData, 'base64');
-          fs.writeFileSync(tempFilePath, audioBuffer);
 
           // Process voice analysis
           let flaskResponse;
           try {
+            console.log('🚀 Calling Flask app with base64 audio data');
             flaskResponse = await axios.post(
               'https://sentivoice-flask-273777154059.us-central1.run.app/api/predict',
-              { file_path: tempFilePath },
+              { audio_data: payment.voiceRecording.audioData },
               { headers: { 'Content-Type': 'application/json' } }
             );
+            console.log('✅ Flask response received:', flaskResponse.data);
           } catch (flaskError) {
+            console.error('❌ Flask error:', flaskError.response?.data || flaskError.message);
             // Fallback: create a default response
             flaskResponse = {
               data: {
@@ -326,14 +355,7 @@ exports.updateStatus = async (req, res) => {
             };
           }
 
-          // Clean up temp file
-          try {
-            if (fs.existsSync(tempFilePath)) {
-              fs.unlinkSync(tempFilePath);
-            }
-          } catch (cleanupError) {
-            console.error('Error cleaning up temp voice file:', cleanupError.message);
-          }
+
 
           // Get analysis results
           const responseData = flaskResponse.data;

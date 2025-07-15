@@ -15,9 +15,11 @@ const messageController = require('./controllers/messageController');
 const reportController = require('./controllers/reportController');
 const paymentSettingsController = require('./controllers/paymentSettingsController');
 const adminController = require('./controllers/adminController'); // Added adminController
+const announcementController = require('./controllers/announcementController');
+const SystemSettings = require('./models/systemSettingsModel'); // Fixed import
 
 // Import middleware
-const { authenticate, authorize } = require('./middleware/auth');
+const { authenticate, authorize, checkMaintenanceMode } = require('./middleware/auth');
 const { validate, sanitizeEmail, sanitizeUsername, sanitizePassword, validateRole, sanitizeText, validateObjectId, validateBodyObjectId, body, param } = require('./middleware/validation');
 const uploadProfilePicture = require('./middleware/uploadProfilePicture');
 
@@ -454,6 +456,10 @@ router.post('/reports/send-audio-analysis', [
   sanitizeText('patientName', 100),
   validate
 ], async (req, res) => {
+  console.log('🎤 /reports/send-audio-analysis endpoint called');
+  console.log('📁 Request file:', req.file ? 'Audio file present' : 'No audio file');
+  console.log('📋 Request body:', req.body);
+  
   try {
     const { patientUsername, therapistUsername, patientName } = req.body;
     
@@ -588,7 +594,59 @@ router.put('/admin/payment-settings/:id', authenticate, authorize('admin'), paym
 router.delete('/admin/payment-settings/:id', authenticate, authorize('admin'), paymentSettingsController.deletePaymentSetting);
 router.post('/admin/payment-settings/initialize', authenticate, authorize('admin'), paymentSettingsController.initializePaymentSettings);
 
+// Public endpoint to check maintenance mode
+router.get('/maintenance-status', async (req, res) => {
+  try {
+    const settings = await SystemSettings.findOne();
+    res.json({
+      maintenanceMode: settings?.maintenanceMode || false,
+      maintenanceMessage: settings?.maintenanceMessage || 'System is under maintenance. Please try again later.'
+    });
+  } catch (error) {
+    console.error('Error fetching maintenance status:', error);
+    res.status(500).json({ error: 'Failed to fetch maintenance status' });
+  }
+});
 
+// Public endpoint to get active announcement
+router.get('/announcement', announcementController.getActiveAnnouncement);
+
+// Admin Announcement Routes
+router.get('/admin/announcements', authenticate, authorize('admin'), announcementController.getAllAnnouncements);
+router.post('/admin/announcements', [
+  authenticate, 
+  authorize('admin'),
+  sanitizeText('message', 500),
+  validate
+], announcementController.createAnnouncement);
+router.put('/admin/announcements/:id', [
+  authenticate, 
+  authorize('admin'),
+  validateObjectId('id'),
+  sanitizeText('message', 500),
+  validate
+], announcementController.updateAnnouncement);
+router.delete('/admin/announcements/:id', [
+  authenticate, 
+  authorize('admin'),
+  validateObjectId('id'),
+  validate
+], announcementController.deleteAnnouncement);
+router.put('/admin/announcements/:id/toggle', [
+  authenticate, 
+  authorize('admin'),
+  validateObjectId('id'),
+  validate
+], announcementController.toggleAnnouncement);
+
+// Apply maintenance check to all protected routes except admin
+router.use((req, res, next) => {
+  // If the route is /api/admin or /api/auth/validate-session or /api/maintenance-status, skip maintenance check
+  if (req.path.startsWith('/admin') || req.path.startsWith('/auth/validate-session') || req.path === '/maintenance-status') {
+    return next();
+  }
+  checkMaintenanceMode(req, res, next);
+});
 
 
 module.exports = router;

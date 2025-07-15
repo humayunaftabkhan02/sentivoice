@@ -16,6 +16,7 @@ router.put("/payments/:id/status", authenticate, authorize('admin'), paymentCont
 router.get("/payment-history", authenticate, authorize('admin'), paymentController.listHistory);
 router.put("/payments/:id/refund", authenticate, authorize('admin'), paymentController.markRefunded);
 router.get("/refund-requests", authenticate, authorize('admin'), paymentController.listRefundRequests);
+router.get('/refund-requests-count', authenticate, authorize('admin'), paymentController.getRefundRequestsCount);
 
 // Settings routes
 router.get("/settings", authenticate, authorize('admin'), settingsController.getSettings);

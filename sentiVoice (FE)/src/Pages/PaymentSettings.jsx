@@ -32,7 +32,8 @@ import {
   FaUniversity,
   FaPaypal,
   FaMobile,
-  FaApple
+  FaApple,
+  FaClock
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
@@ -47,6 +48,7 @@ export default function PaymentSettings() {
   const [pendingCounts, setPendingCounts] = useState({
     approvals: 0,
     payments: 0,
+    refunds: 0,
     notifications: 0
   });
 
@@ -79,10 +81,12 @@ export default function PaymentSettings() {
       // Fetch pending payments
       const pendingPayments = await api.get("/api/admin/pending-payments");
       const paymentsCount = Array.isArray(pendingPayments) ? pendingPayments.length : 0;
-
+      const refundRes = await api.get("/api/admin/refund-requests-count");
+      const refundsCount = refundRes.count || 0;
       setPendingCounts({
         approvals: approvalsCount,
         payments: paymentsCount,
+        refunds: refundsCount,
         notifications: 0
       });
     } catch (error) {
@@ -261,9 +265,10 @@ export default function PaymentSettings() {
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <AdminSidebar 
-        current="payments" 
+        current="settings" 
         pendingApprovals={pendingCounts.approvals}
         pendingPayments={pendingCounts.payments}
+        pendingRefunds={pendingCounts.refunds}
         notifications={pendingCounts.notifications}
       />
       
@@ -282,7 +287,7 @@ export default function PaymentSettings() {
             <div className="flex items-center space-x-4">
               <div className="bg-white rounded-lg px-4 py-2 shadow-sm border">
                 <div className="flex items-center space-x-2">
-                  <FaCog className="text-gray-400" />
+                  <FaClock className="text-gray-400" />
                   <span className="text-sm text-gray-600">
                     {new Date().toLocaleDateString('en-US', { 
                       weekday: 'long', 

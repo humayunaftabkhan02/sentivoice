@@ -99,19 +99,19 @@ async function sendAudioReportToTherapist(patientData, therapistUsername, audioB
   formData.append('patientUsername', patientData.username);
   formData.append('therapistUsername', therapistUsername);
   formData.append('patientName', `${patientData.info?.firstName || ""} ${patientData.info?.lastName || ""}`.trim());
-  
+    
   // Send to backend for processing
   const response = await api.post('/reports/send-audio-analysis', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
-  });
+    });
 
-  if (response.status !== 200) {
-    throw new Error('Failed to send audio analysis report');
-  }
+    if (response.status !== 200) {
+      throw new Error('Failed to send audio analysis report');
+    }
 
-  return response.data;
+    return response.data;
 }
 
 export default function AudioRecorderComponent({ therapistUsername,

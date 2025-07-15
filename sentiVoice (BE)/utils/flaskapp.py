@@ -6,6 +6,8 @@ import pandas as pd
 import joblib
 import traceback
 import json
+import base64
+import tempfile
 from tensorflow.keras.models import load_model
 from werkzeug.utils import secure_filename
 from app import extract_feature
@@ -61,30 +63,77 @@ CORS(app)
 def get_features():
     try:
         data = request.get_json()
-        if not data or 'file_path' not in data:
+        if not data:
             return jsonify({
                 "status": "error",
-                "message": "No file_path provided"
+                "message": "No data provided"
             }), 400
             
-        file_path = data['file_path']
-        if not os.path.exists(file_path):
+        # Check if we have audio data (base64) or file path
+        if 'audio_data' in data:
+            # Handle base64 audio data
+            audio_data = data['audio_data']
+            try:
+                # Decode base64 to binary
+                audio_binary = base64.b64decode(audio_data)
+                
+                # Create temporary file
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_file:
+                    temp_file.write(audio_binary)
+                    temp_file_path = temp_file.name
+                
+                # Process the audio
+                result = predict_emotion(temp_file_path)
+                
+                # Clean up temporary file
+                try:
+                    os.unlink(temp_file_path)
+                except:
+                    pass
+                
+                if "error" in result:
+                    return jsonify({
+                        "status": "error",
+                        "message": result["error"]
+                    }), 500
+                    
+                return jsonify({
+                    "status": "success",
+                    "data": result
+                })
+                
+            except Exception as e:
+                print(f"Error processing base64 audio: {str(e)}")
+                return jsonify({
+                    "status": "error",
+                    "message": f"Error processing audio data: {str(e)}"
+                }), 500
+                
+        elif 'file_path' in data:
+            # Handle file path (for backward compatibility)
+            file_path = data['file_path']
+            if not os.path.exists(file_path):
+                return jsonify({
+                    "status": "error",
+                    "message": "File does not exist"
+                }), 400
+                
+            result = predict_emotion(file_path)
+            if "error" in result:
+                return jsonify({
+                    "status": "error",
+                    "message": result["error"]
+                }), 500
+                
+            return jsonify({
+                "status": "success",
+                "data": result
+            })
+        else:
             return jsonify({
                 "status": "error",
-                "message": "File does not exist"
+                "message": "No audio_data or file_path provided"
             }), 400
-            
-        result = predict_emotion(file_path)
-        if "error" in result:
-            return jsonify({
-                "status": "error",
-                "message": result["error"]
-            }), 500
-            
-        return jsonify({
-            "status": "success",
-            "data": result
-        })
                 
     except Exception as e:
         print(f"Error processing request: {str(e)}")

@@ -40,6 +40,7 @@ export default function AdminUserList() {
   const [pendingCounts, setPendingCounts] = useState({
     approvals: 0,
     payments: 0,
+    refunds: 0,
     notifications: 0
   });
   const [userStats, setUserStats] = useState({
@@ -50,16 +51,56 @@ export default function AdminUserList() {
     active: 0
   });
 
+  // Add profile pictures state
+  const [userProfilePictures, setUserProfilePictures] = useState({});
+  const [profilePicturesLoading, setProfilePicturesLoading] = useState({});
+
+  // Function to fetch profile picture for a user
+  const fetchUserProfilePicture = async (username, profilePicturePath) => {
+    if (!profilePicturePath) return;
+    
+    setProfilePicturesLoading(prev => ({ ...prev, [username]: true }));
+    
+    try {
+      if (profilePicturePath.startsWith('data:image')) {
+        setUserProfilePictures(prev => ({
+          ...prev,
+          [username]: profilePicturePath
+        }));
+      } else if (profilePicturePath.startsWith('/uploads/')) {
+        const filename = profilePicturePath.split('/').pop();
+        const response = await api.get(`/api/uploads/profile-pictures/${filename}`);
+        if (response.image) {
+          setUserProfilePictures(prev => ({
+            ...prev,
+            [username]: response.image
+          }));
+        }
+      } else {
+        setUserProfilePictures(prev => ({
+          ...prev,
+          [username]: profilePicturePath
+        }));
+      }
+    } catch (error) {
+      console.error(`Failed to fetch profile picture for ${username}:`, error);
+    } finally {
+      setProfilePicturesLoading(prev => ({ ...prev, [username]: false }));
+    }
+  };
+
   const fetchPendingCounts = async () => {
     try {
       const pendingApprovals = await api.get("/api/admin/pending-therapists");
       const approvalsCount = Array.isArray(pendingApprovals) ? pendingApprovals.length : 0;
       const pendingPayments = await api.get("/api/admin/pending-payments");
       const paymentsCount = Array.isArray(pendingPayments) ? pendingPayments.length : 0;
-
+      const refundRes = await api.get("/api/admin/refund-requests-count");
+      const refundsCount = refundRes.count || 0;
       setPendingCounts({
         approvals: approvalsCount,
         payments: paymentsCount,
+        refunds: refundsCount,
         notifications: 0
       });
     } catch (error) {
@@ -79,6 +120,13 @@ export default function AdminUserList() {
       // Fetch user statistics from backend
       const stats = await api.get("/api/admin/user-stats");
       setUserStats(stats);
+
+      // Fetch profile pictures for all users asynchronously
+      data.forEach(user => {
+        if (user.profilePicturePath) {
+          fetchUserProfilePicture(user.username, user.profilePicturePath);
+        }
+      });
       } catch (err) {
         setError("Failed to fetch users");
       console.error("User fetch error:", err);
@@ -233,6 +281,7 @@ export default function AdminUserList() {
         current="users" 
         pendingApprovals={pendingCounts.approvals}
         pendingPayments={pendingCounts.payments}
+        pendingRefunds={pendingCounts.refunds}
         notifications={pendingCounts.notifications}
       />
 
@@ -402,11 +451,7 @@ export default function AdminUserList() {
                   <FaSpinner className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                   <span>{loading ? 'Loading...' : 'Refresh'}</span>
                 </button>
-                
-                <button className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-700">
-                  <FaDownload className="w-4 h-4" />
-                  <span>Export</span>
-                </button>
+                {/* Export button removed */}
               </div>
             </div>
           </div>
@@ -494,11 +539,29 @@ export default function AdminUserList() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10">
-                            <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
-                              <span className="text-sm font-medium text-white">
-                                {user.fullName?.charAt(0) || user.username?.charAt(0)}
-                              </span>
-                            </div>
+                            {profilePicturesLoading[user.username] ? (
+                              <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                              </div>
+                            ) : userProfilePictures[user.username] ? (
+                              <img
+                                src={userProfilePictures[user.username]}
+                                alt={`${user.fullName || user.username} profile`}
+                                className="h-10 w-10 rounded-full object-cover"
+                                onError={(e) => {
+                                  // Fallback to initials if image fails to load
+                                  e.target.style.display = 'none';
+                                  e.target.nextSibling.style.display = 'flex';
+                                }}
+                              />
+                            ) : null}
+                            {(!userProfilePictures[user.username] || profilePicturesLoading[user.username]) && (
+                              <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+                                <span className="text-sm font-medium text-white">
+                                  {user.fullName?.charAt(0) || user.username?.charAt(0)}
+                                </span>
+                              </div>
+                            )}
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">

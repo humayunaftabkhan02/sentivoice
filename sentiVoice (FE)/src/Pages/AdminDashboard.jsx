@@ -17,7 +17,8 @@ import {
   FaArrowDown,
   FaMinus,
   FaServer,
-  FaDatabase
+  FaDatabase,
+  FaUndoAlt
 } from "react-icons/fa";
 
 export default function AdminDashboard() {
@@ -28,7 +29,8 @@ export default function AdminDashboard() {
   });
   const [pendingCounts, setPendingCounts] = useState({
     approvals: 0,
-    payments: 0
+    payments: 0,
+    refunds: 0
   });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -45,9 +47,14 @@ export default function AdminDashboard() {
       const pendingPayments = await api.get("/api/admin/pending-payments");
       const paymentsCount = Array.isArray(pendingPayments) ? pendingPayments.length : 0;
 
+      // Fetch pending refunds
+      const refundRes = await api.get("/api/admin/refund-requests-count");
+      const refundsCount = refundRes.count || 0;
+
       setPendingCounts({
         approvals: approvalsCount,
-        payments: paymentsCount
+        payments: paymentsCount,
+        refunds: refundsCount
       });
     } catch (error) {
       console.error('Error fetching pending counts:', error);
@@ -124,9 +131,10 @@ export default function AdminDashboard() {
 
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return "Good Morning";
-    if (hour < 17) return "Good Afternoon";
-    return "Good Evening";
+    if (hour >= 5 && hour < 12) return "Good Morning";
+    if (hour >= 12 && hour < 17) return "Good Afternoon";
+    if (hour >= 17 && hour < 21) return "Good Evening";
+    return "Good Night";
   };
 
   const getTrendIcon = (current, previous) => {
@@ -167,6 +175,7 @@ export default function AdminDashboard() {
         current="dashboard" 
         pendingApprovals={pendingCounts.approvals}
         pendingPayments={pendingCounts.payments}
+        pendingRefunds={pendingCounts.refunds}
       />
 
       <div className="flex-1 ml-64 p-6 lg:p-8">
@@ -275,6 +284,16 @@ export default function AdminDashboard() {
               href="/payments"
               color="from-emerald-500 to-green-600"
               bgColor="bg-gradient-to-r from-emerald-500 to-green-600"
+            />
+            
+            <QuickActionCard
+              icon={<FaUndoAlt className="text-3xl" />}
+              title="Refund Requests"
+              description="Review and process patient refund requests"
+              actionText="Review Refunds"
+              href="/refund-requests"
+              color="from-orange-500 to-red-600"
+              bgColor="bg-gradient-to-r from-orange-500 to-red-600"
             />
             
             <QuickActionCard

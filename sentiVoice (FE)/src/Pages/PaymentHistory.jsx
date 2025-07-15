@@ -50,6 +50,7 @@ export default function PaymentHistory() {
   const [pendingCounts, setPendingCounts] = useState({
     approvals: 0,
     payments: 0,
+    refunds: 0,
     notifications: 0
   });
 
@@ -84,9 +85,14 @@ export default function PaymentHistory() {
       const pendingPayments = await api.get("/api/admin/pending-payments");
       const paymentsCount = Array.isArray(pendingPayments) ? pendingPayments.length : 0;
 
+      // Fetch pending refunds
+      const refundRes = await api.get("/api/admin/refund-requests-count");
+      const refundsCount = refundRes.count || 0;
+
       setPendingCounts({
         approvals: approvalsCount,
         payments: paymentsCount,
+        refunds: refundsCount,
         notifications: 0
       });
     } catch (error) {
@@ -342,6 +348,7 @@ export default function PaymentHistory() {
         current="payments" 
         pendingApprovals={pendingCounts.approvals}
         pendingPayments={pendingCounts.payments}
+        pendingRefunds={pendingCounts.refunds}
         notifications={pendingCounts.notifications}
       />
       
@@ -360,7 +367,7 @@ export default function PaymentHistory() {
             <div className="flex items-center space-x-4">
               <div className="bg-white rounded-lg px-4 py-2 shadow-sm border">
                 <div className="flex items-center space-x-2">
-                  <FaHistory className="text-gray-400" />
+                  <FaClock className="text-gray-400" />
                   <span className="text-sm text-gray-600">
                     {new Date().toLocaleDateString('en-US', { 
                       weekday: 'long', 

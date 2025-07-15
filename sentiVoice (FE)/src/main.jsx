@@ -35,24 +35,26 @@ import PaymentSettings from "./Pages/PaymentSettings.jsx";
 import AdminSettings from "./Pages/AdminSettings.jsx";
 import AdminUserList from "./Pages/AdminUserList.jsx";
 import RefundRequests from './Pages/RefundRequests.jsx';
+import MaintenanceCheck from './Components/MaintenanceCheck/MaintenanceCheck.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Navigate to="/home" />} /> {/* Redirect root to /home */}
-        <Route path="/home" element={<WebsitePage />} /> {/* /home route */}
-        <Route path="/therapists" element={<Therapists />} /> {/* /therapist route */}
-        <Route path="/login" element={<Login />} /> {/* /login route */}
-        <Route path="/coming-soon" element={<ComingSoon />} />
-        <Route path="/services" element={<Services />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/signup" element={<Signup />} /> {/* /signup route */}
-        <Route path="/email-verification" element={<EmailVerificationPage />} /> {/* /email-verification route */}
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/resend-verification" element={<ResendVerification />} />
+      <MaintenanceCheck>
+        <Routes>
+          <Route path="/" element={<Navigate to="/home" />} /> {/* Redirect root to /home */}
+          <Route path="/home" element={<WebsitePage />} /> {/* /home route */}
+          <Route path="/therapists" element={<Therapists />} /> {/* /therapist route */}
+          <Route path="/login" element={<Login />} /> {/* /login route */}
+          <Route path="/coming-soon" element={<ComingSoon />} />
+          <Route path="/services" element={<Services />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/signup" element={<Signup />} /> {/* /signup route */}
+          <Route path="/email-verification" element={<EmailVerificationPage />} /> {/* /email-verification route */}
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/resend-verification" element={<ResendVerification />} />
 		            {/* Patient-Specific Routes */}
         {/* 
           "requiredRole='patient'" means ONLY a user with role 'patient' 
@@ -179,6 +181,7 @@ createRoot(document.getElementById('root')).render(
         {/* Catch-all: If no route matches, go to /home */}
         <Route path="*" element={<Navigate to="/home" />} />
       </Routes>
+      </MaintenanceCheck>
     </BrowserRouter>
   </StrictMode>,
 )

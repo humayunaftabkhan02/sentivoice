@@ -39,6 +39,7 @@ export default function PaymentApproval() {
   const [pendingCounts, setPendingCounts] = useState({
     approvals: 0,
     payments: 0,
+    refunds: 0,
     notifications: 0
   });
   const [paymentStats, setPaymentStats] = useState({
@@ -76,9 +77,14 @@ export default function PaymentApproval() {
       const pendingPayments = await api.get("/api/admin/pending-payments");
       const paymentsCount = Array.isArray(pendingPayments) ? pendingPayments.length : 0;
 
+      // Fetch pending refunds
+      const refundRes = await api.get("/api/admin/refund-requests-count");
+      const refundsCount = refundRes.count || 0;
+
       setPendingCounts({
         approvals: approvalsCount,
         payments: paymentsCount,
+        refunds: refundsCount,
         notifications: 0
       });
     } catch (error) {
@@ -214,6 +220,7 @@ export default function PaymentApproval() {
         current="payments" 
         pendingApprovals={pendingCounts.approvals}
         pendingPayments={pendingCounts.payments}
+        pendingRefunds={pendingCounts.refunds}
         notifications={pendingCounts.notifications}
       />
       

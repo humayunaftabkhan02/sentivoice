@@ -125,7 +125,8 @@ exports.getAllUsers = async (req, res) => {
         address: u.info?.address,
         registeredOn,
         status,
-        isActive: u.isActive === true // Only true if explicitly set to true
+        isActive: u.isActive === true, // Only true if explicitly set to true
+        profilePicturePath: u.info?.profilePicture || null
       };
     });
 

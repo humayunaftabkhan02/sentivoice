@@ -354,6 +354,19 @@ useEffect(() => {
         console.log('No voice recording data to add to payment request');
       }
 
+      // Debug: Log FormData contents
+      console.log('🔍 FormData contents:');
+      console.log('📄 Slip file:', slipFile ? `${slipFile.name} (${slipFile.size} bytes)` : 'No slip file');
+      console.log('👤 Patient username:', username);
+      console.log('💳 Payment method:', paymentMethod);
+      console.log('🔢 Reference number:', referenceNo);
+      console.log('👨‍⚕️ Therapist username:', therapistUsername);
+      console.log('📅 Date:', date);
+      console.log('⏰ Time:', time);
+      console.log('📋 Session type:', normalizedSessionType);
+      console.log('🎤 Voice recording data length:', voiceRecordingData ? voiceRecordingData.length : 0);
+      console.log('📄 Voice file name:', voiceFileName);
+
       console.log('Submitting payment with FormData...');
       const paymentResponse = await api.post("/api/payments", fd);
       console.log('Payment response:', paymentResponse);

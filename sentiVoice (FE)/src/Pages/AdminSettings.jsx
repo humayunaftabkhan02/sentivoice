@@ -1,28 +1,30 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../utils/api";
 import AdminSidebar from "../Components/AdminSidebar/AdminSidebar";
+import { FaClock, FaPlus, FaEdit, FaTrash, FaEye, FaEyeSlash, FaUser } from "react-icons/fa";
 
 export default function AdminSystemSettings() {
   const [settings, setSettings] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
-  const [activeTab, setActiveTab] = useState('general');
   const [pendingCounts, setPendingCounts] = useState({
     approvals: 0,
     payments: 0,
+    refunds: 0,
     notifications: 0
   });
 
-  const tabs = [
-    { id: 'general', label: 'General', icon: '⚙️' },
-    { id: 'security', label: 'Security', icon: '🔒' },
-    { id: 'features', label: 'Features', icon: '🚀' },
-    { id: 'appointments', label: 'Appointments', icon: '📅' },
-    { id: 'notifications', label: 'Notifications', icon: '🔔' },
-    { id: 'maintenance', label: 'Maintenance', icon: '🛠️' },
-    { id: 'advanced', label: 'Advanced', icon: '⚡' }
-  ];
+  // Announcement states
+  const [announcements, setAnnouncements] = useState([]);
+  const [showAnnouncementForm, setShowAnnouncementForm] = useState(false);
+  const [editingAnnouncement, setEditingAnnouncement] = useState(null);
+  const [announcementForm, setAnnouncementForm] = useState({
+    message: '',
+    type: 'info',
+    startDate: new Date().toISOString().slice(0, 16),
+    endDate: ''
+  });
 
   const fetchPendingCounts = async () => {
     try {
@@ -30,14 +32,25 @@ export default function AdminSystemSettings() {
       const approvalsCount = Array.isArray(pendingApprovals) ? pendingApprovals.length : 0;
       const pendingPayments = await api.get("/api/admin/pending-payments");
       const paymentsCount = Array.isArray(pendingPayments) ? pendingPayments.length : 0;
-
+      const refundRes = await api.get("/api/admin/refund-requests-count");
+      const refundsCount = refundRes.count || 0;
       setPendingCounts({
         approvals: approvalsCount,
         payments: paymentsCount,
+        refunds: refundsCount,
         notifications: 0
       });
     } catch (error) {
       console.error('Error fetching pending counts:', error);
+    }
+  };
+
+  const fetchAnnouncements = async () => {
+    try {
+      const data = await api.get("/api/admin/announcements");
+      setAnnouncements(data);
+    } catch (err) {
+      console.error('Error fetching announcements:', err);
     }
   };
 
@@ -52,6 +65,7 @@ export default function AdminSystemSettings() {
     };
     fetchSettings();
     fetchPendingCounts();
+    fetchAnnouncements();
   }, []);
 
   const handleSave = async () => {
@@ -104,6 +118,93 @@ export default function AdminSystemSettings() {
     setSettings(prev => ({ ...prev, [key]: value }));
   };
 
+  // Announcement functions
+  const handleAnnouncementSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+
+    try {
+      if (editingAnnouncement) {
+        await api.put(`/api/admin/announcements/${editingAnnouncement._id}`, announcementForm);
+        setSuccess("Announcement updated successfully!");
+      } else {
+        await api.post("/api/admin/announcements", announcementForm);
+        setSuccess("Announcement created successfully!");
+      }
+      
+      setShowAnnouncementForm(false);
+      setEditingAnnouncement(null);
+      setAnnouncementForm({
+        message: '',
+        type: 'info',
+        startDate: new Date().toISOString().slice(0, 16),
+        endDate: ''
+      });
+      fetchAnnouncements();
+    } catch (err) {
+      setError(err.response?.data?.error || "Failed to save announcement");
+    }
+  };
+
+  const handleEditAnnouncement = (announcement) => {
+    setEditingAnnouncement(announcement);
+    setAnnouncementForm({
+      message: announcement.message,
+      type: announcement.type,
+      startDate: new Date(announcement.startDate).toISOString().slice(0, 16),
+      endDate: announcement.endDate ? new Date(announcement.endDate).toISOString().slice(0, 16) : ''
+    });
+    setShowAnnouncementForm(true);
+  };
+
+  const handleDeleteAnnouncement = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this announcement?")) {
+      return;
+    }
+
+    try {
+      await api.delete(`/api/admin/announcements/${id}`);
+      setSuccess("Announcement deleted successfully!");
+      fetchAnnouncements();
+    } catch (err) {
+      setError("Failed to delete announcement");
+    }
+  };
+
+  const handleToggleAnnouncement = async (id) => {
+    try {
+      await api.put(`/api/admin/announcements/${id}/toggle`);
+      setSuccess("Announcement status updated!");
+      fetchAnnouncements();
+    } catch (err) {
+      setError("Failed to update announcement status");
+    }
+  };
+
+  const getTypeColor = (type) => {
+    switch (type) {
+      case 'warning': return 'bg-yellow-100 text-yellow-800';
+      case 'success': return 'bg-green-100 text-green-800';
+      default: return 'bg-blue-100 text-blue-800';
+    }
+  };
+
+  const getStatusColor = (isActive) => {
+    return isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800';
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'No end date';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   const ToggleSwitch = ({ checked, onChange, disabled = false }) => (
     <label className="relative inline-flex items-center cursor-pointer">
       <input
@@ -152,15 +253,33 @@ export default function AdminSystemSettings() {
         current="settings" 
         pendingApprovals={pendingCounts.approvals}
         pendingPayments={pendingCounts.payments}
+        pendingRefunds={pendingCounts.refunds}
         notifications={pendingCounts.notifications}
       />
       
       <div className="flex-1 ml-64 p-6 lg:p-8">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">System Settings</h1>
-            <p className="text-gray-600">Configure platform behavior, security, and features</p>
+          <div className="mb-8 flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">System Settings</h1>
+              <p className="text-gray-600">Manage maintenance mode and announcements</p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="bg-white rounded-lg px-4 py-2 shadow-sm border">
+                <div className="flex items-center space-x-2">
+                  <FaClock className="text-gray-400" />
+                  <span className="text-sm text-gray-600">
+                    {new Date().toLocaleDateString('en-US', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Alert Messages */}
@@ -171,7 +290,6 @@ export default function AdminSystemSettings() {
               </div>
             </div>
           )}
-          
           {success && (
             <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
               <div className="flex">
@@ -180,7 +298,7 @@ export default function AdminSystemSettings() {
             </div>
           )}
 
-          {/* Action Buttons */}
+          {/* Action Button */}
           <div className="mb-6 flex gap-3">
             <button
               onClick={handleSave}
@@ -189,514 +307,176 @@ export default function AdminSystemSettings() {
             >
               {saving ? "Saving..." : "💾 Save Changes"}
             </button>
-            
-            <button
-              onClick={handleReset}
-              className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-medium shadow transition duration-200"
-            >
-              🔄 Reset to Defaults
-            </button>
-            
-            <button
-              onClick={handleExport}
-              className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium shadow transition duration-200"
-            >
-              📤 Export Settings
-            </button>
           </div>
 
-          {/* Tab Navigation */}
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-            <div className="border-b border-gray-200">
-              <nav className="flex space-x-8 px-6">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm transition duration-200 ${
-                      activeTab === tab.id
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    <span className="mr-2">{tab.icon}</span>
-                    {tab.label}
-                  </button>
-                ))}
-              </nav>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Maintenance Mode */}
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden p-8">
+              <h3 className="text-lg font-semibold mb-4">🛠️ Maintenance Mode</h3>
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-sm font-medium">Enable Maintenance Mode</span>
+                <ToggleSwitch
+                  checked={settings.maintenanceMode}
+                  onChange={(e) => updateSetting('maintenanceMode', e.target.checked)}
+                />
+              </div>
             </div>
 
-            {/* Tab Content */}
-            <div className="p-6">
-              {activeTab === 'general' && (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Announcement Settings */}
-                    <div className="bg-gray-50 rounded-lg p-6">
-                      <h3 className="text-lg font-semibold mb-4">📢 System Announcement</h3>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Enable Announcement</span>
-                          <ToggleSwitch
-                            checked={settings.announcementEnabled}
-                            onChange={(e) => updateSetting('announcementEnabled', e.target.checked)}
-                          />
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Announcement Type</label>
-                          <select
-                            value={settings.announcementType}
-                            onChange={(e) => updateSetting('announcementType', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                          >
-                            <option value="info">ℹ️ Information</option>
-                            <option value="warning">⚠️ Warning</option>
-                            <option value="success">✅ Success</option>
-                          </select>
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Message</label>
-                          <textarea
-                            value={settings.announcement}
-                            onChange={(e) => updateSetting('announcement', e.target.value)}
-                            rows={3}
-                            placeholder="Enter announcement message..."
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                          />
-                        </div>
-                      </div>
-                    </div>
+            {/* Announcement Management */}
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden p-8">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">📢 Announcements</h3>
+                <button
+                  onClick={() => {
+                    setShowAnnouncementForm(true);
+                    setEditingAnnouncement(null);
+                    setAnnouncementForm({
+                      message: '',
+                      type: 'info',
+                      startDate: new Date().toISOString().slice(0, 16),
+                      endDate: ''
+                    });
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow transition duration-200 flex items-center gap-2"
+                >
+                  <FaPlus /> New
+                </button>
+              </div>
 
-                    {/* Maintenance Mode */}
-                    <div className="bg-gray-50 rounded-lg p-6">
-                      <h3 className="text-lg font-semibold mb-4">🛠️ Maintenance Mode</h3>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Enable Maintenance Mode</span>
-                          <ToggleSwitch
-                            checked={settings.maintenanceMode}
-                            onChange={(e) => updateSetting('maintenanceMode', e.target.checked)}
-                          />
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Maintenance Message</label>
-                          <textarea
-                            value={settings.maintenanceMessage}
-                            onChange={(e) => updateSetting('maintenanceMessage', e.target.value)}
-                            rows={3}
-                            placeholder="Enter maintenance message..."
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                          />
-                        </div>
-                      </div>
+              {/* Announcement Form */}
+              {showAnnouncementForm && (
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-medium mb-3">
+                    {editingAnnouncement ? 'Edit Announcement' : 'Create New Announcement'}
+                  </h4>
+                  <form onSubmit={handleAnnouncementSubmit} className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Message *</label>
+                      <textarea
+                        value={announcementForm.message}
+                        onChange={(e) => setAnnouncementForm({...announcementForm, message: e.target.value})}
+                        rows={2}
+                        required
+                        placeholder="Enter announcement message..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                      />
                     </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'security' && (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Authentication Settings */}
-                    <div className="bg-gray-50 rounded-lg p-6">
-                      <h3 className="text-lg font-semibold mb-4">🔐 Authentication</h3>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Require Email Verification</span>
-                          <ToggleSwitch
-                            checked={settings.requireEmailVerification}
-                            onChange={(e) => updateSetting('requireEmailVerification', e.target.checked)}
-                          />
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Require Therapist Approval</span>
-                          <ToggleSwitch
-                            checked={settings.requireTherapistApproval}
-                            onChange={(e) => updateSetting('requireTherapistApproval', e.target.checked)}
-                          />
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="text-sm font-medium">Session Timeout (minutes)</span>
-                            <p className="text-xs text-gray-500">1-10080 (1 week max)</p>
-                          </div>
-                          <NumberInput
-                            value={settings.sessionTimeoutMinutes}
-                            onChange={(e) => updateSetting('sessionTimeoutMinutes', parseInt(e.target.value))}
-                            min={1}
-                            max={10080}
-                          />
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="text-sm font-medium">Max Login Attempts</span>
-                            <p className="text-xs text-gray-500">1-20 attempts</p>
-                          </div>
-                          <NumberInput
-                            value={settings.maxLoginAttempts}
-                            onChange={(e) => updateSetting('maxLoginAttempts', parseInt(e.target.value))}
-                            min={1}
-                            max={20}
-                          />
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="text-sm font-medium">Password Min Length</span>
-                            <p className="text-xs text-gray-500">6-50 characters</p>
-                          </div>
-                          <NumberInput
-                            value={settings.passwordMinLength}
-                            onChange={(e) => updateSetting('passwordMinLength', parseInt(e.target.value))}
-                            min={6}
-                            max={50}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Content Moderation */}
-                    <div className="bg-gray-50 rounded-lg p-6">
-                      <h3 className="text-lg font-semibold mb-4">🛡️ Content Moderation</h3>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Auto Moderation</span>
-                          <ToggleSwitch
-                            checked={settings.autoModerationEnabled}
-                            onChange={(e) => updateSetting('autoModerationEnabled', e.target.checked)}
-                          />
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Profanity Filter</span>
-                          <ToggleSwitch
-                            checked={settings.profanityFilterEnabled}
-                            onChange={(e) => updateSetting('profanityFilterEnabled', e.target.checked)}
-                          />
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Spam Protection</span>
-                          <ToggleSwitch
-                            checked={settings.spamProtectionEnabled}
-                            onChange={(e) => updateSetting('spamProtectionEnabled', e.target.checked)}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'features' && (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Core Features */}
-                    <div className="bg-gray-50 rounded-lg p-6">
-                      <h3 className="text-lg font-semibold mb-4">🚀 Core Features</h3>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Messaging System</span>
-                          <ToggleSwitch
-                            checked={settings.messagingEnabled}
-                            onChange={(e) => updateSetting('messagingEnabled', e.target.checked)}
-                          />
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Voice Analysis</span>
-                          <ToggleSwitch
-                            checked={settings.voiceAnalysisEnabled}
-                            onChange={(e) => updateSetting('voiceAnalysisEnabled', e.target.checked)}
-                          />
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Report Generation</span>
-                          <ToggleSwitch
-                            checked={settings.reportGenerationEnabled}
-                            onChange={(e) => updateSetting('reportGenerationEnabled', e.target.checked)}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Registration Settings */}
-                    <div className="bg-gray-50 rounded-lg p-6">
-                      <h3 className="text-lg font-semibold mb-4">👥 Registration</h3>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Patient Registration</span>
-                          <ToggleSwitch
-                            checked={settings.patientRegistrationEnabled}
-                            onChange={(e) => updateSetting('patientRegistrationEnabled', e.target.checked)}
-                          />
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Therapist Registration</span>
-                          <ToggleSwitch
-                            checked={settings.therapistRegistrationEnabled}
-                            onChange={(e) => updateSetting('therapistRegistrationEnabled', e.target.checked)}
-                          />
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Appointment Booking</span>
-                          <ToggleSwitch
-                            checked={settings.appointmentBookingEnabled}
-                            onChange={(e) => updateSetting('appointmentBookingEnabled', e.target.checked)}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'appointments' && (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Appointment Limits */}
-                    <div className="bg-gray-50 rounded-lg p-6">
-                      <h3 className="text-lg font-semibold mb-4">📅 Appointment Settings</h3>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="text-sm font-medium">Max Appointments/Day</span>
-                            <p className="text-xs text-gray-500">Per therapist</p>
-                          </div>
-                          <NumberInput
-                            value={settings.maxAppointmentsPerDay}
-                            onChange={(e) => updateSetting('maxAppointmentsPerDay', parseInt(e.target.value))}
-                            min={1}
-                            max={50}
-                          />
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="text-sm font-medium">Duration (minutes)</span>
-                            <p className="text-xs text-gray-500">Default appointment length</p>
-                          </div>
-                          <NumberInput
-                            value={settings.appointmentDurationMinutes}
-                            onChange={(e) => updateSetting('appointmentDurationMinutes', parseInt(e.target.value))}
-                            min={15}
-                            max={480}
-                            step={15}
-                          />
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="text-sm font-medium">Cancellation Notice (hours)</span>
-                            <p className="text-xs text-gray-500">Minimum notice required</p>
-                          </div>
-                          <NumberInput
-                            value={settings.cancellationNoticeHours}
-                            onChange={(e) => updateSetting('cancellationNoticeHours', parseInt(e.target.value))}
-                            min={1}
-                            max={168}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Appointment Controls */}
-                    <div className="bg-gray-50 rounded-lg p-6">
-                      <h3 className="text-lg font-semibold mb-4">⚙️ Appointment Controls</h3>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Allow Rescheduling</span>
-                          <ToggleSwitch
-                            checked={settings.allowRescheduling}
-                            onChange={(e) => updateSetting('allowRescheduling', e.target.checked)}
-                          />
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Allow Cancellation</span>
-                          <ToggleSwitch
-                            checked={settings.allowCancellation}
-                            onChange={(e) => updateSetting('allowCancellation', e.target.checked)}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'notifications' && (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Notification Channels */}
-                    <div className="bg-gray-50 rounded-lg p-6">
-                      <h3 className="text-lg font-semibold mb-4">🔔 Notification Channels</h3>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Email Notifications</span>
-                          <ToggleSwitch
-                            checked={settings.emailNotificationsEnabled}
-                            onChange={(e) => updateSetting('emailNotificationsEnabled', e.target.checked)}
-                          />
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">SMS Notifications</span>
-                          <ToggleSwitch
-                            checked={settings.smsNotificationsEnabled}
-                            onChange={(e) => updateSetting('smsNotificationsEnabled', e.target.checked)}
-                          />
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Push Notifications</span>
-                          <ToggleSwitch
-                            checked={settings.pushNotificationsEnabled}
-                            onChange={(e) => updateSetting('pushNotificationsEnabled', e.target.checked)}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'maintenance' && (
-                <div className="space-y-6">
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-yellow-800 mb-4">⚠️ Maintenance Mode</h3>
-                    <p className="text-yellow-700 mb-4">
-                      When maintenance mode is enabled, only administrators can access the system. 
-                      All other users will see the maintenance message.
-                    </p>
                     
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">Enable Maintenance Mode</span>
-                        <ToggleSwitch
-                          checked={settings.maintenanceMode}
-                          onChange={(e) => updateSetting('maintenanceMode', e.target.checked)}
-                        />
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Type</label>
+                        <select
+                          value={announcementForm.type}
+                          onChange={(e) => setAnnouncementForm({...announcementForm, type: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                        >
+                          <option value="info">Info</option>
+                          <option value="warning">Warning</option>
+                          <option value="success">Success</option>
+                        </select>
                       </div>
                       
                       <div>
-                        <label className="block text-sm font-medium mb-2">Maintenance Message</label>
-                        <textarea
-                          value={settings.maintenanceMessage}
-                          onChange={(e) => updateSetting('maintenanceMessage', e.target.value)}
-                          rows={4}
-                          placeholder="Enter maintenance message to display to users..."
-                          className="w-full px-3 py-2 border border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:outline-none"
+                        <label className="block text-sm font-medium mb-1">End Date (Optional)</label>
+                        <input
+                          type="datetime-local"
+                          value={announcementForm.endDate}
+                          onChange={(e) => setAnnouncementForm({...announcementForm, endDate: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                         />
                       </div>
                     </div>
-                  </div>
+                    
+                    <div className="flex gap-2">
+                      <button
+                        type="submit"
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow transition duration-200"
+                      >
+                        {editingAnnouncement ? 'Update' : 'Create'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowAnnouncementForm(false);
+                          setEditingAnnouncement(null);
+                        }}
+                        className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow transition duration-200"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
                 </div>
               )}
 
-              {activeTab === 'advanced' && (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* System Limits */}
-                    <div className="bg-gray-50 rounded-lg p-6">
-                      <h3 className="text-lg font-semibold mb-4">📊 System Limits</h3>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="text-sm font-medium">Max Users/Therapist</span>
-                            <p className="text-xs text-gray-500">Patient limit per therapist</p>
+              {/* Announcements List */}
+              <div className="space-y-3">
+                {announcements.length === 0 ? (
+                  <p className="text-gray-500 text-sm">No announcements found.</p>
+                ) : (
+                  announcements.map((announcement) => (
+                    <div key={announcement._id} className="p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(announcement.type)}`}>
+                              {announcement.type.toUpperCase()}
+                            </span>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(announcement.isActive)}`}>
+                              {announcement.isActive ? 'ACTIVE' : 'INACTIVE'}
+                            </span>
                           </div>
-                          <NumberInput
-                            value={settings.maxUsersPerTherapist}
-                            onChange={(e) => updateSetting('maxUsersPerTherapist', parseInt(e.target.value))}
-                            min={1}
-                            max={200}
-                          />
+                          
+                          <p className="text-gray-900 text-sm mb-1">{announcement.message}</p>
+                          
+                          <div className="flex items-center gap-4 text-xs text-gray-500">
+                            <div className="flex items-center gap-1">
+                              <FaUser />
+                              <span>{announcement.createdBy}</span>
+                            </div>
+                            {announcement.endDate && (
+                              <div className="flex items-center gap-1">
+                                <FaClock />
+                                <span>Ends: {formatDate(announcement.endDate)}</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                         
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="text-sm font-medium">Max Therapists/Patient</span>
-                            <p className="text-xs text-gray-500">Therapist limit per patient</p>
-                          </div>
-                          <NumberInput
-                            value={settings.maxTherapistsPerPatient}
-                            onChange={(e) => updateSetting('maxTherapistsPerPatient', parseInt(e.target.value))}
-                            min={1}
-                            max={20}
-                          />
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="text-sm font-medium">Max Message Length</span>
-                            <p className="text-xs text-gray-500">Characters per message</p>
-                          </div>
-                          <NumberInput
-                            value={settings.maxMessageLength}
-                            onChange={(e) => updateSetting('maxMessageLength', parseInt(e.target.value))}
-                            min={100}
-                            max={5000}
-                            step={100}
-                          />
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <span className="text-sm font-medium">Max File Size (MB)</span>
-                            <p className="text-xs text-gray-500">Upload file size limit</p>
-                          </div>
-                          <NumberInput
-                            value={settings.maxFileSizeMB}
-                            onChange={(e) => updateSetting('maxFileSizeMB', parseInt(e.target.value))}
-                            min={1}
-                            max={50}
-                          />
+                        <div className="flex items-center gap-1 ml-2">
+                          <button
+                            onClick={() => handleToggleAnnouncement(announcement._id)}
+                            className={`p-1 rounded transition-colors ${
+                              announcement.isActive 
+                                ? 'text-yellow-600 hover:bg-yellow-50' 
+                                : 'text-green-600 hover:bg-green-50'
+                            }`}
+                            title={announcement.isActive ? 'Deactivate' : 'Activate'}
+                          >
+                            {announcement.isActive ? <FaEyeSlash size={12} /> : <FaEye size={12} />}
+                          </button>
+                          
+                          <button
+                            onClick={() => handleEditAnnouncement(announcement)}
+                            className="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            title="Edit"
+                          >
+                            <FaEdit size={12} />
+                          </button>
+                          
+                          <button
+                            onClick={() => handleDeleteAnnouncement(announcement._id)}
+                            className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                            title="Delete"
+                          >
+                            <FaTrash size={12} />
+                          </button>
                         </div>
                       </div>
                     </div>
-
-                    {/* Analytics & Monitoring */}
-                    <div className="bg-gray-50 rounded-lg p-6">
-                      <h3 className="text-lg font-semibold mb-4">📈 Analytics & Monitoring</h3>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Analytics Collection</span>
-                          <ToggleSwitch
-                            checked={settings.analyticsEnabled}
-                            onChange={(e) => updateSetting('analyticsEnabled', e.target.checked)}
-                          />
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Error Logging</span>
-                          <ToggleSwitch
-                            checked={settings.errorLoggingEnabled}
-                            onChange={(e) => updateSetting('errorLoggingEnabled', e.target.checked)}
-                          />
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Performance Monitoring</span>
-                          <ToggleSwitch
-                            checked={settings.performanceMonitoringEnabled}
-                            onChange={(e) => updateSetting('performanceMonitoringEnabled', e.target.checked)}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+                  ))
+                )}
+              </div>
             </div>
           </div>
         </div>

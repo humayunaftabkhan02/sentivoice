@@ -13,7 +13,9 @@ import {
   FaChevronLeft,
   FaChevronRight,
   FaFilter,
-  FaSort
+  FaSort,
+  FaSortUp,
+  FaSortDown
 } from 'react-icons/fa';
 import NotificationBell from '../Components/NotificationBell/NotificationBell.jsx';
 import MessageIcon from "../Components/MessageIcon/MessageIcon.jsx";
@@ -93,6 +95,20 @@ const AppointmentHistory = () => {
     }
   };
 
+  const handleSort = (field) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('desc');
+    }
+  };
+
+  const getSortIcon = (field) => {
+    if (sortBy !== field) return <FaSort className="text-gray-400 ml-1" />;
+    return sortOrder === 'asc' ? <FaSortUp className="text-blue-600 ml-1" /> : <FaSortDown className="text-blue-600 ml-1" />;
+  };
+
   // Filter and sort appointments
   const filteredAppointments = appointments
     .filter(appt => {
@@ -112,24 +128,35 @@ const AppointmentHistory = () => {
     })
     .sort((a, b) => {
       let comparison = 0;
-      
+      let aValue, bValue;
       switch (sortBy) {
         case "date":
-          comparison = new Date(a.date) - new Date(b.date);
+          aValue = new Date(a.date);
+          bValue = new Date(b.date);
+          break;
+        case "createdAt":
+          aValue = new Date(a.createdAt);
+          bValue = new Date(b.createdAt);
           break;
         case "therapist":
-          comparison = (a.therapistFullName || "").localeCompare(b.therapistFullName || "");
+          aValue = (a.therapistFullName || "").toLowerCase();
+          bValue = (b.therapistFullName || "").toLowerCase();
+          break;
+        case "sessionType":
+          aValue = (a.sessionType || "").toLowerCase();
+          bValue = (b.sessionType || "").toLowerCase();
           break;
         case "status":
-          comparison = a.status.localeCompare(b.status);
-          break;
-        case "time":
-          comparison = a.time.localeCompare(b.time);
+          aValue = (a.status || "").toLowerCase();
+          bValue = (b.status || "").toLowerCase();
           break;
         default:
-          comparison = new Date(a.date) - new Date(b.date);
+          aValue = new Date(a.date);
+          bValue = new Date(b.date);
       }
-      
+      if (aValue > bValue) comparison = 1;
+      else if (aValue < bValue) comparison = -1;
+      else comparison = 0;
       return sortOrder === "asc" ? comparison : -comparison;
     });
 
@@ -191,6 +218,18 @@ const AppointmentHistory = () => {
 
   const formatTime = (timeString) => {
     return timeString;
+  };
+
+  const formatDateTime = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
   };
 
   const downloadAppointmentHistory = () => {
@@ -304,7 +343,7 @@ const AppointmentHistory = () => {
                 <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search by therapist, date, or time..."
+                  placeholder="Search by therapist..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -329,8 +368,8 @@ const AppointmentHistory = () => {
               </select>
             </div>
             
-            {/* Sort */}
-            <div className="flex items-center space-x-2">
+            {/* Remove Sort Dropdown */}
+            {/* <div className="flex items-center space-x-2">
               <FaSort className="text-gray-400" />
               <select
                 value={sortBy}
@@ -348,7 +387,7 @@ const AppointmentHistory = () => {
               >
                 {sortOrder === "asc" ? "↑" : "↓"}
               </button>
-            </div>
+            </div> */}
             
             {/* Export Button */}
             <button
@@ -380,17 +419,30 @@ const AppointmentHistory = () => {
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Date & Time
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">
+                        <button type="button" className="flex items-center" onClick={() => handleSort('date')}>
+                          Date & Time {getSortIcon('date')}
+                        </button>
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Therapist
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">
+                        <button type="button" className="flex items-center" onClick={() => handleSort('createdAt')}>
+                          Requested At {getSortIcon('createdAt')}
+                        </button>
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Session Type
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">
+                        <button type="button" className="flex items-center" onClick={() => handleSort('therapist')}>
+                          Therapist {getSortIcon('therapist')}
+                        </button>
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">
+                        <button type="button" className="flex items-center" onClick={() => handleSort('sessionType')}>
+                          Session Type {getSortIcon('sessionType')}
+                        </button>
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">
+                        <button type="button" className="flex items-center" onClick={() => handleSort('status')}>
+                          Status {getSortIcon('status')}
+                        </button>
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Actions
@@ -408,6 +460,11 @@ const AppointmentHistory = () => {
                             <div className="text-sm text-gray-500">
                               {formatTime(appointment.time)}
                             </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">
+                            {appointment.createdAt ? formatDateTime(appointment.createdAt) : 'N/A'}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -555,6 +612,10 @@ const AppointmentHistory = () => {
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Time</label>
                     <p className="text-sm text-gray-900">{formatTime(selectedAppointment.time)}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Requested At</label>
+                    <p className="text-sm text-gray-900">{selectedAppointment.createdAt ? formatDateTime(selectedAppointment.createdAt) : 'N/A'}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Therapist</label>

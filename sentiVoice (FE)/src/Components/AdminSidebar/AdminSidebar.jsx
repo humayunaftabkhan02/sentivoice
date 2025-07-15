@@ -11,7 +11,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/logo.png';
 
-export default function AdminSidebar({ current, pendingApprovals = 0, pendingPayments = 0 }) {
+export default function AdminSidebar({ current, pendingApprovals = 0, pendingPayments = 0, pendingRefunds = 0 }) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -108,6 +108,7 @@ export default function AdminSidebar({ current, pendingApprovals = 0, pendingPay
           label="Refund Requests" 
           icon={<FaUndoAlt />} 
           to="/refund-requests"
+          badge={pendingRefunds}
         />
         
         <Item 

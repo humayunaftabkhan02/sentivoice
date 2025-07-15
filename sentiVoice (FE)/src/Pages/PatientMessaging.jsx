@@ -57,7 +57,7 @@ const PatientMessaging = () => {
 
   // Initialize socket connection
   useEffect(() => {
-    socketRef.current = io((import.meta.env.VITE_API_URL || "http://localhost:3000") + '/api', {
+    socketRef.current = io(import.meta.env.VITE_API_URL || "http://localhost:3000", {
       transports: ['websocket', 'polling']
     });
 

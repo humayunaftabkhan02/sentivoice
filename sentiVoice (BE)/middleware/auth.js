@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/dataModel');
+const SystemSettings = require('../models/systemSettingsModel');
 
 // JWT secret should be in environment variables
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
@@ -157,11 +158,38 @@ const optionalAuth = async (req, res, next) => {
   }
 };
 
+// Maintenance mode middleware
+const checkMaintenanceMode = async (req, res, next) => {
+  try {
+    const settings = await SystemSettings.findOne();
+    if (settings && settings.maintenanceMode) {
+      // Check if user is admin (if authenticated)
+      let isAdmin = false;
+      if (req.user && req.user.role === 'admin') {
+        isAdmin = true;
+      }
+      // Allow admin, block others
+      if (!isAdmin) {
+        return res.status(503).json({
+          maintenance: true,
+          message: settings.maintenanceMessage || 'System is under maintenance. Please try again later.'
+        });
+      }
+    }
+    next();
+  } catch (err) {
+    console.error('Error checking maintenance mode:', err);
+    // Fail open (allow access) if error
+    next();
+  }
+};
+
 module.exports = {
   generateToken,
   verifyToken,
   authenticate,
   authorize,
   optionalAuth,
-  JWT_SECRET
+  JWT_SECRET,
+  checkMaintenanceMode
 }; 

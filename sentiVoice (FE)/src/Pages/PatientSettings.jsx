@@ -89,13 +89,11 @@ const PatientSettings = () => {
   // Clear success message when switching tabs
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
-    setSuccess(false);
     setError(null);
   };
 
-  // Clear success message on component mount and tab changes
+  // Remove setSuccess(false) from useEffect for activeTab
   useEffect(() => {
-    setSuccess(false);
     setError(null);
     // Clear any existing timeout
     if (successTimeoutRef.current) {
@@ -455,6 +453,7 @@ const PatientSettings = () => {
                 ].map((tab) => (
                   <button
                     key={tab.id}
+                    type="button"
                     onClick={() => handleTabChange(tab.id)}
                     className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
                       activeTab === tab.id

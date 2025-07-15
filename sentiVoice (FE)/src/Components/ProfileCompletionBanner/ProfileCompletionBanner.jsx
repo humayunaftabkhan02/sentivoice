@@ -28,7 +28,7 @@ const ProfileCompletionBanner = ({ username, role }) => {
   const checkProfileStatus = async () => {
     try {
       setLoading(true);
-      const response = await api.get(`/therapist/${username}/profile-complete`);
+      const response = await api.get(`/api/therapist/${username}/profile-complete`);
       setProfileStatus(response);
     } catch (error) {
       console.error('Error checking profile status:', error);
