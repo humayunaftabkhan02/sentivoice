@@ -285,18 +285,18 @@ const TherapistDashboard = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#EBEDE9]">
+    <div className="flex min-h-screen bg-[#EBEDE9] overflow-x-hidden">
       <TherapistSidebar current="dashboard" />
 
       {/* Main Content */}
-      <div className="flex-1 p-8 space-y-6 ml-64">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+      <div className="flex-1 p-4 sm:p-6 lg:p-8 lg:ml-64 min-w-0">
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 sm:mb-8 space-y-4 sm:space-y-0">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
               Therapist Dashboard
             </h1>
-            <p className="text-gray-600">Welcome to your therapist dashboard</p>
+            <p className="text-sm sm:text-base text-gray-600 mt-1">Welcome to your therapist dashboard</p>
           </div>
           <UserTopBar username={username} fullName={fullName} role={"therapist"} profilePicture={profilePicture} />
         </div>
@@ -304,22 +304,22 @@ const TherapistDashboard = () => {
         {/* Profile Completion Banner */}
         <ProfileCompletionBanner username={username} role={role} />
 
-        {/* Stats & Mini Calendar */}
-        <div className="grid grid-cols-3 gap-6">
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {/* Appointment Stats */}
-          <div className="col-span-2 bg-gradient-to-r from-blue-500 to-blue-300 p-8 rounded-lg text-white hover:shadow-lg transition-shadow duration-300">
-            <h3 className="text-2xl font-bold">Appointments This Month</h3>
-            <p className="text-6xl font-extrabold mt-4">
+          <div className="lg:col-span-2 bg-gradient-to-r from-blue-500 to-blue-300 p-4 sm:p-6 lg:p-8 rounded-lg text-white hover:shadow-lg transition-shadow duration-300">
+            <h3 className="text-xl sm:text-2xl font-bold">Appointments This Month</h3>
+            <p className="text-4xl sm:text-5xl lg:text-6xl font-extrabold mt-4">
               {getAppointmentCountThisMonth()}
             </p>
-            <div className="flex mt-6 space-x-10">
-              <div className="bg-white text-black p-5 rounded-md text-center w-48 hover:shadow-md transition-shadow duration-200">
-                <p className="text-xl font-semibold">Pending</p>
-                <p className="text-3xl font-bold">{pendingAppointments.length}</p>
+            <div className="flex flex-col sm:flex-row mt-4 sm:mt-6 space-y-3 sm:space-y-0 sm:space-x-4 lg:space-x-10">
+              <div className="bg-white text-black p-3 sm:p-4 lg:p-5 rounded-md text-center flex-1 hover:shadow-md transition-shadow duration-200">
+                <p className="text-lg sm:text-xl font-semibold">Pending</p>
+                <p className="text-2xl sm:text-3xl font-bold">{pendingAppointments.length}</p>
               </div>
-              <div className="bg-white text-black p-5 rounded-md text-center w-48 hover:shadow-md transition-shadow duration-200">
-                <p className="text-xl font-semibold">Accepted</p>
-                <p className="text-3xl font-bold">
+              <div className="bg-white text-black p-3 sm:p-4 lg:p-5 rounded-md text-center flex-1 hover:shadow-md transition-shadow duration-200">
+                <p className="text-lg sm:text-xl font-semibold">Accepted</p>
+                <p className="text-2xl sm:text-3xl font-bold">
                   {upcomingAppointments.length}
                 </p>
               </div>
@@ -327,12 +327,12 @@ const TherapistDashboard = () => {
           </div>
 
           {/* Mini Calendar */}
-          <div className="bg-white p-6 rounded-lg relative hover:shadow-lg transition-shadow duration-300">
+          <div className="bg-white p-4 sm:p-6 rounded-lg relative hover:shadow-lg transition-shadow duration-300">
             <div
               className="flex justify-between items-center cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors duration-200"
               onClick={() => setShowDatePicker(!showDatePicker)}
             >
-              <h3 className="text-xl font-semibold text-center">
+              <h3 className="text-lg sm:text-xl font-semibold text-center">
                 {currentDate.toLocaleString("default", {
                   month: "long",
                 })}{" "}
@@ -406,25 +406,25 @@ const TherapistDashboard = () => {
 
         {/* Pending Appointments */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="p-6 border-b border-gray-100">
-            <div className="flex justify-between items-center">
-              <h3 className="text-xl font-semibold text-gray-900">Pending Appointments</h3>
-              <div className="flex items-center space-x-2">
-                <div className="relative">
+          <div className="p-4 sm:p-6 border-b border-gray-100">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Pending Appointments</h3>
+              <div className="flex items-center space-x-2 w-full sm:w-auto">
+                <div className="relative flex-1 sm:flex-none">
                   <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                   <input
                     type="text"
                     placeholder="Search appointments..."
                     value={pendingSearch}
                     onChange={(e) => setPendingSearch(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             {paginatedPending.length === 0 ? (
               <div className="text-center py-8">
                 <FaTimesCircle className="text-gray-400 text-4xl mx-auto mb-4" />
@@ -435,7 +435,7 @@ const TherapistDashboard = () => {
                 {paginatedPending.map((app) => (
                   <div
                     key={app._id}
-                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200 space-y-3 sm:space-y-0"
                   >
                     <div className="flex-1">
                       <div className="flex items-center space-x-3">
@@ -455,35 +455,35 @@ const TherapistDashboard = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 w-full sm:w-auto">
                       {app.initiatorRole === "therapist" ? (
                         <button
                           onClick={() => {
                             setCancelAppId(app._id);
                             setShowCancelModal(true);
                           }}
-                          className="flex items-center space-x-1 px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200"
+                          className="flex items-center justify-center space-x-1 px-2 py-1.5 sm:px-3 sm:py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200 w-full sm:w-auto text-xs sm:text-sm"
                         >
-                          <FaTrash className="text-sm" />
+                          <FaTrash className="text-xs sm:text-sm" />
                           <span>Cancel</span>
                         </button>
                       ) : (
-                        <>
+                        <div className="flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
                           <button
                             onClick={() => acceptAppointment(app._id)}
-                            className="flex items-center space-x-1 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-200"
+                            className="flex items-center justify-center space-x-1 px-2 py-1.5 sm:px-3 sm:py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-200 w-full sm:w-auto text-xs sm:text-sm"
                           >
-                            <FaCheckCircle className="text-sm" />
+                            <FaCheckCircle className="text-xs sm:text-sm" />
                             <span>Accept</span>
                           </button>
                           <button
                             onClick={() => rejectAppointment(app._id)}
-                            className="flex items-center space-x-1 px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200"
+                            className="flex items-center justify-center space-x-1 px-2 py-1.5 sm:px-3 sm:py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200 w-full sm:w-auto text-xs sm:text-sm"
                           >
-                            <FaTimesCircle className="text-sm" />
+                            <FaTimesCircle className="text-xs sm:text-sm" />
                             <span>Reject</span>
                           </button>
-                        </>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -523,18 +523,18 @@ const TherapistDashboard = () => {
 
         {/* Upcoming Appointments */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="p-6 border-b border-gray-100">
-            <div className="flex justify-between items-center">
-              <h3 className="text-xl font-semibold text-gray-900">Upcoming Appointments</h3>
-              <div className="flex items-center space-x-2">
-                <div className="relative">
+          <div className="p-4 sm:p-6 border-b border-gray-100">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Upcoming Appointments</h3>
+              <div className="flex items-center space-x-2 w-full sm:w-auto">
+                <div className="relative flex-1 sm:flex-none">
                   <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                   <input
                     type="text"
                     placeholder="Search appointments..."
                     value={upcomingSearch}
                     onChange={(e) => setUpcomingSearch(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
               </div>
@@ -552,7 +552,7 @@ const TherapistDashboard = () => {
                 {paginatedUpcoming.map((app) => (
                   <div
                     key={app._id}
-                    className="flex items-center justify-between p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors duration-200"
+                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors duration-200 space-y-3 sm:space-y-0"
                   >
                     <div className="flex-1">
                       <div className="flex items-center space-x-3">
@@ -572,12 +572,12 @@ const TherapistDashboard = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
                       <button
                         onClick={() => rescheduleAppointment(app)}
-                        className="flex items-center space-x-1 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200"
+                        className="flex items-center justify-center space-x-1 px-2 py-1.5 sm:px-3 sm:py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 w-full sm:w-auto text-xs sm:text-sm"
                       >
-                        <FaEdit className="text-sm" />
+                        <FaEdit className="text-xs sm:text-sm" />
                         <span>Reschedule</span>
                       </button>
                       <button
@@ -585,9 +585,9 @@ const TherapistDashboard = () => {
                           setCancelAppId(app._id);
                           setShowCancelModal(true);
                         }}
-                        className="flex items-center space-x-1 px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200"
+                        className="flex items-center justify-center space-x-1 px-2 py-1.5 sm:px-3 sm:py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200 w-full sm:w-auto text-xs sm:text-sm"
                       >
-                        <FaTrash className="text-sm" />
+                        <FaTrash className="text-xs sm:text-sm" />
                         <span>Cancel</span>
                       </button>
                     </div>
@@ -632,12 +632,14 @@ const TherapistDashboard = () => {
           appointment={reschedulingApp}
           onClose={() => setReschedulingApp(null)}
           onConfirm={handleConfirmReschedule}
+          userRole="therapist"
         />
       )}
       {showCancelModal && (
         <CancelModal
           onClose={() => setShowCancelModal(false)}
           onConfirm={(reason) => cancelAppointment(cancelAppId, reason)}
+          userRole="therapist"
         />
       )}
     </div>

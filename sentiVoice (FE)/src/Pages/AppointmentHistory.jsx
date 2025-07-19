@@ -269,74 +269,74 @@ const AppointmentHistory = () => {
       <PatientSidebar current="stats" />
       
       {/* Main Content */}
-      <div className="flex-1 ml-64 p-6">
+      <div className="flex-1 lg:ml-64 p-4 sm:p-6">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 space-y-4 sm:space-y-0">
           <div>
-            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-800">
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-800">
               Appointment History
             </h1>
-            <p className="text-gray-600 mt-1">Track your therapy sessions and appointments</p>
+            <p className="text-sm sm:text-base text-gray-600 mt-1">Track your therapy sessions and appointments</p>
           </div>
           <UserTopBar username={username} fullName={fullName} role={"patient"} profilePicture={profilePicture} />
         </div>
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-          <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Appointments</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Total</p>
+                <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{stats.total}</p>
               </div>
-              <FaCalendarAlt className="text-2xl text-blue-600" />
+              <FaCalendarAlt className="text-lg sm:text-xl lg:text-2xl text-blue-600" />
             </div>
           </div>
           
-          <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+          <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Accepted</p>
-                <p className="text-2xl font-bold text-green-600">{stats.accepted}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Accepted</p>
+                <p className="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">{stats.accepted}</p>
               </div>
-              <FaCheckCircle className="text-2xl text-green-600" />
+              <FaCheckCircle className="text-lg sm:text-xl lg:text-2xl text-green-600" />
             </div>
           </div>
           
-          <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+          <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Finished</p>
-                <p className="text-2xl font-bold text-blue-600">{stats.finished}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Finished</p>
+                <p className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">{stats.finished}</p>
               </div>
-              <FaCheckCircle className="text-2xl text-blue-600" />
+              <FaCheckCircle className="text-lg sm:text-xl lg:text-2xl text-blue-600" />
             </div>
           </div>
           
-          <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+          <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Pending</p>
-                <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Pending</p>
+                <p className="text-lg sm:text-xl lg:text-2xl font-bold text-yellow-600">{stats.pending}</p>
               </div>
-              <FaHourglassHalf className="text-2xl text-yellow-600" />
+              <FaHourglassHalf className="text-lg sm:text-xl lg:text-2xl text-yellow-600" />
             </div>
           </div>
           
-          <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+          <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 border border-gray-200 col-span-2 sm:col-span-1">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Cancelled</p>
-                <p className="text-2xl font-bold text-red-600">{stats.cancelled}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Cancelled</p>
+                <p className="text-lg sm:text-xl lg:text-2xl font-bold text-red-600">{stats.cancelled}</p>
               </div>
-              <FaTimesCircle className="text-2xl text-red-600" />
+              <FaTimesCircle className="text-lg sm:text-xl lg:text-2xl text-red-600" />
             </div>
           </div>
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6 border border-gray-200">
-          <div className="flex flex-col lg:flex-row gap-4">
+        <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 mb-4 sm:mb-6 border border-gray-200">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             {/* Search */}
             <div className="flex-1">
               <div className="relative">
@@ -346,18 +346,18 @@ const AppointmentHistory = () => {
                   placeholder="Search by therapist..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                 />
               </div>
             </div>
             
             {/* Status Filter */}
             <div className="flex items-center space-x-2">
-              <FaFilter className="text-gray-400" />
+              <FaFilter className="text-gray-400 text-sm sm:text-base" />
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
               >
                 <option value="all">All Status</option>
                 <option value="Pending">Pending</option>
@@ -368,33 +368,12 @@ const AppointmentHistory = () => {
               </select>
             </div>
             
-            {/* Remove Sort Dropdown */}
-            {/* <div className="flex items-center space-x-2">
-              <FaSort className="text-gray-400" />
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="date">Date</option>
-                <option value="therapist">Therapist</option>
-                <option value="status">Status</option>
-                <option value="time">Time</option>
-              </select>
-              <button
-                onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-                className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                {sortOrder === "asc" ? "↑" : "↓"}
-              </button>
-            </div> */}
-            
             {/* Export Button */}
             <button
               onClick={downloadAppointmentHistory}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+              className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors text-sm sm:text-base"
             >
-              <FaDownload className="inline mr-2" />
+              <FaDownload className="inline mr-1 sm:mr-2 text-sm sm:text-base" />
               Export
             </button>
           </div>
@@ -403,19 +382,77 @@ const AppointmentHistory = () => {
         {/* Appointments Table */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           {loading ? (
-            <div className="p-8 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-2 text-gray-600">Loading appointments...</p>
+            <div className="p-6 sm:p-8 text-center">
+              <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-2 text-sm sm:text-base text-gray-600">Loading appointments...</p>
             </div>
           ) : currentAppointments.length === 0 ? (
-            <div className="p-8 text-center">
-              <FaCalendarAlt className="text-4xl text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-600 mb-2">No appointments found</h3>
-              <p className="text-gray-500">No appointments match your current filters.</p>
+            <div className="p-6 sm:p-8 text-center">
+              <FaCalendarAlt className="text-3xl sm:text-4xl text-gray-300 mx-auto mb-4" />
+              <h3 className="text-base sm:text-lg font-semibold text-gray-600 mb-2">No appointments found</h3>
+              <p className="text-sm sm:text-base text-gray-500">No appointments match your current filters.</p>
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto">
+              {/* Mobile Cards View */}
+              <div className="block lg:hidden">
+                <div className="p-3 sm:p-4 space-y-3">
+                  {currentAppointments.map((appointment) => (
+                    <div key={appointment._id} className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <FaUserMd className="text-blue-600 text-sm" />
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">
+                              {appointment.therapistFullName}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {appointment.sessionType === 'in-person' ? 'In-person' : appointment.sessionType === 'online' ? 'Online' : 'N/A'}
+                            </div>
+                          </div>
+                        </div>
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(appointment.status)}`}>
+                          {getStatusIcon(appointment.status)}
+                          <span className="ml-1">{appointment.status}</span>
+                        </span>
+                      </div>
+                      
+                      <div className="space-y-2 text-xs sm:text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Date:</span>
+                          <span className="text-gray-900">{formatDate(appointment.date)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Time:</span>
+                          <span className="text-gray-900">{formatTime(appointment.time)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Requested:</span>
+                          <span className="text-gray-900">{appointment.createdAt ? formatDateTime(appointment.createdAt) : 'N/A'}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-3 pt-3 border-t border-gray-200">
+                        <button
+                          onClick={() => {
+                            setSelectedAppointment(appointment);
+                            setShowDetails(true);
+                          }}
+                          className="w-full text-center px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                          <FaEye className="inline mr-1" />
+                          View Details
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Desktop Table View */}
+              <div className="hidden lg:block overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
@@ -510,19 +547,19 @@ const AppointmentHistory = () => {
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                <div className="bg-white px-3 sm:px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
                   <div className="flex-1 flex justify-between sm:hidden">
                     <button
                       onClick={() => handlePageChange(currentPage - 1)}
                       disabled={currentPage === 1}
-                      className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="relative inline-flex items-center px-3 sm:px-4 py-2 border border-gray-300 text-xs sm:text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Previous
                     </button>
                     <button
                       onClick={() => handlePageChange(currentPage + 1)}
                       disabled={currentPage === totalPages}
-                      className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="ml-2 sm:ml-3 relative inline-flex items-center px-3 sm:px-4 py-2 border border-gray-300 text-xs sm:text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Next
                     </button>
@@ -585,10 +622,10 @@ const AppointmentHistory = () => {
           <>
             {/* Overlay */}
             <div className="fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-300 animate-fadeIn" style={{ background: 'rgba(0,0,0,0.10)' }}>
-              <div className="fixed left-64 top-0 w-[calc(100vw-16rem)] h-full flex items-center justify-center pointer-events-none">
+              <div className="fixed left-0 lg:left-64 top-0 w-full lg:w-[calc(100vw-16rem)] h-full flex items-center justify-center pointer-events-none p-4">
                 {/* Modal Content */}
                 <div
-                  className="relative bg-white bg-opacity-95 rounded-2xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto border-2 border-gray-300 p-6 transform transition-all duration-300 animate-scaleIn pointer-events-auto"
+                  className="relative bg-white bg-opacity-95 rounded-2xl shadow-2xl max-w-lg w-full mx-auto max-h-[90vh] overflow-y-auto border-2 border-gray-300 p-4 sm:p-6 transform transition-all duration-300 animate-scaleIn pointer-events-auto"
                   role="dialog"
                   aria-modal="true"
                   tabIndex={-1}
@@ -596,15 +633,15 @@ const AppointmentHistory = () => {
                 {/* Close Button */}
                 <button
                   onClick={() => setShowDetails(false)}
-                  className="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-2xl focus:outline-none focus:ring-2 focus:ring-red-400 rounded-full transition-colors duration-200"
+                  className="absolute top-3 sm:top-4 right-3 sm:right-4 text-gray-400 hover:text-red-500 text-xl sm:text-2xl focus:outline-none focus:ring-2 focus:ring-red-400 rounded-full transition-colors duration-200"
                   aria-label="Close modal"
                 >
                   <FaTimesCircle />
                 </button>
                 <div className="mb-4">
-                  <h3 className="text-2xl font-semibold text-gray-900">Appointment Details</h3>
+                  <h3 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900">Appointment Details</h3>
                 </div>
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Date</label>
                     <p className="text-sm text-gray-900">{formatDate(selectedAppointment.date)}</p>
@@ -639,10 +676,10 @@ const AppointmentHistory = () => {
                     </div>
                   )}
                 </div>
-                <div className="mt-6 flex justify-end space-x-3">
+                <div className="mt-4 sm:mt-6 flex justify-end space-x-3">
                   <button
                     onClick={() => setShowDetails(false)}
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
+                    className="px-3 sm:px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors text-sm sm:text-base"
                   >
                     Close
                   </button>

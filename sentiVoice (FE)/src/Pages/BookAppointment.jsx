@@ -25,6 +25,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 import MessageIcon from "../Components/MessageIcon/MessageIcon.jsx";
 import AudioRecorderComponent from "../Components/AudioRecorder/AudioRecorder.jsx";
+import AudioQualityModal from "../Components/AudioQualityModal/AudioQualityModal.jsx";
 import { api } from "../utils/api";
 import PatientSidebar from '../Components/PatientSidebar/PatientSidebar.jsx';
 import TherapistSelection from '../Components/TherapistSelection/TherapistSelection.jsx';
@@ -109,6 +110,10 @@ const BookAppointment = () => {
   const [voiceRecording, setVoiceRecording] = useState(null);
   const [recordingSaved, setRecordingSaved] = useState(false);
   const [emotionDetected, setEmotionDetected] = useState(null);
+
+  // Audio quality modal state
+  const [showAudioQualityModal, setShowAudioQualityModal] = useState(false);
+  const [audioQualityError, setAudioQualityError] = useState(null);
 
   // Validation
   const paymentOK = paymentMethod !== "" && referenceNo.trim().length >= 6 && slipFile !== null;
@@ -438,7 +443,28 @@ useEffect(() => {
     }
     setRecordingSaved(true);
     
-    alert(`✅ Voice recording saved successfully! Voice analysis will be processed when you submit your booking.`);
+  };
+
+  const handleAudioQualityError = (error) => {
+    console.log('🎯 handleAudioQualityError called with:', error);
+    setAudioQualityError(error);
+    setShowAudioQualityModal(true);
+    console.log('✅ Modal should now be visible');
+  };
+
+  const handleReRecord = () => {
+    setShowAudioQualityModal(false);
+    setAudioQualityError(null);
+    setVoiceRecording(null);
+    setRecordingSaved(false);
+    // Go back to step 3 to re-record
+    setStep(3);
+  };
+
+  const handleContinueAnyway = () => {
+    setShowAudioQualityModal(false);
+    setAudioQualityError(null);
+    // Continue with the booking despite audio quality issues
   };
 
   const stepTitles = [
@@ -460,37 +486,73 @@ useEffect(() => {
       <PatientSidebar current="appointments" />
 
       {/* Main Content */}
-      <div className="flex-1 ml-64 p-8">
+      <div className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 sm:mb-8 space-y-4 sm:space-y-0">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
               Book Your Session
-          </h1>
-            <p className="text-gray-600">Schedule your therapy appointment in just a few steps</p>
+            </h1>
+            <p className="text-sm sm:text-base text-gray-600">Schedule your therapy appointment in just a few steps</p>
           </div>
           <UserTopBar username={username} fullName={fullName} role={role} profilePicture={profilePicture} />
         </div>
 
         {/* Progress Steps */}
-        <div className="mb-8">
-          <div className="flex items-center justify-center space-x-8">
+        <div className="mb-6 sm:mb-8">
+          {/* Mobile: Vertical Stack */}
+          <div className="sm:hidden">
+            <div className="flex flex-col items-center space-y-4">
+              {[1, 2, 3, 4].map((stepNumber) => (
+                <div key={stepNumber} className="flex items-center w-full max-w-xs">
+                  <div className="flex items-center space-x-3 w-full">
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 flex-shrink-0 ${
+                        step >= stepNumber
+                          ? "bg-blue-600 text-white shadow-lg"
+                          : "bg-gray-200 text-gray-500"
+                      }`}
+                    >
+                      {step > stepNumber ? (
+                        <FaCheck className="text-white" />
+                      ) : (
+                        stepNumber
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className={`text-xs font-medium ${
+                        step >= stepNumber ? "text-blue-600" : "text-gray-500"
+                      }`}>
+                        {stepTitles[stepNumber - 1]}
+                      </div>
+                      <div className="text-xs text-gray-400 mt-1">
+                        {stepDescriptions[stepNumber - 1]}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Desktop: Horizontal Layout */}
+          <div className="hidden sm:flex items-center justify-center space-x-4 lg:space-x-8">
             {[1, 2, 3, 4].map((stepNumber) => (
               <div key={stepNumber} className="flex items-center">
                 <div className="flex flex-col items-center">
-                <div
+                  <div
                     className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
-                    step >= stepNumber
+                      step >= stepNumber
                         ? "bg-blue-600 text-white shadow-lg"
                         : "bg-gray-200 text-gray-500"
-                  }`}
-                >
+                    }`}
+                  >
                     {step > stepNumber ? (
                       <FaCheck className="text-white" />
                     ) : (
                       stepNumber
                     )}
-                </div>
+                  </div>
                   <div className="mt-2 text-center">
                     <div className={`text-xs font-medium ${
                       step >= stepNumber ? "text-blue-600" : "text-gray-500"
@@ -504,7 +566,7 @@ useEffect(() => {
                 </div>
                 {stepNumber < 4 && (
                   <div
-                    className={`w-16 h-1 mx-4 transition-all duration-300 ${
+                    className={`w-12 lg:w-16 h-1 mx-4 transition-all duration-300 ${
                       step > stepNumber ? "bg-blue-600" : "bg-gray-200"
                     }`}
                   />
@@ -516,93 +578,93 @@ useEffect(() => {
 
         {/* Main Booking Form */}
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl overflow-hidden">
             {/* Step Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-6">
-              <div className="flex items-center justify-between">
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
                 <div>
-                  <h2 className="text-2xl font-bold text-white mb-2">
+                  <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-2">
                     {stepTitles[step - 1]}
                   </h2>
-                  <p className="text-blue-100">
+                  <p className="text-blue-100 text-sm sm:text-base">
                     {stepDescriptions[step - 1]}
                   </p>
                 </div>
-                <div className="text-right">
-                  <div className="text-blue-100 text-sm">Step {step} of 4</div>
-                  <div className="text-white font-semibold">
+                <div className="text-left sm:text-right">
+                  <div className="text-blue-100 text-xs sm:text-sm">Step {step} of 4</div>
+                  <div className="text-white font-semibold text-sm sm:text-base">
                     {Math.round((step / 4) * 100)}% Complete
                   </div>
                 </div>
-          </div>
-        </div>
+              </div>
+            </div>
 
             {/* Step Content */}
-            <div className="p-8">
+            <div className="p-4 sm:p-6 lg:p-8">
             {step === 1 && (
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   {/* Personal Information */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                         <FaUser className="inline mr-2 text-blue-600" />
                         Full Name
                       </label>
-                  <input
-                    type="text"
+                      <input
+                        type="text"
                         placeholder="Enter your full name"
-                        className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${
                           hasStoredFullName 
                             ? 'bg-gray-50 border-gray-200 cursor-not-allowed' 
                             : 'border-gray-300 hover:border-blue-400'
                         }`}
-                    value={fullName}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      if (!hasStoredFullName && (val === "" || isValidName(val))) {
-                        setFullName(val);
-                      }
-                    }}
-                    readOnly={hasStoredFullName}
-                  />
-                  {!hasStoredFullName && fullName && !isValidName(fullName) && (
-                    <p className="text-red-500 text-sm mt-1">Only letters and spaces are allowed.</p>
-                  )}
+                        value={fullName}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (!hasStoredFullName && (val === "" || isValidName(val))) {
+                            setFullName(val);
+                          }
+                        }}
+                        readOnly={hasStoredFullName}
+                      />
+                      {!hasStoredFullName && fullName && !isValidName(fullName) && (
+                        <p className="text-red-500 text-xs sm:text-sm mt-1">Only letters and spaces are allowed.</p>
+                      )}
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                         <FaPhone className="inline mr-2 text-blue-600" />
                         Phone Number
                       </label>
-                  <input
-                    type="text"
+                      <input
+                        type="text"
                         placeholder="03XXXXXXXXX or +923XXXXXXXXX"
-                        className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                        className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${
                           hasStoredPhone 
                             ? 'bg-gray-50 border-gray-200 cursor-not-allowed' 
                             : 'border-gray-300 hover:border-blue-400'
                         }`}
-                    value={phone}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      if (!hasStoredPhone && /^(\+)?[0-9]*$/.test(val)) {
-                        setPhone(val);
-                      }
-                    }}
-                    readOnly={hasStoredPhone}
-                  />
-                  {!hasStoredPhone && phone && !/^((\+92)|(0))3[0-9]{9}$/.test(phone) && (
-                    <p className="text-red-500 text-sm mt-1">
+                        value={phone}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (!hasStoredPhone && /^(\+)?[0-9]*$/.test(val)) {
+                            setPhone(val);
+                          }
+                        }}
+                        readOnly={hasStoredPhone}
+                      />
+                      {!hasStoredPhone && phone && !/^((\+92)|(0))3[0-9]{9}$/.test(phone) && (
+                        <p className="text-red-500 text-xs sm:text-sm mt-1">
                           Invalid phone number. Use 03XXXXXXXXX or +923XXXXXXXXX format.
-                    </p>
-                  )}
+                        </p>
+                      )}
                     </div>
                   </div>
 
                   {/* Therapist Selection */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                       <FaUserMd className="inline mr-2 text-blue-600" />
                       Select Therapist
                     </label>
@@ -631,125 +693,125 @@ useEffect(() => {
 
                   {/* Session Type */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                       <FaComments className="inline mr-2 text-blue-600" />
                       Session Type
                     </label>
-                  <select
-                    value={sessionType}
-                    onChange={(e) => {
-                      setSessionType(e.target.value);
-                      // Update available slots based on session type and selected therapist
-                      const selectedTherapist = therapistList.find(t => t.username === therapistUsername);
-                      if (selectedTherapist?.info?.availability) {
-                        if (e.target.value === 'in-person' || e.target.value === 'In-person') {
-                          setAvailableSlots(selectedTherapist.info.availability.inPerson || []);
-                        } else if (e.target.value === 'online' || e.target.value === 'Online') {
-                          setAvailableSlots(selectedTherapist.info.availability.online || []);
+                    <select
+                      value={sessionType}
+                      onChange={(e) => {
+                        setSessionType(e.target.value);
+                        // Update available slots based on session type and selected therapist
+                        const selectedTherapist = therapistList.find(t => t.username === therapistUsername);
+                        if (selectedTherapist?.info?.availability) {
+                          if (e.target.value === 'in-person' || e.target.value === 'In-person') {
+                            setAvailableSlots(selectedTherapist.info.availability.inPerson || []);
+                          } else if (e.target.value === 'online' || e.target.value === 'Online') {
+                            setAvailableSlots(selectedTherapist.info.availability.online || []);
+                          } else {
+                            setAvailableSlots([]);
+                          }
                         } else {
                           setAvailableSlots([]);
                         }
-                      } else {
-                        setAvailableSlots([]);
-                      }
-                    }}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  >
+                      }}
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+                      required
+                    >
                       <option value="">Select Session Type</option>
                       <option value="online">Online</option>
                       <option value="in-person">In-person</option>
-                  </select>
+                    </select>
                   </div>
 
                   {/* Date and Time Selection */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                         <FaCalendarAlt className="inline mr-2 text-blue-600" />
                         Appointment Date
                       </label>
-                  <input
-                      type="date"
-                        className="w-full px-4 py-3 rounded-lg border-2 border-gray-300 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      value={date}
-                      onChange={(e) => {
-                        const selected = e.target.value;
+                      <input
+                        type="date"
+                        className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 border-gray-300 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base"
+                        value={date}
+                        onChange={(e) => {
+                          const selected = e.target.value;
                           setDate(selected);
                           setSelectedDate(selected);
-                        const selectedDay = new Date(selected).toLocaleDateString("en-US", {
-                          weekday: "long"
-                        });
-                        setSelectedDay(selectedDay);
-                      }}
-                      required
-                      min={new Date().toISOString().split("T")[0]}
-                      max={new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split("T")[0]}
-                      onKeyDown={(e) => e.preventDefault()}
-                    />
+                          const selectedDay = new Date(selected).toLocaleDateString("en-US", {
+                            weekday: "long"
+                          });
+                          setSelectedDay(selectedDay);
+                        }}
+                        required
+                        min={new Date().toISOString().split("T")[0]}
+                        max={new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split("T")[0]}
+                        onKeyDown={(e) => e.preventDefault()}
+                      />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                         <FaClock className="inline mr-2 text-blue-600" />
                         Available Time
                       </label>
-                  <select
-                    value={time}
-                    onChange={(e) => setTime(e.target.value)}
-                        className="w-full px-4 py-3 rounded-lg border-2 border-gray-300 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    required
-                  >
+                      <select
+                        value={time}
+                        onChange={(e) => setTime(e.target.value)}
+                        className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 border-gray-300 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base"
+                        required
+                      >
                         <option value="">Select available time</option>
-                    {getTimesForDay(selectedDay).map((slot, idx) => {
-                      const isBooked = bookedSlots.includes(slot);
-                      return (
-                        <option key={idx} value={slot} disabled={isBooked}>
-                          {isBooked ? `🛑 ${slot} (Booked)` : slot}
-                        </option>
-                      );
-                    })}
-                  </select>
+                        {getTimesForDay(selectedDay).map((slot, idx) => {
+                          const isBooked = bookedSlots.includes(slot);
+                          return (
+                            <option key={idx} value={slot} disabled={isBooked}>
+                              {isBooked ? `🛑 ${slot} (Booked)` : slot}
+                            </option>
+                          );
+                        })}
+                      </select>
                     </div>
                   </div>
 
                   {/* Continue Button */}
-                  <div className="flex justify-end pt-6">
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      if (!therapistUsername || !sessionType || !date || !time || !phone) {
+                  <div className="flex justify-end pt-4 sm:pt-6">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!therapistUsername || !sessionType || !date || !time || !phone) {
                           alert("Please fill out all required fields before proceeding.");
-                        return;
-                      }
-                      
-                      if (!/^((\+92)|(0))3[0-9]{9}$/.test(phone)) {
+                          return;
+                        }
+                        
+                        if (!/^((\+92)|(0))3[0-9]{9}$/.test(phone)) {
                           alert("Invalid phone number. Use 03XXXXXXXXX or +923XXXXXXXXX format.");
-                        return;
-                      }
-                    
-                      const hasDuplicate = await checkDuplicateBooking(username, therapistUsername);
-                      if (hasDuplicate) {
+                          return;
+                        }
+                      
+                        const hasDuplicate = await checkDuplicateBooking(username, therapistUsername);
+                        if (hasDuplicate) {
                           alert("You already have a pending or accepted appointment with this therapist.");
-                        return;
-                      }
-                    
-                      nextStep();
-                    }}
-                      className="flex items-center px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl"
-                  >
+                          return;
+                        }
+                      
+                        nextStep();
+                      }}
+                      className="flex items-center px-6 sm:px-8 py-2 sm:py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl text-sm sm:text-base"
+                    >
                       Continue to Payment
                       <FaArrowRight className="ml-2" />
-                  </button>
+                    </button>
                   </div>
               </div>
             )}
 
             {step === 2 && (
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   {/* Payment Method Selection */}
-              <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                       <FaCreditCard className="inline mr-2 text-blue-600" />
                       Payment Method
                     </label>
@@ -761,7 +823,7 @@ useEffect(() => {
                         setSlipFile(null);
                         setUploadProgress(0);
                       }}
-                      className="w-full px-4 py-3 rounded-lg border-2 border-gray-300 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 border-gray-300 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base"
                       disabled={loadingPaymentSettings}
                     >
                       <option value="">
@@ -777,27 +839,27 @@ useEffect(() => {
 
                   {/* Account Details */}
                   {paymentMethod && (
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-6">
-                      <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-4 sm:p-6">
+                      <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 flex items-center">
                         <FaCreditCard className="mr-2 text-blue-600" />
                         Payment Account Details
                       </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="bg-white rounded-lg p-4 border border-gray-200">
-                          <div className="text-sm text-gray-600 mb-1">Account Name</div>
-                          <div className="font-semibold text-gray-800">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                        <div className="bg-white rounded-lg p-3 sm:p-4 border border-gray-200">
+                          <div className="text-xs sm:text-sm text-gray-600 mb-1">Account Name</div>
+                          <div className="font-semibold text-gray-800 text-sm sm:text-base">
                             {paymentAccounts[paymentMethod]?.name || 'N/A'}
                           </div>
                         </div>
-                        <div className="bg-white rounded-lg p-4 border border-gray-200">
-                          <div className="text-sm text-gray-600 mb-1">Account Number</div>
-                          <div className="font-semibold text-gray-800">
+                        <div className="bg-white rounded-lg p-3 sm:p-4 border border-gray-200">
+                          <div className="text-xs sm:text-sm text-gray-600 mb-1">Account Number</div>
+                          <div className="font-semibold text-gray-800 text-sm sm:text-base">
                             {paymentAccounts[paymentMethod]?.number || 'N/A'}
                           </div>
                         </div>
-                        <div className="bg-white rounded-lg p-4 border border-gray-200">
-                          <div className="text-sm text-gray-600 mb-1">Amount</div>
-                          <div className="font-semibold text-green-600">
+                        <div className="bg-white rounded-lg p-3 sm:p-4 border border-gray-200 sm:col-span-2 lg:col-span-1">
+                          <div className="text-xs sm:text-sm text-gray-600 mb-1">Amount</div>
+                          <div className="font-semibold text-green-600 text-sm sm:text-base">
                             {paymentAccounts[paymentMethod]?.amount || 'N/A'}
                           </div>
                         </div>
@@ -808,51 +870,51 @@ useEffect(() => {
                   {/* Reference Number */}
                   {paymentMethod && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                         Transaction Reference Number
                       </label>
-                    <input
-                      type="text"
+                      <input
+                        type="text"
                         placeholder="Enter your transaction reference number"
-                      value={referenceNo}
-                      onChange={(e) => setReferenceNo(e.target.value)}
-                        className="w-full px-4 py-3 rounded-lg border-2 border-gray-300 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    />
+                        value={referenceNo}
+                        onChange={(e) => setReferenceNo(e.target.value)}
+                        className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 border-gray-300 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base"
+                      />
                     </div>
                   )}
 
                   {/* File Upload */}
                   {paymentMethod && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                         <FaUpload className="inline mr-2 text-blue-600" />
                         Payment Screenshot
                       </label>
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files[0];
-                          if (file) {
-                            setSlipFile(file);
-                            setUploadProgress(30);
-                            setTimeout(() => setUploadProgress(70), 300);
-                            setTimeout(() => setUploadProgress(100), 600);
-                          } else {
-                            setSlipFile(null);
-                            setUploadProgress(0);
-                          }
-                        }}
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-6 text-center hover:border-blue-400 transition-colors">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (file) {
+                              setSlipFile(file);
+                              setUploadProgress(30);
+                              setTimeout(() => setUploadProgress(70), 300);
+                              setTimeout(() => setUploadProgress(100), 600);
+                            } else {
+                              setSlipFile(null);
+                              setUploadProgress(0);
+                            }
+                          }}
                           className="hidden"
                           id="file-upload"
                         />
                         <label htmlFor="file-upload" className="cursor-pointer">
-                          <FaUpload className="mx-auto text-3xl text-gray-400 mb-4" />
-                          <div className="text-gray-600">
+                          <FaUpload className="mx-auto text-2xl sm:text-3xl text-gray-400 mb-4" />
+                          <div className="text-gray-600 text-sm sm:text-base">
                             <span className="font-medium">Click to upload</span> or drag and drop
                           </div>
-                          <div className="text-sm text-gray-500 mt-1">
+                          <div className="text-xs sm:text-sm text-gray-500 mt-1">
                             PNG, JPG, JPEG up to 10MB
                           </div>
                         </label>
@@ -861,7 +923,7 @@ useEffect(() => {
                       {/* Upload Progress */}
                       {uploadProgress > 0 && (
                         <div className="mt-4">
-                          <div className="flex justify-between text-sm text-gray-600 mb-1">
+                          <div className="flex justify-between text-xs sm:text-sm text-gray-600 mb-1">
                             <span>
                               {uploadProgress === 100 ? (
                                 <span className="text-green-600 font-medium">Upload Complete</span>
@@ -876,15 +938,15 @@ useEffect(() => {
                               className={`h-2 rounded-full transition-all duration-300 ${
                                 uploadProgress === 100 ? 'bg-green-500' : 'bg-blue-600'
                               }`}
-                            style={{ width: `${uploadProgress}%` }}
-                          ></div>
+                              style={{ width: `${uploadProgress}%` }}
+                            ></div>
                           </div>
                           {uploadProgress === 100 && (
-                            <div className="mt-2 text-sm text-green-600 flex items-center">
+                            <div className="mt-2 text-xs sm:text-sm text-green-600 flex items-center">
                               <FaCheck className="mr-1" />
                               File uploaded successfully
-                        </div>
-                      )}
+                            </div>
+                          )}
                         </div>
                       )}
 
@@ -894,7 +956,7 @@ useEffect(() => {
                           <img
                             src={URL.createObjectURL(slipFile)}
                             alt="Payment Receipt"
-                            className="max-w-[200px] rounded-lg border border-gray-300 shadow-lg"
+                            className="max-w-[150px] sm:max-w-[200px] rounded-lg border border-gray-300 shadow-lg"
                           />
                           <button
                             type="button"
@@ -906,7 +968,7 @@ useEffect(() => {
                                 fileInput.value = '';
                               }
                             }}
-                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
                             title="Remove file"
                           >
                             <FaTimes className="text-xs" />
@@ -917,11 +979,11 @@ useEffect(() => {
                   )}
 
                   {/* Action Buttons */}
-                  <div className="flex justify-between pt-6">
-                  <button
-                    type="button"
+                  <div className="flex flex-col sm:flex-row justify-between pt-4 sm:pt-6 space-y-3 sm:space-y-0">
+                    <button
+                      type="button"
                       onClick={prevStep}
-                      className="flex items-center px-6 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-all duration-200"
+                      className="flex items-center justify-center px-4 sm:px-6 py-2 sm:py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-all duration-200 text-sm sm:text-base"
                     >
                       <FaArrowLeft className="mr-2" />
                       Back
@@ -931,69 +993,175 @@ useEffect(() => {
                       type="button"
                       onClick={nextStep}
                       disabled={!step2Valid}
-                      className={`flex items-center px-8 py-3 font-semibold rounded-lg transition-all duration-200 ${
+                      className={`flex items-center justify-center px-6 sm:px-8 py-2 sm:py-3 font-semibold rounded-lg transition-all duration-200 text-sm sm:text-base ${
                         step2Valid 
                           ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl' 
                           : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       }`}
-                  >
+                    >
                       {step2Valid ? (
                         <>
-                          Continue to Voice Recording
+                          Continue to Emotion Assessment
                           <FaArrowRight className="ml-2" />
                         </>
                       ) : (
                         'Complete payment details to continue'
                       )}
-                  </button>
-                </div>
+                    </button>
+                  </div>
               </div>
             )}
 
             {step === 3 && (
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   {/* Voice Recording Section */}
                   <div className="text-center">
-                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <FaMicrophone className="text-2xl text-blue-600" />
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                      <FaMicrophone className="text-xl sm:text-2xl text-white" />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                      How are you feeling today?
+                    <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
+                      Emotion Assessment
                     </h3>
-                    <p className="text-gray-600 mb-6">
-                      Record your voice to help your therapist understand your current emotional state
+                    <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8 max-w-2xl mx-auto">
+                      Help your therapist understand your emotional state by answering these questions through voice recording
                     </p>
                   </div>
 
+                  {/* Emotion Assessment Questions */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+                    {/* Question 1 */}
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
+                      <div className="flex items-center mb-3 sm:mb-4">
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold text-xs sm:text-sm mr-2 sm:mr-3">
+                          1
+                        </div>
+                        <h4 className="text-base sm:text-lg font-semibold text-gray-800">Current Mood</h4>
+                      </div>
+                      <p className="text-xs sm:text-sm text-gray-700 mb-3 sm:mb-4">
+                        "How are you feeling right now? Describe your current emotional state and what might be contributing to it."
+                      </p>
+                      <div className="flex items-center text-xs sm:text-sm text-blue-600">
+                        <FaMicrophone className="mr-2" />
+                        <span>Voice response</span>
+                      </div>
+                    </div>
+
+                    {/* Question 2 */}
+                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
+                      <div className="flex items-center mb-3 sm:mb-4">
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-bold text-xs sm:text-sm mr-2 sm:mr-3">
+                          2
+                        </div>
+                        <h4 className="text-base sm:text-lg font-semibold text-gray-800">Recent Challenges</h4>
+                      </div>
+                      <p className="text-xs sm:text-sm text-gray-700 mb-3 sm:mb-4">
+                        "What challenges or difficulties have you been facing recently? How have these affected your emotional well-being?"
+                      </p>
+                      <div className="flex items-center text-xs sm:text-sm text-green-600">
+                        <FaMicrophone className="mr-2" />
+                        <span>Voice response</span>
+                      </div>
+                    </div>
+
+                    {/* Question 3 */}
+                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
+                      <div className="flex items-center mb-3 sm:mb-4">
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-purple-500 text-white rounded-full flex items-center justify-center font-bold text-xs sm:text-sm mr-2 sm:mr-3">
+                          3
+                        </div>
+                        <h4 className="text-base sm:text-lg font-semibold text-gray-800">Coping Mechanisms</h4>
+                      </div>
+                      <p className="text-xs sm:text-sm text-gray-700 mb-3 sm:mb-4">
+                        "What strategies or activities do you use to cope with stress or difficult emotions? How effective have they been?"
+                      </p>
+                      <div className="flex items-center text-xs sm:text-sm text-purple-600">
+                        <FaMicrophone className="mr-2" />
+                        <span>Voice response</span>
+                      </div>
+                    </div>
+
+                    {/* Question 4 */}
+                    <div className="bg-gradient-to-br from-orange-50 to-red-50 border-2 border-orange-200 rounded-xl p-4 sm:p-6 hover:shadow-lg transition-all duration-300">
+                      <div className="flex items-center mb-3 sm:mb-4">
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold text-xs sm:text-sm mr-2 sm:mr-3">
+                          4
+                        </div>
+                        <h4 className="text-base sm:text-lg font-semibold text-gray-800">Therapy Goals</h4>
+                      </div>
+                      <p className="text-xs sm:text-sm text-gray-700 mb-3 sm:mb-4">
+                        "What do you hope to achieve through therapy? What changes would you like to see in your emotional well-being?"
+                      </p>
+                      <div className="flex items-center text-xs sm:text-sm text-orange-600">
+                        <FaMicrophone className="mr-2" />
+                        <span>Voice response</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Recording Instructions */}
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 sm:p-6 mb-4 sm:mb-6">
+                    <div className="flex items-start">
+                      <div className="w-5 h-5 sm:w-6 sm:h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs sm:text-sm font-bold mr-2 sm:mr-3 mt-1">
+                        <FaMicrophone />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-800 mb-2 text-sm sm:text-base">Recording Instructions</h4>
+                        <ul className="text-gray-700 space-y-1 text-xs sm:text-sm">
+                          <li>• Find a quiet, comfortable space for recording</li>
+                          <li>• Speak clearly and naturally - there's no right or wrong way to answer</li>
+                          <li>• Take your time to think about each question</li>
+                          <li>• Record for <strong>at least 10 seconds</strong> and <strong>under 2 minutes</strong> for optimal analysis</li>
+                          <li>• Your voice recording will be analyzed for emotional patterns</li>
+                          <li>• This information helps your therapist provide better care</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Audio Recorder */}
-                  <div className="bg-gray-50 rounded-lg p-6">
-                  <AudioRecorderComponent
-                    therapistUsername={therapistUsername}
-                    therapistFullName={therapistList.find(t => t.username === therapistUsername)?.info?.firstName && therapistList.find(t => t.username === therapistUsername)?.info?.lastName
-                      ? `Dr. ${therapistList.find(t => t.username === therapistUsername).info.firstName} ${therapistList.find(t => t.username === therapistUsername).info.lastName}`
-                      : `Dr. ${therapistUsername}`}
-                    patientData={patientData}
-                      onReportSent={handleReportSent}
-                    />
+                  <div className="bg-white border-2 border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm">
+                    <div className="text-center mb-4">
+                      <h4 className="text-base sm:text-lg font-semibold text-gray-800 mb-2">Ready to Record?</h4>
+                      <p className="text-sm sm:text-base text-gray-600">
+                        Click the record button below and answer all 4 questions in one continuous recording
+                      </p>
+                    </div>
+                    
+                    <div className="flex justify-center">
+                      <AudioRecorderComponent
+                        therapistUsername={therapistUsername}
+                        therapistFullName={therapistList.find(t => t.username === therapistUsername)?.info?.firstName && therapistList.find(t => t.username === therapistUsername)?.info?.lastName
+                          ? `Dr. ${therapistList.find(t => t.username === therapistUsername).info.firstName} ${therapistList.find(t => t.username === therapistUsername).info.lastName}`
+                          : `Dr. ${therapistUsername}`}
+                        patientData={patientData}
+                        onReportSent={handleReportSent}
+                        onAudioQualityError={handleAudioQualityError}
+                      />
+                    </div>
                   </div>
 
                   {recordingSaved && (
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-4">
                       <div className="flex items-center">
-                        <FaCheck className="text-green-600 mr-2" />
-                        <span className="text-green-800 font-medium">
-                          Voice recording saved successfully
-                        </span>
+                        <FaCheck className="text-green-600 mr-3 text-lg sm:text-xl" />
+                        <div>
+                          <span className="text-green-800 font-semibold text-sm sm:text-base">
+                            Voice recording saved successfully
+                          </span>
+                          <p className="text-green-700 text-xs sm:text-sm mt-1">
+                            Your emotional assessment has been recorded and will be analyzed for your therapist
+                          </p>
+                        </div>
                       </div>
                     </div>
                   )}
 
                   {/* Action Buttons */}
-                  <div className="flex justify-between pt-6">
-                  <button
-                    type="button"
+                  <div className="flex flex-col sm:flex-row justify-between pt-4 sm:pt-6 space-y-3 sm:space-y-0">
+                    <button
+                      type="button"
                       onClick={prevStep}
-                      className="flex items-center px-6 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-all duration-200"
+                      className="flex items-center justify-center px-4 sm:px-6 py-2 sm:py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-all duration-200 text-sm sm:text-base"
                     >
                       <FaArrowLeft className="mr-2" />
                       Back
@@ -1003,12 +1171,12 @@ useEffect(() => {
                       type="button"
                       onClick={nextStep}
                       disabled={!step3Valid}
-                      className={`flex items-center px-8 py-3 font-semibold rounded-lg transition-all duration-200 ${
+                      className={`flex items-center justify-center px-6 sm:px-8 py-2 sm:py-3 font-semibold rounded-lg transition-all duration-200 text-sm sm:text-base ${
                         step3Valid 
                           ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl' 
                           : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       }`}
-                  >
+                    >
                       {step3Valid ? (
                         <>
                           Continue to Review
@@ -1017,25 +1185,25 @@ useEffect(() => {
                       ) : (
                         'Record your voice to continue'
                       )}
-                  </button>
-                </div>
+                    </button>
+                  </div>
               </div>
             )}
 
               {step === 4 && (
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   {/* Review Section */}
-                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-4 sm:p-6">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 flex items-center">
                       <FaCheck className="mr-2 text-blue-600" />
                       Review Your Booking
                     </h3>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                       {/* Appointment Details */}
-                      <div className="bg-white rounded-lg p-4 border border-gray-200">
-                        <h4 className="font-semibold text-gray-800 mb-3">Appointment Details</h4>
-                        <div className="space-y-2 text-sm">
+                      <div className="bg-white rounded-lg p-3 sm:p-4 border border-gray-200">
+                        <h4 className="font-semibold text-gray-800 mb-3 text-sm sm:text-base">Appointment Details</h4>
+                        <div className="space-y-2 text-xs sm:text-sm">
                           <div><span className="font-medium">Date:</span> {date}</div>
                           <div><span className="font-medium">Time:</span> {time}</div>
                           <div><span className="font-medium">Session Type:</span> {sessionType}</div>
@@ -1049,9 +1217,9 @@ useEffect(() => {
                       </div>
 
                       {/* Payment Details */}
-                      <div className="bg-white rounded-lg p-4 border border-gray-200">
-                        <h4 className="font-semibold text-gray-800 mb-3">Payment Details</h4>
-                        <div className="space-y-2 text-sm">
+                      <div className="bg-white rounded-lg p-3 sm:p-4 border border-gray-200">
+                        <h4 className="font-semibold text-gray-800 mb-3 text-sm sm:text-base">Payment Details</h4>
+                        <div className="space-y-2 text-xs sm:text-sm">
                           <div><span className="font-medium">Method:</span> {paymentMethod}</div>
                           <div><span className="font-medium">Reference:</span> {referenceNo}</div>
                           <div><span className="font-medium">Amount:</span> {paymentAccounts[paymentMethod]?.amount || 'N/A'}</div>
@@ -1060,22 +1228,25 @@ useEffect(() => {
                       </div>
                     </div>
 
-                    {/* Voice Recording Status */}
-                    <div className="mt-4 bg-white rounded-lg p-4 border border-gray-200">
-                      <h4 className="font-semibold text-gray-800 mb-3">Voice Analysis</h4>
-                      <div className="text-sm">
+                    {/* Emotion Assessment Status */}
+                    <div className="mt-4 bg-white rounded-lg p-3 sm:p-4 border border-gray-200">
+                      <h4 className="font-semibold text-gray-800 mb-3 text-sm sm:text-base">Emotion Assessment</h4>
+                      <div className="text-xs sm:text-sm">
                         <div className="text-green-600 font-medium">✓ Voice recording saved</div>
-                        <div className="text-gray-600 mt-1">Emotion analysis will be processed when you submit</div>
+                        <div className="text-gray-600 mt-1">Your responses to the 4 assessment questions will be analyzed for emotional patterns</div>
+                        <div className="mt-2 text-xs text-gray-500">
+                          Questions covered: Current Mood, Recent Challenges, Coping Mechanisms, Therapy Goals
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex justify-between pt-6">
+                  <div className="flex flex-col sm:flex-row justify-between pt-4 sm:pt-6 space-y-3 sm:space-y-0">
                     <button
                       type="button"
                       onClick={prevStep}
-                      className="flex items-center px-6 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-all duration-200"
+                      className="flex items-center justify-center px-4 sm:px-6 py-2 sm:py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-all duration-200 text-sm sm:text-base"
                     >
                       <FaArrowLeft className="mr-2" />
                       Back
@@ -1085,7 +1256,7 @@ useEffect(() => {
                       type="button"
                       onClick={submitBooking}
                       disabled={!canSubmit}
-                      className={`flex items-center px-8 py-3 font-semibold rounded-lg transition-all duration-200 ${
+                      className={`flex items-center justify-center px-6 sm:px-8 py-2 sm:py-3 font-semibold rounded-lg transition-all duration-200 text-sm sm:text-base ${
                         canSubmit 
                           ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 shadow-lg hover:shadow-xl' 
                           : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -1107,6 +1278,15 @@ useEffect(() => {
           </div>
         </div>
       </div>
+
+      {/* Audio Quality Modal */}
+      <AudioQualityModal
+        isOpen={showAudioQualityModal}
+        onClose={handleContinueAnyway}
+        onReRecord={handleReRecord}
+        qualityAnalysis={audioQualityError?.quality_analysis}
+        errorType={audioQualityError?.error_type}
+      />
     </div>
   );
 };

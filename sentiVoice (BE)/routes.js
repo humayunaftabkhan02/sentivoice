@@ -73,8 +73,9 @@ router.post('/predict', authenticate, upload.single('audio'), async (req, res) =
     const audioPath = req.file.path;
 
     try {
+      const config = require('./config');
       const flaskResponse = await axios.post(
-        'https://sentivoice-flask-273777154059.us-central1.run.app/api/predict',
+        config.flaskUrl,
         { file_path: audioPath },
         { headers: { 'Content-Type': 'application/json' } }
       );
@@ -176,7 +177,7 @@ router.post('/predict', authenticate, upload.single('audio'), async (req, res) =
         },
         message: "Audio recorded successfully. Flask server not available for emotion analysis.",
         reportSent: false,
-        reportError: "Flask server not running"
+        reportError: `Flask server not running at ${config.flaskUrl}`
       });
     }
   } catch (error) {
@@ -479,8 +480,9 @@ router.post('/reports/send-audio-analysis', [
       const audioPath = req.file.path;
       
       try {
+        const config = require('./config');
         const flaskResponse = await axios.post(
-          'https://sentivoice-flask-273777154059.us-central1.run.app/api/predict',
+          config.flaskUrl,
           { file_path: audioPath },
           { headers: { 'Content-Type': 'application/json' } }
         );

@@ -298,41 +298,57 @@ const TherapistSettings = () => {
 
   // --- Availability Editors ---
   const renderAvailabilityEditor = (type, slots, day, setDay, startTime, setStartTime, endTime, setEndTime) => (
-    <div className="mb-6">
-      <h3 className="font-semibold text-gray-800 mb-2">
+    <div className="mb-4 sm:mb-6">
+      <h3 className="font-semibold text-gray-800 mb-2 text-sm sm:text-base">
         {type === 'inPerson' ? 'In-Person Availability' : 'Online Availability'}
       </h3>
-      <div className="flex space-x-2 mb-2">
-        <select value={day} onChange={e => setDay(e.target.value)} className="border rounded px-2 py-1">
+      <div className="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0 mb-2">
+        <select 
+          value={day} 
+          onChange={e => setDay(e.target.value)} 
+          className="border rounded px-2 py-1 text-sm flex-1 sm:flex-none"
+        >
           <option value="">Day</option>
           {['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'].map(d => (
             <option key={d} value={d}>{d}</option>
           ))}
         </select>
-        <select value={startTime} onChange={e => setStartTime(e.target.value)} className="border rounded px-2 py-1">
+        <select 
+          value={startTime} 
+          onChange={e => setStartTime(e.target.value)} 
+          className="border rounded px-2 py-1 text-sm flex-1 sm:flex-none"
+        >
           <option value="">Start</option>
           {timeOptions.map(t => <option key={t} value={t}>{t}</option>)}
         </select>
-        <select value={endTime} onChange={e => setEndTime(e.target.value)} className="border rounded px-2 py-1">
+        <select 
+          value={endTime} 
+          onChange={e => setEndTime(e.target.value)} 
+          className="border rounded px-2 py-1 text-sm flex-1 sm:flex-none"
+        >
           <option value="">End</option>
           {timeOptions.map(t => <option key={t} value={t}>{t}</option>)}
         </select>
-        <button type="button" className="bg-blue-500 text-white px-3 py-1 rounded" onClick={() => addSlot(type)}>
-          <FaPlus />
+        <button 
+          type="button" 
+          className="bg-blue-500 text-white px-3 py-1 rounded text-sm flex items-center justify-center" 
+          onClick={() => addSlot(type)}
+        >
+          <FaPlus className="text-xs sm:text-sm" />
         </button>
       </div>
-      <ul className="flex flex-wrap gap-2 mt-2">
+      <ul className="flex flex-wrap gap-1.5 sm:gap-2 mt-2">
         {slots.map((slot, idx) => (
           <li
             key={idx}
-            className="flex items-center bg-blue-50 border border-blue-200 rounded-full px-4 py-1 shadow-sm text-sm font-medium text-blue-900"
+            className="flex items-center bg-blue-50 border border-blue-200 rounded-full px-3 sm:px-4 py-1 shadow-sm text-xs sm:text-sm font-medium text-blue-900"
           >
-            <span className="mr-2">
+            <span className="mr-1.5 sm:mr-2">
               <span className="font-semibold">{slot.day}:</span> {slot.start} - {slot.end}
             </span>
             <button
               type="button"
-              className="ml-2 w-6 h-6 flex items-center justify-center rounded-full bg-red-100 hover:bg-red-200 text-red-600 transition"
+              className="ml-1.5 sm:ml-2 w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded-full bg-red-100 hover:bg-red-200 text-red-600 transition"
               onClick={() => removeSlot(type, idx)}
               title="Remove slot"
             >
@@ -348,18 +364,18 @@ const TherapistSettings = () => {
   );
 
   return (
-    <div className="flex min-h-screen bg-[#EBEDE9]">
+    <div className="flex min-h-screen bg-[#EBEDE9] overflow-x-hidden">
       <TherapistSidebar current="settings" />
 
       {/* Main Content */}
-      <div className="flex-1 p-8 space-y-6 ml-64">
+      <div className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 lg:mb-8 space-y-3 sm:space-y-0">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">
               Therapist Settings
             </h1>
-            <p className="text-gray-600">Manage your professional and personal information</p>
+            <p className="text-sm sm:text-base text-gray-600">Manage your professional and personal information</p>
           </div>
           <UserTopBar username={username} fullName={fullName} role={"therapist"} profilePicture={profilePicture} />
         </div>
@@ -368,23 +384,23 @@ const TherapistSettings = () => {
 
 
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <p className="ml-3 text-gray-600">Loading your profile...</p>
+          <div className="flex items-center justify-center py-8 sm:py-12">
+            <div className="inline-block animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-blue-600"></div>
+            <p className="ml-2 sm:ml-3 text-sm sm:text-base text-gray-600">Loading your profile...</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {/* Profile Picture Section */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                  <FaCamera className="mr-2 text-blue-600" />
+              <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center">
+                  <FaCamera className="mr-2 text-blue-600 text-sm sm:text-base" />
                   Profile Picture
                 </h2>
                 
-                <div className="flex flex-col items-center space-y-4">
+                <div className="flex flex-col items-center space-y-3 sm:space-y-4">
                   <div className="relative">
-                    <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                    <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
                       {profileImagePreview ? (
                         <img 
                           src={profileImagePreview} 
@@ -392,11 +408,11 @@ const TherapistSettings = () => {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <FaUser className="text-4xl text-gray-400" />
+                        <FaUser className="text-3xl sm:text-4xl text-gray-400" />
                       )}
                     </div>
-                    <label className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 transition-colors">
-                      <FaCamera className="text-sm" />
+                    <label className="absolute bottom-0 right-0 bg-blue-600 text-white p-1.5 sm:p-2 rounded-full cursor-pointer hover:bg-blue-700 transition-colors">
+                      <FaCamera className="text-xs sm:text-sm" />
                       <input
                         type="file"
                         accept="image/*"
@@ -406,7 +422,7 @@ const TherapistSettings = () => {
                     </label>
                   </div>
                   
-                  <p className="text-sm text-gray-600 text-center">
+                  <p className="text-xs sm:text-sm text-gray-600 text-center">
                     Click the camera icon to upload a profile picture
                   </p>
                 </div>
@@ -415,18 +431,18 @@ const TherapistSettings = () => {
 
             {/* Main Form Section */}
             <div className="lg:col-span-2">
-              <form onSubmit={handleSave} className="space-y-6">
+              <form onSubmit={handleSave} className="space-y-4 sm:space-y-6">
                 
                 {/* Personal Information */}
-                <div className="bg-white rounded-xl shadow-sm p-6">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                    <FaUser className="mr-2 text-blue-600" />
+                <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                  <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center">
+                    <FaUser className="mr-2 text-blue-600 text-sm sm:text-base" />
                     Personal Information
                   </h2>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                         First Name *
                       </label>
                       <input
@@ -435,7 +451,7 @@ const TherapistSettings = () => {
                         value={formData.firstName}
                         onChange={handleChange}
                         disabled={loading}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+                        className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 text-sm"
                         placeholder="Enter first name"
                       />
                       {formData.firstName && !isValidName(formData.firstName) && (
@@ -444,7 +460,7 @@ const TherapistSettings = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                         Last Name *
                       </label>
                       <input
@@ -453,7 +469,7 @@ const TherapistSettings = () => {
                         value={formData.lastName}
                         onChange={handleChange}
                         disabled={loading}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+                        className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 text-sm"
                         placeholder="Enter last name"
                       />
                       {formData.lastName && !isValidName(formData.lastName) && (
@@ -462,7 +478,7 @@ const TherapistSettings = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                         Email *
                       </label>
                       <input
@@ -471,14 +487,14 @@ const TherapistSettings = () => {
                         value={formData.email}
                         onChange={handleChange}
                         disabled={loading}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+                        className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 text-sm"
                         placeholder="your.email@example.com"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                         Phone Number *
                       </label>
                       <input
@@ -487,14 +503,14 @@ const TherapistSettings = () => {
                         value={formData.phone}
                         onChange={handleChange}
                         disabled={loading}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+                        className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 text-sm"
                         placeholder="+1 (555) 123-4567"
                         required
                       />
                     </div>
 
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                         Address *
                       </label>
                       <input
@@ -503,7 +519,7 @@ const TherapistSettings = () => {
                         value={formData.address}
                         onChange={handleChange}
                         disabled={loading}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+                        className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 text-sm"
                         placeholder="Enter your address"
                         required
                       />
@@ -512,15 +528,15 @@ const TherapistSettings = () => {
                 </div>
 
                 {/* Professional Information */}
-                <div className="bg-white rounded-xl shadow-sm p-6">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                    <FaGraduationCap className="mr-2 text-blue-600" />
+                <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                  <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center">
+                    <FaGraduationCap className="mr-2 text-blue-600 text-sm sm:text-base" />
                     Professional Information
                   </h2>
                   
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                         Specialization *
                       </label>
                       <select
@@ -534,7 +550,7 @@ const TherapistSettings = () => {
                           }
                         }}
                         disabled={loading}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+                        className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 text-sm"
                         required
                       >
                         <option value="">Select Specialization</option>
@@ -568,14 +584,14 @@ const TherapistSettings = () => {
                           value={customSpecialization}
                           onChange={(e) => setCustomSpecialization(e.target.value)}
                           disabled={loading}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg mt-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+                          className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg mt-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 text-sm"
                           required
                         />
                       )}
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                         Years of Experience *
                       </label>
                       <input
@@ -584,7 +600,7 @@ const TherapistSettings = () => {
                         value={formData.experience}
                         onChange={handleChange}
                         disabled={loading}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+                        className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 text-sm"
                         placeholder="e.g., 5"
                         min="0"
                         max="50"
@@ -593,7 +609,7 @@ const TherapistSettings = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                         Education *
                       </label>
                       <textarea
@@ -602,14 +618,14 @@ const TherapistSettings = () => {
                         onChange={handleChange}
                         disabled={loading}
                         rows="3"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+                        className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 text-sm"
                         placeholder="e.g., Master's in Clinical Psychology, University of..."
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                         Certifications & Licenses *
                       </label>
                       <textarea
@@ -618,14 +634,14 @@ const TherapistSettings = () => {
                         onChange={handleChange}
                         disabled={loading}
                         rows="3"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+                        className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 text-sm"
                         placeholder="e.g., Licensed Clinical Psychologist, CBT Certification..."
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                         Languages Spoken *
                       </label>
                       <input
@@ -634,14 +650,14 @@ const TherapistSettings = () => {
                         value={formData.languages}
                         onChange={handleChange}
                         disabled={loading}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+                        className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 text-sm"
                         placeholder="e.g., English, Spanish, French"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                         Professional Bio *
                       </label>
                       <textarea
@@ -650,7 +666,7 @@ const TherapistSettings = () => {
                         onChange={handleChange}
                         disabled={loading}
                         rows="4"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+                        className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 text-sm"
                         placeholder="Tell patients about your approach, experience, and what makes you unique as a therapist..."
                         required
                       />
@@ -659,9 +675,9 @@ const TherapistSettings = () => {
                 </div>
 
                 {/* In-Person and Online Availability Sections */}
-                <div className="bg-white rounded-xl shadow-sm p-6">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                    <FaClock className="mr-2 text-blue-600" />
+                <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+                  <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center">
+                    <FaClock className="mr-2 text-blue-600 text-sm sm:text-base" />
                     Session Availability
                   </h2>
                   {renderAvailabilityEditor('inPerson', inPersonSlots, inPersonDay, setInPersonDay, inPersonStartTime, setInPersonStartTime, inPersonEndTime, setInPersonEndTime)}
@@ -669,27 +685,27 @@ const TherapistSettings = () => {
                 </div>
 
                 {/* Save Button */}
-                <div className="flex justify-end">
+                <div className="flex justify-center sm:justify-end">
                   <button
                     type="submit"
                     disabled={loading || saving}
-                    className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center font-medium"
+                    className="w-full sm:w-auto bg-blue-600 text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center font-medium text-sm sm:text-base"
                   >
                     {saving ? (
                       <>
-                        <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        <div className="inline-block animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-b-2 border-white mr-1.5 sm:mr-2"></div>
                         Saving...
                       </>
                     ) : (
                       <>
-                        <FaSave className="mr-2" />
+                        <FaSave className="mr-1.5 sm:mr-2" />
                         Save Changes
                       </>
                     )}
                   </button>
                 </div>
 
-                {message && <p className="text-green-700 mt-2">{message}</p>}
+                {message && <p className="text-green-700 mt-2 text-sm sm:text-base text-center sm:text-left">{message}</p>}
               </form>
             </div>
           </div>

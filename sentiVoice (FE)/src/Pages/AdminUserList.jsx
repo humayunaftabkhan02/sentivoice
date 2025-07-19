@@ -285,23 +285,23 @@ export default function AdminUserList() {
         notifications={pendingCounts.notifications}
       />
 
-      <div className="flex-1 ml-64 p-6 lg:p-8">
+      <div className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8">
         {/* Header Section */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-4 sm:space-y-0">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
                 User Directory
               </h1>
-              <p className="text-gray-600">
+              <p className="text-gray-600 text-sm sm:text-base">
                 Manage and monitor all registered users in the system
               </p>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="bg-white rounded-lg px-4 py-2 shadow-sm border">
+              <div className="bg-white rounded-lg px-3 sm:px-4 py-2 shadow-sm border">
                 <div className="flex items-center space-x-2">
                   <FaUsers className="text-gray-400" />
-                  <span className="text-sm text-gray-600">
+                  <span className="text-xs sm:text-sm text-gray-600">
                     {userStats.total} Total Users
                   </span>
                 </div>
@@ -310,63 +310,63 @@ export default function AdminUserList() {
           </div>
 
           {/* Statistics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6 mb-6 sm:mb-8">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Users</p>
-                  <p className="text-3xl font-bold text-blue-600">{userStats.total}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Total Users</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-blue-600">{userStats.total}</p>
                 </div>
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <FaUsers className="text-2xl text-blue-600" />
+                <div className="p-2 sm:p-3 bg-blue-100 rounded-lg">
+                  <FaUsers className="text-xl sm:text-2xl text-blue-600" />
                 </div>
               </div>
             </div>
             
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Patients</p>
-                  <p className="text-3xl font-bold text-green-600">{userStats.patients}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Patients</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-green-600">{userStats.patients}</p>
                 </div>
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <FaUserShield className="text-2xl text-green-600" />
+                <div className="p-2 sm:p-3 bg-green-100 rounded-lg">
+                  <FaUserShield className="text-xl sm:text-2xl text-green-600" />
                 </div>
               </div>
             </div>
             
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Therapists</p>
-                  <p className="text-3xl font-bold text-purple-600">{userStats.therapists}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Therapists</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-purple-600">{userStats.therapists}</p>
                 </div>
-                <div className="p-3 bg-purple-100 rounded-lg">
-                  <FaUserTie className="text-2xl text-purple-600" />
+                <div className="p-2 sm:p-3 bg-purple-100 rounded-lg">
+                  <FaUserTie className="text-xl sm:text-2xl text-purple-600" />
                 </div>
               </div>
             </div>
             
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Active</p>
-                  <p className="text-3xl font-bold text-emerald-600">{userStats.active}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Active</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-emerald-600">{userStats.active}</p>
                 </div>
-                <div className="p-3 bg-emerald-100 rounded-lg">
-                  <FaCheckCircle className="text-2xl text-emerald-600" />
+                <div className="p-2 sm:p-3 bg-emerald-100 rounded-lg">
+                  <FaCheckCircle className="text-xl sm:text-2xl text-emerald-600" />
                 </div>
               </div>
             </div>
             
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Pending</p>
-                  <p className="text-3xl font-bold text-amber-600">{userStats.pending}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Pending</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-amber-600">{userStats.pending}</p>
                 </div>
-                <div className="p-3 bg-amber-100 rounded-lg">
-                  <FaClock className="text-2xl text-amber-600" />
+                <div className="p-2 sm:p-3 bg-amber-100 rounded-lg">
+                  <FaClock className="text-xl sm:text-2xl text-amber-600" />
                 </div>
               </div>
             </div>
@@ -384,16 +384,16 @@ export default function AdminUserList() {
         )}
 
         {/* Filters and Search */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-4 sm:mb-6">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between space-y-4 lg:space-y-0">
-            <div className="flex flex-wrap items-center space-x-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
               {/* Role Filter */}
               <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
                 {["all", "patient", "therapist"].map(role => (
             <button
                     key={role}
                     onClick={() => setRoleFilter(role)}
-                    className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                    className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-md transition-colors ${
                       roleFilter === role
                         ? "bg-white text-blue-600 shadow-sm"
                         : "text-gray-600 hover:text-gray-900"
@@ -410,7 +410,7 @@ export default function AdminUserList() {
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                 >
                   <option value="all">All Status</option>
                   <option value="Active">Active</option>
@@ -421,14 +421,14 @@ export default function AdminUserList() {
             </div>
 
             {/* Search */}
-            <div className="relative">
+            <div className="relative w-full sm:w-auto">
               <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
                 placeholder="Search users..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-64"
+                className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
               />
             </div>
           </div>
@@ -436,9 +436,9 @@ export default function AdminUserList() {
 
         {/* Users Table */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-900">
+          <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
                 Users ({filteredAndSortedUsers.length})
               </h2>
               
@@ -446,9 +446,9 @@ export default function AdminUserList() {
                 <button
                   onClick={fetchUsers}
                   disabled={loading}
-                  className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 disabled:opacity-50"
+                  className="flex items-center space-x-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-blue-600 hover:text-blue-700 disabled:opacity-50"
                 >
-                  <FaSpinner className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                  <FaSpinner className={`w-3 h-3 sm:w-4 sm:h-4 ${loading ? 'animate-spin' : ''}`} />
                   <span>{loading ? 'Loading...' : 'Refresh'}</span>
                 </button>
                 {/* Export button removed */}
@@ -460,19 +460,19 @@ export default function AdminUserList() {
           {loading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="text-center">
-                  <FaSpinner className="animate-spin text-4xl text-blue-600 mx-auto mb-4" />
-                  <p className="text-gray-600">Loading users...</p>
+                  <FaSpinner className="animate-spin text-3xl sm:text-4xl text-blue-600 mx-auto mb-4" />
+                  <p className="text-gray-600 text-sm sm:text-base">Loading users...</p>
                 </div>
               </div>
             ) : filteredAndSortedUsers.length === 0 ? (
               <div className="text-center py-12">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FaUsers className="text-3xl text-gray-400" />
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FaUsers className="text-2xl sm:text-3xl text-gray-400" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
                   {searchTerm ? 'No matching users found' : 'No users available'}
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-gray-600 text-sm sm:text-base">
                   {searchTerm 
                     ? 'Try adjusting your search terms or filters.'
                     : 'No users match the current criteria.'
@@ -480,192 +480,309 @@ export default function AdminUserList() {
                 </p>
               </div>
             ) : (
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <button
-                        onClick={() => handleSort("fullName")}
-                        className="flex items-center space-x-1 hover:text-gray-700"
-                      >
-                        <span>User</span>
-                        {getSortIcon("fullName")}
-                      </button>
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <button
-                        onClick={() => handleSort("role")}
-                        className="flex items-center space-x-1 hover:text-gray-700"
-                      >
-                        <span>Role</span>
-                        {getSortIcon("role")}
-                      </button>
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <button
-                        onClick={() => handleSort("specialization")}
-                        className="flex items-center space-x-1 hover:text-gray-700"
-                      >
-                        <span>Specialization</span>
-                        {getSortIcon("specialization")}
-                      </button>
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <button
-                        onClick={() => handleSort("registeredOn")}
-                        className="flex items-center space-x-1 hover:text-gray-700"
-                      >
-                        <span>Registered</span>
-                        {getSortIcon("registeredOn")}
-                      </button>
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <button
-                        onClick={() => handleSort("status")}
-                        className="flex items-center space-x-1 hover:text-gray-700"
-                      >
-                        <span>Status</span>
-                        {getSortIcon("status")}
-                      </button>
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                </tr>
-              </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+              <>
+                {/* Mobile User Cards */}
+                <div className="lg:hidden space-y-4 p-4">
                   {paginatedUsers.map((user) => (
-                    <tr key={user.username} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10">
-                            {profilePicturesLoading[user.username] ? (
-                              <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                              </div>
-                            ) : userProfilePictures[user.username] ? (
-                              <img
-                                src={userProfilePictures[user.username]}
-                                alt={`${user.fullName || user.username} profile`}
-                                className="h-10 w-10 rounded-full object-cover"
-                                onError={(e) => {
-                                  // Fallback to initials if image fails to load
-                                  e.target.style.display = 'none';
-                                  e.target.nextSibling.style.display = 'flex';
-                                }}
-                              />
-                            ) : null}
-                            {(!userProfilePictures[user.username] || profilePicturesLoading[user.username]) && (
-                              <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
-                                <span className="text-sm font-medium text-white">
-                                  {user.fullName?.charAt(0) || user.username?.charAt(0)}
-                                </span>
+                    <div key={user.username} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div className="flex items-start space-x-3">
+                        <div className="flex-shrink-0">
+                          {profilePicturesLoading[user.username] ? (
+                            <div className="h-12 w-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            </div>
+                          ) : userProfilePictures[user.username] ? (
+                            <img
+                              src={userProfilePictures[user.username]}
+                              alt={`${user.fullName || user.username} profile`}
+                              className="h-12 w-12 rounded-full object-cover"
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                e.target.nextSibling.style.display = 'flex';
+                              }}
+                            />
+                          ) : null}
+                          {(!userProfilePictures[user.username] || profilePicturesLoading[user.username]) && (
+                            <div className="h-12 w-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+                              <span className="text-sm font-medium text-white">
+                                {user.fullName?.charAt(0) || user.username?.charAt(0)}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-2">
+                            <div>
+                              <h3 className="text-sm font-medium text-gray-900 truncate">
+                                {user.fullName}
+                              </h3>
+                              <p className="text-xs text-gray-500">@{user.username}</p>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              {getRoleIcon(user.role)}
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(user.status, user.role)}`}>
+                                {user.status || "Active"}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 gap-2 text-xs text-gray-600 mb-3">
+                            <div className="flex items-center space-x-2">
+                              <span className="font-medium">Role:</span>
+                              <span className="capitalize">{user.role}</span>
+                            </div>
+                            {user.specialization && (
+                              <div className="flex items-center space-x-2">
+                                <span className="font-medium">Specialization:</span>
+                                <span className="truncate">{user.specialization}</span>
                               </div>
                             )}
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">
-                              {user.fullName}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              @{user.username}
+                            <div className="flex items-center space-x-2">
+                              <span className="font-medium">Registered:</span>
+                              <span>{user.registeredOn}</span>
                             </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center space-x-2">
-                          {getRoleIcon(user.role)}
-                          <span className="text-sm text-gray-900 capitalize">
-                            {user.role}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {user.specialization || "—"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {user.registeredOn}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(user.status, user.role)}`}>
-                          {user.status || "Active"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex items-center justify-end space-x-2">
-                          {user.role === 'therapist' && user.status === 'Pending' && (
-                            <button
-                              onClick={() => handleUserAction('approve', user)}
-                              disabled={actionLoading === user.username}
-                              className="text-green-600 hover:text-green-900 p-1 rounded disabled:opacity-50"
-                              title="Approve Therapist"
-                            >
-                              {actionLoading === user.username ? (
-                                <FaSpinner className="animate-spin w-4 h-4" />
-                              ) : (
-                                <FaCheck className="w-4 h-4" />
-                              )}
-                            </button>
-                          )}
                           
-                          {user.status === 'Suspended' ? (
-                            <button
-                              onClick={() => handleUserAction('activate', user)}
-                              disabled={actionLoading === user.username}
-                              className="text-green-600 hover:text-green-900 p-1 rounded disabled:opacity-50"
-                              title="Activate User"
-                            >
-                              {actionLoading === user.username ? (
-                                <FaSpinner className="animate-spin w-4 h-4" />
-                              ) : (
-                                <FaUnlock className="w-4 h-4" />
-                              )}
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => {
-                                console.log(`🔴 Suspend button clicked for user:`, user);
-                                handleUserAction('suspend', user);
-                              }}
-                              disabled={actionLoading === user.username}
-                              className="text-red-600 hover:text-red-900 p-1 rounded disabled:opacity-50"
-                              title="Suspend User"
-                            >
-                              {actionLoading === user.username ? (
-                                <FaSpinner className="animate-spin w-4 h-4" />
-                              ) : (
-                                <FaBan className="w-4 h-4" />
-                              )}
-                            </button>
-                          )}
+                          <div className="flex items-center justify-end space-x-2">
+                            {user.role === 'therapist' && user.status === 'Pending' && (
+                              <button
+                                onClick={() => handleUserAction('approve', user)}
+                                disabled={actionLoading === user.username}
+                                className="text-green-600 hover:text-green-900 p-2 rounded disabled:opacity-50"
+                                title="Approve Therapist"
+                              >
+                                {actionLoading === user.username ? (
+                                  <FaSpinner className="animate-spin w-4 h-4" />
+                                ) : (
+                                  <FaCheck className="w-4 h-4" />
+                                )}
+                              </button>
+                            )}
+                            
+                            {user.status === 'Suspended' ? (
+                              <button
+                                onClick={() => handleUserAction('activate', user)}
+                                disabled={actionLoading === user.username}
+                                className="text-green-600 hover:text-green-900 p-2 rounded disabled:opacity-50"
+                                title="Activate User"
+                              >
+                                {actionLoading === user.username ? (
+                                  <FaSpinner className="animate-spin w-4 h-4" />
+                                ) : (
+                                  <FaUnlock className="w-4 h-4" />
+                                )}
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleUserAction('suspend', user)}
+                                disabled={actionLoading === user.username}
+                                className="text-red-600 hover:text-red-900 p-2 rounded disabled:opacity-50"
+                                title="Suspend User"
+                              >
+                                {actionLoading === user.username ? (
+                                  <FaSpinner className="animate-spin w-4 h-4" />
+                                ) : (
+                                  <FaBan className="w-4 h-4" />
+                                )}
+                              </button>
+                            )}
+                          </div>
                         </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            )}
-          </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Desktop Table */}
+                <div className="hidden lg:block">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <button
+                            onClick={() => handleSort("fullName")}
+                            className="flex items-center space-x-1 hover:text-gray-700"
+                          >
+                            <span>User</span>
+                            {getSortIcon("fullName")}
+                          </button>
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <button
+                            onClick={() => handleSort("role")}
+                            className="flex items-center space-x-1 hover:text-gray-700"
+                          >
+                            <span>Role</span>
+                            {getSortIcon("role")}
+                          </button>
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <button
+                            onClick={() => handleSort("specialization")}
+                            className="flex items-center space-x-1 hover:text-gray-700"
+                          >
+                            <span>Specialization</span>
+                            {getSortIcon("specialization")}
+                          </button>
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <button
+                            onClick={() => handleSort("registeredOn")}
+                            className="flex items-center space-x-1 hover:text-gray-700"
+                          >
+                            <span>Registered</span>
+                            {getSortIcon("registeredOn")}
+                          </button>
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <button
+                            onClick={() => handleSort("status")}
+                            className="flex items-center space-x-1 hover:text-gray-700"
+                          >
+                            <span>Status</span>
+                            {getSortIcon("status")}
+                          </button>
+                        </th>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Actions
+                        </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {paginatedUsers.map((user) => (
+                      <tr key={user.username} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 h-10 w-10">
+                              {profilePicturesLoading[user.username] ? (
+                                <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                </div>
+                              ) : userProfilePictures[user.username] ? (
+                                <img
+                                  src={userProfilePictures[user.username]}
+                                  alt={`${user.fullName || user.username} profile`}
+                                  className="h-10 w-10 rounded-full object-cover"
+                                  onError={(e) => {
+                                    e.target.style.display = 'none';
+                                    e.target.nextSibling.style.display = 'flex';
+                                  }}
+                                />
+                              ) : null}
+                              {(!userProfilePictures[user.username] || profilePicturesLoading[user.username]) && (
+                                <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+                                  <span className="text-sm font-medium text-white">
+                                    {user.fullName?.charAt(0) || user.username?.charAt(0)}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="ml-4">
+                              <div className="text-sm font-medium text-gray-900">
+                                {user.fullName}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                @{user.username}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center space-x-2">
+                            {getRoleIcon(user.role)}
+                            <span className="text-sm text-gray-900 capitalize">
+                              {user.role}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {user.specialization || "—"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {user.registeredOn}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(user.status, user.role)}`}>
+                            {user.status || "Active"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <div className="flex items-center justify-end space-x-2">
+                            {user.role === 'therapist' && user.status === 'Pending' && (
+                              <button
+                                onClick={() => handleUserAction('approve', user)}
+                                disabled={actionLoading === user.username}
+                                className="text-green-600 hover:text-green-900 p-1 rounded disabled:opacity-50"
+                                title="Approve Therapist"
+                              >
+                                {actionLoading === user.username ? (
+                                  <FaSpinner className="animate-spin w-4 h-4" />
+                                ) : (
+                                  <FaCheck className="w-4 h-4" />
+                                )}
+                              </button>
+                            )}
+                            
+                            {user.status === 'Suspended' ? (
+                              <button
+                                onClick={() => handleUserAction('activate', user)}
+                                disabled={actionLoading === user.username}
+                                className="text-green-600 hover:text-green-900 p-1 rounded disabled:opacity-50"
+                                title="Activate User"
+                              >
+                                {actionLoading === user.username ? (
+                                  <FaSpinner className="animate-spin w-4 h-4" />
+                                ) : (
+                                  <FaUnlock className="w-4 h-4" />
+                                )}
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => {
+                                  console.log(`🔴 Suspend button clicked for user:`, user);
+                                  handleUserAction('suspend', user);
+                                }}
+                                disabled={actionLoading === user.username}
+                                className="text-red-600 hover:text-red-900 p-1 rounded disabled:opacity-50"
+                                title="Suspend User"
+                              >
+                                {actionLoading === user.username ? (
+                                  <FaSpinner className="animate-spin w-4 h-4" />
+                                ) : (
+                                  <FaBan className="w-4 h-4" />
+                                )}
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+        </div>
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="px-6 py-4 border-t border-gray-200">
-              <div className="flex items-center justify-between">
+            <div className="px-4 sm:px-6 py-4 border-t border-gray-200">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-700">
+                  <span className="text-xs sm:text-sm text-gray-700">
                     Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, filteredAndSortedUsers.length)} of {filteredAndSortedUsers.length} results
                   </span>
                 </div>
                 
-                <div className="flex items-center space-x-2">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-2">
                   <select
                     value={pageSize}
                     onChange={(e) => {
                       setPageSize(Number(e.target.value));
                       setCurrentPage(1);
                     }}
-                    className="px-3 py-1 border border-gray-300 rounded text-sm"
+                    className="px-3 py-1 border border-gray-300 rounded text-xs sm:text-sm"
                   >
                     <option value={10}>10 per page</option>
                     <option value={25}>25 per page</option>
@@ -676,7 +793,7 @@ export default function AdminUserList() {
                     <button
                       onClick={() => setCurrentPage(currentPage - 1)}
                       disabled={currentPage === 1}
-                      className="px-3 py-1 text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-2 sm:px-3 py-1 text-xs sm:text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Previous
                     </button>
@@ -685,7 +802,7 @@ export default function AdminUserList() {
                       <button
                         key={page}
                         onClick={() => setCurrentPage(page)}
-                        className={`px-3 py-1 text-sm border rounded ${
+                        className={`px-2 sm:px-3 py-1 text-xs sm:text-sm border rounded ${
                           currentPage === page
                             ? "bg-blue-600 text-white border-blue-600"
                             : "border-gray-300 text-gray-700 hover:bg-gray-50"
@@ -698,7 +815,7 @@ export default function AdminUserList() {
                     <button
                       onClick={() => setCurrentPage(currentPage + 1)}
                       disabled={currentPage === totalPages}
-                      className="px-3 py-1 text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-2 sm:px-3 py-1 text-xs sm:text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Next
                     </button>

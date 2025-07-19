@@ -1,4 +1,5 @@
 import { AudioRecorder } from 'react-audio-voice-recorder';
+import { FaMicrophone } from 'react-icons/fa';
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { generateAndSendPatientReport } from '../../utils/generatePDF.js';
@@ -91,6 +92,53 @@ async function convertToWav(blob) {
   return encodeWAV(audioBuffer);
 }
 
+// Function to analyze audio quality in real-time
+async function analyzeAudioQuality(audioBlob) {
+  try {
+    // Convert blob to base64
+    const arrayBuffer = await audioBlob.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
+    let binary = '';
+    const chunkSize = 8192;
+    
+    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+      const chunk = uint8Array.slice(i, i + chunkSize);
+      binary += String.fromCharCode.apply(null, chunk);
+    }
+    
+    const base64 = btoa(binary);
+    
+    // Send directly to Flask app for quality analysis
+    const flaskUrl = 'http://localhost:5000/api/predict';
+    console.log('🔍 Sending to Flask app:', flaskUrl);
+    
+    const response = await fetch(flaskUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        audio_data: base64
+      })
+    });
+    
+    console.log('📊 Flask response status:', response.status);
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.log('⚠️ Flask error response:', errorData);
+      return errorData; // Return the error data
+    }
+    
+    const data = await response.json();
+    console.log('✅ Flask success response:', data);
+    return data;
+  } catch (error) {
+    console.error('Error analyzing audio quality:', error);
+    return null;
+  }
+}
+
 // Function to send audio analysis report to therapist
 async function sendAudioReportToTherapist(patientData, therapistUsername, audioBlob) {
   // Create FormData to send audio file
@@ -114,34 +162,118 @@ async function sendAudioReportToTherapist(patientData, therapistUsername, audioB
     return response.data;
 }
 
-export default function AudioRecorderComponent({ therapistUsername,
-                                                therapistFullName,
-                                                patientData,
-                                                onReportSent}) {
+export default function AudioRecorderComponent({ 
+  therapistUsername,
+  therapistFullName,
+  patientData,
+  onReportSent,
+  onAudioQualityError 
+}) {
   const addAudioElement = async (blob) => {
-    // Convert to WAV
-    const wavBlob = await convertToWav(blob);
-    
-    // Store the recording locally for later processing
-    // Don't send report immediately - wait for admin approval
-    
     try {
-      // Just save the recording and notify parent component
+      // Convert to WAV
+      const wavBlob = await convertToWav(blob);
+      
+      // Check recording duration before sending to Flask
+      const arrayBuffer = await wavBlob.arrayBuffer();
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      const duration = audioBuffer.duration;
+      
+      console.log('⏱️ Recording duration:', duration, 'seconds');
+      
+      // Check if recording is too long (over 2 minutes)
+      if (duration > 120) {
+        console.log('⚠️ Recording too long:', duration, 'seconds');
+        if (onAudioQualityError) {
+          onAudioQualityError({
+            error_type: 'audio_quality',
+            quality_analysis: {
+              duration: duration,
+              issues: ['Audio is too long'],
+              suggestions: ['Please keep your recording under 2 minutes for optimal analysis']
+            },
+            message: 'Recording is too long. Please keep it under 2 minutes.'
+          });
+        } else {
+          alert('Recording is too long. Please keep it under 2 minutes for optimal analysis.');
+        }
+        return; // Don't save the recording
+      }
+      
+      // Analyze audio quality in real-time
+      console.log('🔍 Analyzing audio quality...');
+      const qualityResult = await analyzeAudioQuality(wavBlob);
+      console.log('📊 Quality result:', qualityResult);
+      
+      if (qualityResult && (qualityResult.status === "error" || qualityResult.error_type)) {
+        // Audio quality issue detected
+        console.log('⚠️ Audio quality issue detected:', qualityResult);
+        console.log('🎯 Error type:', qualityResult.error_type);
+        console.log('📝 Message:', qualityResult.message);
+        console.log('📊 Analysis:', qualityResult.quality_analysis);
+        
+        if (onAudioQualityError) {
+          console.log('📞 Calling onAudioQualityError with:', {
+            error_type: qualityResult.error_type,
+            quality_analysis: qualityResult.quality_analysis,
+            message: qualityResult.message,
+            suggestions: qualityResult.suggestions || qualityResult.quality_analysis?.suggestions
+          });
+          onAudioQualityError({
+            error_type: qualityResult.error_type,
+            quality_analysis: qualityResult.quality_analysis,
+            message: qualityResult.message,
+            suggestions: qualityResult.suggestions || qualityResult.quality_analysis?.suggestions
+          });
+        } else {
+          // Fallback alert if no error handler provided
+          let errorMessage = "Audio quality issue detected:\n\n";
+          if (qualityResult.quality_analysis?.suggestions) {
+            errorMessage += qualityResult.quality_analysis.suggestions.join('\n');
+          } else if (qualityResult.suggestions) {
+            errorMessage += qualityResult.suggestions.join('\n');
+          } else {
+            errorMessage += "• Please speak louder and more clearly\n";
+            errorMessage += "• Record in a quiet environment\n";
+            errorMessage += "• Speak for at least 2-3 seconds\n";
+            errorMessage += "• Check that your microphone is working";
+          }
+          alert(errorMessage);
+        }
+        return; // Don't save the recording
+      }
+      
+      // Audio quality is good, save the recording
+      console.log('✅ Audio quality check passed');
+      
       if (onReportSent) {
         // Pass the blob data to parent for later processing
         onReportSent(null, therapistUsername, wavBlob);
       }
       
-      alert(`✅ Voice recording saved successfully!\n\nYour voice recording has been saved and will be processed for emotion analysis when you submit your booking.`);
+      alert(`✅ Voice recording saved successfully!\n\nYour emotional assessment has been recorded and will be processed for emotion analysis when you submit your booking.\n\nYour responses to the 4 assessment questions will help your therapist understand your emotional state better.`);
       
     } catch (error) {
-      console.error('Error saving recording:', error);
-      alert('Error saving voice recording. Please try again.');
+      console.error('Error processing recording:', error);
+      alert('Error processing voice recording. Please try again.');
     }
   };
 
   return (
-    <div>
+    <div className="flex flex-col items-center">
+      <div className="text-center mb-4 w-full max-w-md">
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 mb-4">
+          <div className="flex items-center justify-center space-x-2 mb-2">
+            <FaMicrophone className="text-blue-600 text-lg" />
+            <span className="text-sm font-semibold text-blue-800">Recording Requirement</span>
+          </div>
+          <p className="text-sm text-blue-700 text-center">
+            Please record for <strong>at least 10 seconds</strong> and <strong>under 2 minutes</strong> for optimal analysis
+          </p>
+        </div>
+      </div>
+      
       <AudioRecorder
         onRecordingComplete={addAudioElement}
         audioTrackConstraints={{

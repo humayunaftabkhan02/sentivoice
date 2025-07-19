@@ -203,23 +203,23 @@ export default function TherapistApproval() {
         notifications={pendingCounts.notifications}
       />
       
-      <div className="flex-1 ml-64 p-6 lg:p-8">
+      <div className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8">
         {/* Header Section */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-4 sm:space-y-0">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
                 Therapist Approvals
               </h1>
-              <p className="text-gray-600">
+              <p className="text-gray-600 text-sm sm:text-base">
                 Review and approve new therapist applications
               </p>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="bg-white rounded-lg px-4 py-2 shadow-sm border">
+              <div className="bg-white rounded-lg px-3 sm:px-4 py-2 shadow-sm border">
                 <div className="flex items-center space-x-2">
                   <FaClock className="text-gray-400" />
-                  <span className="text-sm text-gray-600">
+                  <span className="text-xs sm:text-sm text-gray-600">
                     {new Date().toLocaleDateString('en-US', { 
                       weekday: 'long', 
                       year: 'numeric', 
@@ -233,39 +233,39 @@ export default function TherapistApproval() {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Pending Approvals</p>
-                  <p className="text-3xl font-bold text-amber-600">{pendingCounts.approvals}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Pending Approvals</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-amber-600">{pendingCounts.approvals}</p>
                 </div>
-                <div className="p-3 bg-amber-100 rounded-lg">
-                  <FaUserTie className="text-2xl text-amber-600" />
+                <div className="p-2 sm:p-3 bg-amber-100 rounded-lg">
+                  <FaUserTie className="text-xl sm:text-2xl text-amber-600" />
                 </div>
               </div>
             </div>
             
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Applications</p>
-                  <p className="text-3xl font-bold text-blue-600">{pending.length}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Total Applications</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-blue-600">{pending.length}</p>
                 </div>
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <FaUserCheck className="text-2xl text-blue-600" />
+                <div className="p-2 sm:p-3 bg-blue-100 rounded-lg">
+                  <FaUserCheck className="text-xl sm:text-2xl text-blue-600" />
                 </div>
               </div>
             </div>
             
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Approved Today</p>
-                  <p className="text-3xl font-bold text-green-600">0</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Approved Today</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-green-600">0</p>
                 </div>
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <FaCheckCircle className="text-2xl text-green-600" />
+                <div className="p-2 sm:p-3 bg-green-100 rounded-lg">
+                  <FaCheckCircle className="text-xl sm:text-2xl text-green-600" />
                 </div>
               </div>
             </div>
@@ -294,22 +294,22 @@ export default function TherapistApproval() {
 
         {/* Main Content */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
+          <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between space-y-4 lg:space-y-0">
-              <h2 className="text-xl font-semibold text-gray-900">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
                 Pending Applications ({filteredAndSortedTherapists.length})
               </h2>
               
               <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
                 {/* Search */}
-                <div className="relative">
+                <div className="relative w-full sm:w-auto">
                   <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input
                     type="text"
                     placeholder="Search therapists..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full sm:w-auto pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                   />
                 </div>
                 
@@ -321,7 +321,7 @@ export default function TherapistApproval() {
                     setSortBy(field);
                     setSortOrder(order);
                   }}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full sm:w-auto px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                 >
                   <option value="createdAt-desc">Newest First</option>
                   <option value="createdAt-asc">Oldest First</option>
@@ -334,16 +334,16 @@ export default function TherapistApproval() {
                 <button
                   onClick={fetchPending}
                   disabled={loading}
-                  className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 disabled:opacity-50"
+                  className="flex items-center space-x-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-blue-600 hover:text-blue-700 disabled:opacity-50"
                 >
-                  <FaSpinner className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                  <FaSpinner className={`w-3 h-3 sm:w-4 sm:h-4 ${loading ? 'animate-spin' : ''}`} />
                   <span>{loading ? 'Loading...' : 'Refresh'}</span>
                 </button>
               </div>
             </div>
           </div>
 
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="text-center">
@@ -385,43 +385,43 @@ export default function TherapistApproval() {
               <>
                 <div className="space-y-4">
                   {currentTherapists.map((therapist, index) => (
-                    <div key={therapist.username} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-                      <div className="flex items-start justify-between">
+                    <div key={therapist.username} className="border border-gray-200 rounded-lg p-4 sm:p-6 hover:shadow-md transition-shadow">
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-4 sm:space-y-0">
                         <div className="flex-1">
                           <div className="flex items-center space-x-3 mb-3">
-                            <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
-                              <FaUserTie className="text-white text-lg" />
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                              <FaUserTie className="text-white text-sm sm:text-lg" />
                             </div>
-                            <div>
-                              <h3 className="text-lg font-semibold text-gray-900">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
                                 {therapist.info?.firstName && therapist.info?.lastName
                                   ? `${therapist.info.firstName} ${therapist.info.lastName}`
                                   : therapist.username}
                               </h3>
-                              <p className="text-sm text-gray-500">@{therapist.username}</p>
+                              <p className="text-xs sm:text-sm text-gray-500">@{therapist.username}</p>
                             </div>
                             <div className="flex items-center space-x-2">
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
                                 <FaClock className="w-3 h-3 mr-1" />
                                 Pending
                               </span>
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div className="flex items-center space-x-2 text-sm text-gray-600">
-                              <FaEnvelope className="text-gray-400" />
-                              <span>{therapist.email}</span>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
+                            <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600">
+                              <FaEnvelope className="text-gray-400 flex-shrink-0" />
+                              <span className="truncate">{therapist.email}</span>
                             </div>
                             {therapist.info?.specialization && (
-                              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                                <FaUserTie className="text-gray-400" />
-                                <span>{therapist.info.specialization}</span>
+                              <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600">
+                                <FaUserTie className="text-gray-400 flex-shrink-0" />
+                                <span className="truncate">{therapist.info.specialization}</span>
                               </div>
                             )}
                             {therapist.info?.bio && (
                               <div className="mb-4">
-                                <p className="text-sm text-gray-600 line-clamp-2">
+                                <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">
                                   {therapist.info.bio}
                                 </p>
                               </div>
@@ -429,28 +429,28 @@ export default function TherapistApproval() {
                           </div>
                         </div>
 
-                        <div className="flex items-center space-x-3 ml-6">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
                           <button
                             onClick={() => handleViewDetails(therapist)}
-                            className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                            className="flex items-center justify-center space-x-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                           >
-                            <FaEye className="w-4 h-4" />
+                            <FaEye className="w-3 h-3 sm:w-4 sm:h-4" />
                             <span>View</span>
                           </button>
                           
                           <button
                             onClick={() => handleApprove(therapist)}
                             disabled={approving === therapist.username}
-                            className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
+                            className={`flex items-center justify-center space-x-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white rounded-lg transition-colors ${
                               approving === therapist.username
                                 ? 'bg-gray-400 cursor-not-allowed'
                                 : 'bg-green-600 hover:bg-green-700'
                             }`}
                           >
                             {approving === therapist.username ? (
-                              <FaSpinner className="animate-spin w-4 h-4" />
+                              <FaSpinner className="animate-spin w-3 h-3 sm:w-4 sm:h-4" />
                             ) : (
-                              <FaCheck className="w-4 h-4" />
+                              <FaCheck className="w-3 h-3 sm:w-4 sm:h-4" />
                             )}
                             <span>{approving === therapist.username ? 'Approving...' : 'Approve'}</span>
                           </button>
@@ -459,10 +459,10 @@ export default function TherapistApproval() {
                               href={`${apiOrigin.replace(/\/$/, "")}/${therapist.info.cvDocument.replace(/^\//, "").replace(/\\/g, "/")}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg shadow-sm hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
+                              className="inline-flex items-center justify-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-lg shadow-sm hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
                             >
-                              <FaEye className="w-4 h-4 mr-2" />
-                              View CV / Document
+                              <FaEye className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                              View CV
                             </a>
                           )}
                         </div>
@@ -473,19 +473,19 @@ export default function TherapistApproval() {
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <div className="mt-8 flex items-center justify-between">
-                    <div className="text-sm text-gray-700">
+                  <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+                    <div className="text-xs sm:text-sm text-gray-700 text-center sm:text-left">
                       Showing {startIndex + 1} to {Math.min(endIndex, filteredAndSortedTherapists.length)} of {filteredAndSortedTherapists.length} applications
                     </div>
                     
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center justify-center sm:justify-end space-x-2">
                       <button
                         onClick={() => handlePageChange(currentPage - 1)}
                         disabled={currentPage === 1}
-                        className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center space-x-1 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <FaChevronLeft className="w-4 h-4" />
-                        <span>Previous</span>
+                        <FaChevronLeft className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span className="hidden sm:inline">Previous</span>
                       </button>
                       
                       <div className="flex items-center space-x-1">
@@ -505,7 +505,7 @@ export default function TherapistApproval() {
                             <button
                               key={pageNum}
                               onClick={() => handlePageChange(pageNum)}
-                              className={`px-3 py-2 text-sm font-medium rounded-lg ${
+                              className={`px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium rounded-lg ${
                                 currentPage === pageNum
                                   ? 'bg-blue-600 text-white'
                                   : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
@@ -520,10 +520,10 @@ export default function TherapistApproval() {
                       <button
                         onClick={() => handlePageChange(currentPage + 1)}
                         disabled={currentPage === totalPages}
-                        className="flex items-center space-x-1 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center space-x-1 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <span>Next</span>
-                        <FaChevronRight className="w-4 h-4" />
+                        <span className="hidden sm:inline">Next</span>
+                        <FaChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
                       </button>
                     </div>
                   </div>
@@ -535,67 +535,67 @@ export default function TherapistApproval() {
 
         {/* Therapist Details Modal */}
         {selectedTherapist && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-              <div className="px-6 py-4 border-b border-gray-200">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-semibold text-gray-900">
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900">
                     Therapist Details
                   </h3>
                   <button
                     onClick={() => setSelectedTherapist(null)}
                     className="text-gray-400 hover:text-gray-600"
                   >
-                    <FaTimesCircle className="w-6 h-6" />
+                    <FaTimesCircle className="w-5 h-5 sm:w-6 sm:h-6" />
                   </button>
                 </div>
               </div>
               
-              <div className="p-6">
-                <div className="flex items-center space-x-4 mb-6">
-                  <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
-                    <FaUserTie className="text-white text-2xl" />
+              <div className="p-4 sm:p-6">
+                <div className="flex items-center space-x-3 sm:space-x-4 mb-4 sm:mb-6">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                    <FaUserTie className="text-white text-lg sm:text-2xl" />
                   </div>
                   <div>
-                    <h4 className="text-xl font-semibold text-gray-900">
+                    <h4 className="text-lg sm:text-xl font-semibold text-gray-900">
                       {selectedTherapist.info?.firstName && selectedTherapist.info?.lastName
                         ? `${selectedTherapist.info.firstName} ${selectedTherapist.info.lastName}`
                         : selectedTherapist.username}
                     </h4>
-                    <p className="text-gray-600">@{selectedTherapist.username}</p>
+                    <p className="text-sm sm:text-base text-gray-600">@{selectedTherapist.username}</p>
                   </div>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <p className="text-gray-900">{selectedTherapist.email}</p>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <p className="text-sm sm:text-base text-gray-900 break-all">{selectedTherapist.email}</p>
                   </div>
                   
                   {selectedTherapist.info?.specialization && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Specialization</label>
-                      <p className="text-gray-900">{selectedTherapist.info.specialization}</p>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Specialization</label>
+                      <p className="text-sm sm:text-base text-gray-900">{selectedTherapist.info.specialization}</p>
                     </div>
                   )}
                   
                   {selectedTherapist.info?.bio && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Bio</label>
-                      <p className="text-gray-900">{selectedTherapist.info.bio}</p>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Bio</label>
+                      <p className="text-sm sm:text-base text-gray-900">{selectedTherapist.info.bio}</p>
                     </div>
                   )}
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Registration Date</label>
-                    <p className="text-gray-900">{formatDate(selectedTherapist.createdAt)}</p>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Registration Date</label>
+                    <p className="text-sm sm:text-base text-gray-900">{formatDate(selectedTherapist.createdAt)}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-end space-x-3 mt-6 pt-6 border-t border-gray-200">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end space-y-2 sm:space-y-0 sm:space-x-3 mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200">
                   <button
                     onClick={() => setSelectedTherapist(null)}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                    className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                   >
                     Close
                   </button>
@@ -605,16 +605,16 @@ export default function TherapistApproval() {
                       setSelectedTherapist(null);
                     }}
                     disabled={approving === selectedTherapist.username}
-                    className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
+                    className={`flex items-center justify-center space-x-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white rounded-lg transition-colors ${
                       approving === selectedTherapist.username
                         ? 'bg-gray-400 cursor-not-allowed'
                         : 'bg-green-600 hover:bg-green-700'
                     }`}
                   >
                     {approving === selectedTherapist.username ? (
-                      <FaSpinner className="animate-spin w-4 h-4" />
+                      <FaSpinner className="animate-spin w-3 h-3 sm:w-4 sm:h-4" />
                     ) : (
-                      <FaCheck className="w-4 h-4" />
+                      <FaCheck className="w-3 h-3 sm:w-4 sm:h-4" />
                     )}
                     <span>{approving === selectedTherapist.username ? 'Approving...' : 'Approve Therapist'}</span>
                   </button>

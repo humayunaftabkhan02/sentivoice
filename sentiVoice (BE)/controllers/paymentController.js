@@ -331,8 +331,9 @@ exports.updateStatus = async (req, res) => {
           let flaskResponse;
           try {
             console.log('🚀 Calling Flask app with base64 audio data');
+            const config = require('../config');
             flaskResponse = await axios.post(
-              'https://sentivoice-flask-273777154059.us-central1.run.app/api/predict',
+              config.flaskUrl,
               { audio_data: payment.voiceRecording.audioData },
               { headers: { 'Content-Type': 'application/json' } }
             );

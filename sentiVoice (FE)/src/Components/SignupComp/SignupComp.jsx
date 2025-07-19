@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaUserMd, FaUserInjured } from 'react-icons/fa'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import logo from '../../assets/logo.png'
 import signupImage from '../../assets/signupImg.png'
 import { api } from "../../utils/api";
@@ -21,6 +21,16 @@ const SignupComp = () => {
     const [isLoading, setIsLoading] = useState(false)
     const navigate = useNavigate()
     const [cvFile, setCvFile] = useState(null);
+    const location = useLocation();
+
+    // Check for role parameter in URL and set it
+    useEffect(() => {
+        const urlParams = new URLSearchParams(location.search);
+        const roleParam = urlParams.get('role');
+        if (roleParam === 'therapist' && !role) {
+            setRole('therapist');
+        }
+    }, [location.search, role]);
 
     const allowedEmailDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 'live.com']
     const disposableDomains = ['mailinator.com', 'tempmail.com', '10minutemail.com', 'guerrillamail.com']

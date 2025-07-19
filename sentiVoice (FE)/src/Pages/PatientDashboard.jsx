@@ -301,52 +301,52 @@ const P_Dashboard = () => {
       <PatientSidebar current="dashboard" />
 
       {/* Main Content */}
-      <div className="flex-1 ml-64 p-8">
+      <div className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8">
         {/* Header Section */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 sm:mb-8 space-y-4 sm:space-y-0">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
               {getGreeting()} <span className="text-blue-600">{fullName || username}!</span>
             </h1>
-            <p className="text-gray-600 mt-1">Welcome to your therapy dashboard</p>
+            <p className="text-sm sm:text-base text-gray-600 mt-1">Welcome to your therapy dashboard</p>
           </div>
           <UserTopBar username={username} fullName={fullName} role={role} profilePicture={profilePicture} />
         </div>
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-blue-500">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 border-l-4 border-blue-500">
             <div className="flex items-center">
-              <div className="p-3 rounded-full bg-blue-100 text-blue-600">
-                <FaCalendarCheck className="text-xl" />
+              <div className="p-2 sm:p-3 rounded-full bg-blue-100 text-blue-600">
+                <FaCalendarCheck className="text-lg sm:text-xl" />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Upcoming Sessions</p>
-                <p className="text-2xl font-bold text-gray-900">{upcoming.length}</p>
+              <div className="ml-3 sm:ml-4">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Upcoming Sessions</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">{upcoming.length}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-purple-500">
+          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 border-l-4 border-purple-500">
             <div className="flex items-center">
-              <div className="p-3 rounded-full bg-purple-100 text-purple-600">
-                <FaClipboardList className="text-xl" />
+              <div className="p-2 sm:p-3 rounded-full bg-purple-100 text-purple-600">
+                <FaClipboardList className="text-lg sm:text-xl" />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Therapy Steps</p>
-                <p className="text-2xl font-bold text-gray-900">{user?.info?.therapyPlan?.length || 0}</p>
+              <div className="ml-3 sm:ml-4">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Therapy Steps</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-900">{user?.info?.therapyPlan?.length || 0}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-orange-500">
+          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 border-l-4 border-orange-500 sm:col-span-2 lg:col-span-1">
             <div className="flex items-center">
-              <div className="p-3 rounded-full bg-orange-100 text-orange-600">
-                <FaUserMd className="text-xl" />
+              <div className="p-2 sm:p-3 rounded-full bg-orange-100 text-orange-600">
+                <FaUserMd className="text-lg sm:text-xl" />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Last Completed Session</p>
-                <p className="text-sm font-bold text-gray-900">
+              <div className="ml-3 sm:ml-4">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Last Completed Session</p>
+                <p className="text-xs sm:text-sm font-bold text-gray-900">
                   {lastSessionDate ? formatDate(lastSessionDate).split(',')[0] : "N/A"}
                 </p>
               </div>
@@ -355,13 +355,13 @@ const P_Dashboard = () => {
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
           {/* Left Column */}
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             {/* Session Summary Card */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-800 flex items-center">
+                <h2 className="text-lg sm:text-xl font-bold text-gray-800 flex items-center">
                   <FaNotesMedical className="mr-2 text-blue-600" />
                   Last Session Summary
                 </h2>
@@ -369,46 +369,46 @@ const P_Dashboard = () => {
               
               {lastSessionDate && user?.info?.pastSessionSummary?.emotion ? (
                 <div className="space-y-4">
-                  <div className="flex items-center space-x-4">
-                    <div className="text-4xl">
+                  <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+                    <div className="text-3xl sm:text-4xl">
                       {emotionEmojiMap[user.info.pastSessionSummary.emotion] || "😐"}
                     </div>
                     <div>
-                      <p className="text-lg font-semibold text-gray-800">
+                      <p className="text-base sm:text-lg font-semibold text-gray-800">
                         Primary Emotion: <span className="text-blue-600">
                           {user.info.pastSessionSummary.emotion}
                         </span>
                       </p>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-xs sm:text-sm text-gray-600">
                         Recorded on {formatDate(lastSessionDate)}
                       </p>
                     </div>
                   </div>
                   
                   {user.info.pastSessionSummary.note && (
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-sm font-medium text-gray-700 mb-2">Therapist's Note:</p>
-                      <p className="text-gray-800">{user.info.pastSessionSummary.note}</p>
+                    <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                      <p className="text-xs sm:text-sm font-medium text-gray-700 mb-2">Therapist's Note:</p>
+                      <p className="text-xs sm:text-sm text-gray-800 break-words">{user.info.pastSessionSummary.note}</p>
                     </div>
                   )}
                 </div>
               ) : (
-                <div className="text-center py-8">
-                  <FaNotesMedical className="text-4xl text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">No session summary available</p>
-                  <p className="text-sm text-gray-400">Your therapist will add notes after your next session</p>
+                <div className="text-center py-6 sm:py-8">
+                  <FaNotesMedical className="text-3xl sm:text-4xl text-gray-300 mx-auto mb-4" />
+                  <p className="text-sm sm:text-base text-gray-500">No session summary available</p>
+                  <p className="text-xs sm:text-sm text-gray-400">Your therapist will add notes after your next session</p>
                 </div>
               )}
             </div>
 
             {/* Therapy Plan Card */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-800 flex items-center">
+                <h2 className="text-lg sm:text-xl font-bold text-gray-800 flex items-center">
                   <FaClipboardList className="mr-2 text-green-600" />
                   Therapy Plan
                 </h2>
-                <span className="text-sm text-gray-500">
+                <span className="text-xs sm:text-sm text-gray-500">
                   {user?.info?.therapyPlan?.length || 0} steps
                 </span>
               </div>
@@ -419,11 +419,11 @@ const P_Dashboard = () => {
                     .slice((therapyPlanPage - 1) * itemsPerPage, therapyPlanPage * itemsPerPage)
                     .map((planItem, index) => (
                     <div key={index} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-                      <div className="flex-shrink-0 w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-sm font-bold">
+                      <div className="flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold">
                         {(therapyPlanPage - 1) * itemsPerPage + index + 1}
                       </div>
                       <div className="flex-1">
-                        <p className="text-gray-800 font-medium">
+                        <p className="text-xs sm:text-sm text-gray-800 font-medium break-words">
                           {typeof planItem === 'string' ? planItem : planItem.step || 'No step description'}
                         </p>
                         {planItem.timestamp && (
@@ -437,22 +437,22 @@ const P_Dashboard = () => {
                   
                   {/* Pagination for therapy plan */}
                   {user.info.therapyPlan.length > itemsPerPage && (
-                    <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
+                    <div className="flex flex-col sm:flex-row justify-between items-center mt-4 pt-4 border-t border-gray-200 space-y-2 sm:space-y-0">
                       <button
                         onClick={() => setTherapyPlanPage(prev => Math.max(1, prev - 1))}
                         disabled={therapyPlanPage === 1}
-                        className="flex items-center px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition-colors"
+                        className="flex items-center px-3 py-2 text-xs sm:text-sm bg-gray-100 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition-colors"
                       >
                         <FaChevronLeft className="mr-1" />
                         Previous
                       </button>
-                      <span className="text-sm text-gray-600">
+                      <span className="text-xs sm:text-sm text-gray-600">
                         Page {therapyPlanPage} of {Math.ceil(user.info.therapyPlan.length / itemsPerPage)}
                       </span>
                       <button
                         onClick={() => setTherapyPlanPage(prev => Math.min(Math.ceil(user.info.therapyPlan.length / itemsPerPage), prev + 1))}
                         disabled={therapyPlanPage >= Math.ceil(user.info.therapyPlan.length / itemsPerPage)}
-                        className="flex items-center px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition-colors"
+                        className="flex items-center px-3 py-2 text-xs sm:text-sm bg-gray-100 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition-colors"
                       >
                         Next
                         <FaChevronRight className="ml-1" />
@@ -461,25 +461,25 @@ const P_Dashboard = () => {
                   )}
                 </div>
               ) : (
-                <div className="text-center py-8">
-                  <FaClipboardList className="text-4xl text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">No therapy plan available</p>
-                  <p className="text-sm text-gray-400">Your therapist will create a personalized plan for you</p>
+                <div className="text-center py-6 sm:py-8">
+                  <FaClipboardList className="text-3xl sm:text-4xl text-gray-300 mx-auto mb-4" />
+                  <p className="text-sm sm:text-base text-gray-500">No therapy plan available</p>
+                  <p className="text-xs sm:text-sm text-gray-400">Your therapist will create a personalized plan for you</p>
                 </div>
               )}
             </div>
           </div>
 
           {/* Right Column */}
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             {/* Upcoming Appointments Card */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-800 flex items-center">
+                <h2 className="text-lg sm:text-xl font-bold text-gray-800 flex items-center">
                   <FaCalendarAlt className="mr-2 text-purple-600" />
                   Upcoming Appointments
                 </h2>
-                <span className="text-sm text-gray-500">
+                <span className="text-xs sm:text-sm text-gray-500">
                   {upcoming.length} appointment{upcoming.length !== 1 ? 's' : ''}
                 </span>
               </div>
@@ -649,6 +649,7 @@ const P_Dashboard = () => {
           appointment={reschedulingApp}
           onClose={() => setReschedulingApp(null)}
           onConfirm={handleConfirmReschedule}
+          userRole="patient"
         />
       )}
       
@@ -656,6 +657,7 @@ const P_Dashboard = () => {
         <CancelModal
           onClose={() => setShowCancelModal(false)}
           onConfirm={(reason) => cancelAppointment(cancelAppId, reason)}
+          userRole="patient"
         />
       )}
       

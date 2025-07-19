@@ -158,11 +158,12 @@ export default function AdminDashboard() {
           current="dashboard" 
           pendingApprovals={pendingCounts.approvals}
           pendingPayments={pendingCounts.payments}
+          pendingRefunds={pendingCounts.refunds}
         />
-        <div className="flex-1 ml-64 flex items-center justify-center">
+        <div className="flex-1 lg:ml-64 flex items-center justify-center p-4">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading dashboard...</p>
+            <p className="text-gray-600 text-sm sm:text-base">Loading dashboard...</p>
           </div>
         </div>
       </div>
@@ -178,21 +179,21 @@ export default function AdminDashboard() {
         pendingRefunds={pendingCounts.refunds}
       />
 
-      <div className="flex-1 ml-64 p-6 lg:p-8">
+      <div className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8">
         {/* Header Section */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-4 sm:space-y-0">
             <div>
-              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
                 {getGreeting()}, <span className="text-blue-600">{username}</span>
-          </h1>
-              <p className="text-gray-600 mt-1">Here's what's happening with your system today</p>
+              </h1>
+              <p className="text-gray-600 mt-1 text-sm sm:text-base">Here's what's happening with your system today</p>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="bg-white rounded-lg px-4 py-2 shadow-sm border">
+              <div className="bg-white rounded-lg px-3 py-2 shadow-sm border">
                 <div className="flex items-center space-x-2">
                   <FaClock className="text-gray-400" />
-                  <span className="text-sm text-gray-600">
+                  <span className="text-xs sm:text-sm text-gray-600">
                     {new Date().toLocaleDateString('en-US', { 
                       weekday: 'long', 
                       year: 'numeric', 
@@ -230,7 +231,7 @@ export default function AdminDashboard() {
 
         {/* Statistics Cards */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
             <StatCard
               icon={<FaUserCheck className="text-2xl" />}
               title="Pending Therapists"
@@ -262,10 +263,10 @@ export default function AdminDashboard() {
         )}
 
         {/* Quick Actions */}
-        <div className="space-y-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+        <div className="space-y-4 sm:space-y-6">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Quick Actions</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             <QuickActionCard
               icon={<FaUserCheck className="text-3xl" />}
               title="Therapist Approvals"
@@ -325,19 +326,19 @@ export default function AdminDashboard() {
 // Enhanced Stat Card Component
 function StatCard({ icon, title, value, trend, trendValue, color, bgColor }) {
   return (
-    <div className={`${bgColor} text-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300`}>
-      <div className="flex items-center justify-between mb-4">
-        <div className={`p-3 rounded-lg bg-white/20`}>
-        {icon}
+    <div className={`${bgColor} text-white rounded-xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition-shadow duration-300`}>
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
+        <div className={`p-2 sm:p-3 rounded-lg bg-white/20`}>
+          {icon}
         </div>
         <div className="flex items-center space-x-1">
           {trend}
           <span className="text-xs font-medium">{trendValue}</span>
         </div>
       </div>
-        <div>
-        <p className="text-sm font-medium opacity-90 mb-1">{title}</p>
-        <p className="text-3xl font-bold">{value}</p>
+      <div>
+        <p className="text-xs sm:text-sm font-medium opacity-90 mb-1">{title}</p>
+        <p className="text-2xl sm:text-3xl font-bold">{value}</p>
       </div>
     </div>
   );
@@ -346,20 +347,20 @@ function StatCard({ icon, title, value, trend, trendValue, color, bgColor }) {
 // Quick Action Card Component
 function QuickActionCard({ icon, title, description, actionText, href, color, bgColor }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-300">
-      <div className="flex items-start space-x-4">
-        <div className={`p-3 rounded-lg ${bgColor} text-white`}>
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 hover:shadow-md transition-shadow duration-300">
+      <div className="flex items-start space-x-3 sm:space-x-4">
+        <div className={`p-2 sm:p-3 rounded-lg ${bgColor} text-white flex-shrink-0`}>
           {icon}
         </div>
-        <div className="flex-1">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
-          <p className="text-gray-600 text-sm mb-4">{description}</p>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 sm:mb-2">{title}</h3>
+          <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2">{description}</p>
           <a
             href={href}
-            className={`inline-flex items-center px-4 py-2 rounded-lg text-white font-medium text-sm ${bgColor} hover:opacity-90 transition-opacity duration-200`}
+            className={`inline-flex items-center px-3 sm:px-4 py-2 rounded-lg text-white font-medium text-xs sm:text-sm ${bgColor} hover:opacity-90 transition-opacity duration-200`}
           >
             {actionText}
-            <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="ml-1 sm:ml-2 w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </a>

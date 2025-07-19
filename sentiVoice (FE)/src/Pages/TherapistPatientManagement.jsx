@@ -362,73 +362,73 @@ const TherapistPatientManagement = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50 overflow-x-hidden">
       <TherapistSidebar current="patients" />
 
       {/* Main Content */}
-      <div className="flex-1 p-6 space-y-6 ml-64">
+      <div className="flex-1 p-4 sm:p-6 space-y-4 sm:space-y-6 lg:ml-64">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 sm:mb-8 space-y-4 sm:space-y-0">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
               Patient Management
             </h1>
-            <p className="text-gray-600">Manage your patients and their therapy plans</p>
+            <p className="text-sm sm:text-base text-gray-600 mt-1">Manage your patients and their therapy plans</p>
           </div>
           <UserTopBar username={username} fullName={fullName} role={"therapist"} profilePicture={profilePicture} />
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-blue-500">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+          <div className="bg-white rounded-xl shadow-sm p-3 sm:p-4 lg:p-6 border-l-4 border-blue-500">
             <div className="flex items-center">
-              <div className="p-3 rounded-full bg-blue-100">
-                <FaUserFriends className="text-2xl text-blue-600" />
+              <div className="p-2 sm:p-3 rounded-full bg-blue-100">
+                <FaUserFriends className="text-lg sm:text-xl lg:text-2xl text-blue-600" />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Patients</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalPatients}</p>
+              <div className="ml-2 sm:ml-3 lg:ml-4">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Total Patients</p>
+                <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{stats.totalPatients}</p>
               </div>
             </div>
           </div>
 
           {/* Removed Active Patients card here */}
 
-          <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-purple-500">
+          <div className="bg-white rounded-xl shadow-sm p-3 sm:p-4 lg:p-6 border-l-4 border-purple-500">
             <div className="flex items-center">
-              <div className="p-3 rounded-full bg-purple-100">
-                <FaChartLine className="text-2xl text-purple-600" />
+              <div className="p-2 sm:p-3 rounded-full bg-purple-100">
+                <FaChartLine className="text-lg sm:text-xl lg:text-2xl text-purple-600" />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Completed Sessions</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.completedSessions}</p>
+              <div className="ml-2 sm:ml-3 lg:ml-4">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Completed Sessions</p>
+                <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{stats.completedSessions}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-orange-500">
+          <div className="bg-white rounded-xl shadow-sm p-3 sm:p-4 lg:p-6 border-l-4 border-orange-500 sm:col-span-2 lg:col-span-1">
             <div className="flex items-center">
-              <div className="p-3 rounded-full bg-orange-100">
-                <FaCalendarCheck className="text-2xl text-orange-600" />
+              <div className="p-2 sm:p-3 rounded-full bg-orange-100">
+                <FaCalendarCheck className="text-lg sm:text-xl lg:text-2xl text-orange-600" />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Upcoming Appointments</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.upcomingAppointments}</p>
+              <div className="ml-2 sm:ml-3 lg:ml-4">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Upcoming Appointments</p>
+                <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{stats.upcomingAppointments}</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Search and Filters */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
             <div className="flex-1 max-w-md">
               <div className="relative">
                 <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Search patients by name..."
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -438,21 +438,21 @@ const TherapistPatientManagement = () => {
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                className="flex items-center px-3 py-2 sm:px-4 sm:py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm sm:text-base"
               >
-                <FaFilter className="mr-2" />
+                <FaFilter className="mr-1 sm:mr-2" />
                 Filters
               </button>
             </div>
           </div>
 
           {showFilters && (
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Primary Emotion</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Primary Emotion</label>
                   <select
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                     value={emotionFilter}
                     onChange={(e) => setEmotionFilter(e.target.value)}
                   >
@@ -470,7 +470,7 @@ const TherapistPatientManagement = () => {
         </div>
 
         {/* Patients Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
           {getCurrentPagePatients().map((patient) => {
             const progress = getPatientProgress(patient);
             
@@ -480,26 +480,26 @@ const TherapistPatientManagement = () => {
                 className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden"
               >
                 {/* Patient Header */}
-                <div className="p-6 border-b border-gray-100">
-                  <div className="flex items-center justify-between mb-4">
+                <div className="p-4 sm:p-6 border-b border-gray-100">
+                  <div className="flex items-center justify-between mb-3 sm:mb-4">
                     <div className="flex items-center">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-base sm:text-lg">
                         {patient.info?.firstName?.charAt(0) || patient.username.charAt(0).toUpperCase()}
                       </div>
-                      <div className="ml-3">
-                        <h3 className="font-semibold text-gray-900">
+                      <div className="ml-2 sm:ml-3">
+                        <h3 className="font-semibold text-gray-900 text-sm sm:text-base">
                           {patient.info?.firstName && patient.info?.lastName
                             ? `${patient.info.firstName} ${patient.info.lastName}`
                             : patient.username}
                         </h3>
-                        <p className="text-sm text-gray-500">ID: {patient._id.slice(-8)}</p>
+                        <p className="text-xs sm:text-sm text-gray-500">ID: {patient._id.slice(-8)}</p>
                       </div>
                     </div>
                   </div>
 
                   {/* Progress Bar */}
-                  <div className="mb-4">
-                    <div className="flex justify-between text-sm text-gray-600 mb-1">
+                  <div className="mb-3 sm:mb-4">
+                    <div className="flex justify-between text-xs sm:text-sm text-gray-600 mb-1">
                       <span>Profile Progress</span>
                       <span>{progress}%</span>
                     </div>
@@ -512,24 +512,24 @@ const TherapistPatientManagement = () => {
                   </div>
 
                   {/* Quick Info */}
-                  <div className="space-y-2">
+                  <div className="space-y-1.5 sm:space-y-2">
                     {patient.info?.pastSessionSummary?.emotion && (
-                      <div className="flex items-center text-sm">
-                        <FaHeart className="text-red-500 mr-2" />
+                      <div className="flex items-center text-xs sm:text-sm">
+                        <FaHeart className="text-red-500 mr-1.5 sm:mr-2" />
                         <span className="text-gray-600">
                           <span className="font-semibold mr-1">Emotion:</span> {emotionEmojiMap[patient.info.pastSessionSummary.emotion]} {patient.info.pastSessionSummary.emotion}
                         </span>
                       </div>
                     )}
                     {patient.info?.diagnosis && (
-                      <div className="flex items-center text-sm">
-                        <FaNotesMedical className="text-blue-500 mr-2" />
+                      <div className="flex items-center text-xs sm:text-sm">
+                        <FaNotesMedical className="text-blue-500 mr-1.5 sm:mr-2" />
                         <span className="text-gray-600"><span className="font-semibold mr-1">Diagnosis:</span> {patient.info.diagnosis}</span>
                       </div>
                     )}
                     {patient.info?.therapyPlan?.length > 0 && (
-                      <div className="flex items-center text-sm">
-                        <FaClipboardList className="text-green-500 mr-2" />
+                      <div className="flex items-center text-xs sm:text-sm">
+                        <FaClipboardList className="text-green-500 mr-1.5 sm:mr-2" />
                         <span className="text-gray-600"><span className="font-semibold mr-1">Therapy Plan:</span> {patient.info.therapyPlan.length} plan items</span>
                       </div>
                     )}
@@ -537,34 +537,34 @@ const TherapistPatientManagement = () => {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="p-4 bg-gray-50">
-                  <div className="grid grid-cols-2 gap-2">
+                <div className="p-3 sm:p-4 bg-gray-50">
+                  <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
                     <button
                       onClick={() => handleViewProfile(patient)}
-                      className="flex items-center justify-center px-3 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
+                      className="flex items-center justify-center px-2 py-1.5 sm:px-3 sm:py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-xs sm:text-sm font-medium"
                     >
-                      <FaEye className="mr-1" />
+                      <FaEye className="mr-1 text-xs sm:text-sm" />
                       View
                     </button>
                     <button
                       onClick={() => handleManageProfile(patient)}
-                      className="flex items-center justify-center px-3 py-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors text-sm font-medium"
+                      className="flex items-center justify-center px-2 py-1.5 sm:px-3 sm:py-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors text-xs sm:text-sm font-medium"
                     >
-                      <FaEdit className="mr-1" />
+                      <FaEdit className="mr-1 text-xs sm:text-sm" />
                       Manage
                     </button>
                     <button
                       onClick={() => handleViewAppointmentHistory(patient)}
-                      className="flex items-center justify-center px-3 py-2 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors text-sm font-medium"
+                      className="flex items-center justify-center px-2 py-1.5 sm:px-3 sm:py-2 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors text-xs sm:text-sm font-medium"
                     >
-                      <FaHistory className="mr-1" />
+                      <FaHistory className="mr-1 text-xs sm:text-sm" />
                       History
                     </button>
                     <button
                       onClick={() => handleExportCompleteReport(patient)}
-                      className="flex items-center justify-center px-3 py-2 bg-orange-50 text-orange-700 rounded-lg hover:bg-orange-100 transition-colors text-sm font-medium"
+                      className="flex items-center justify-center px-2 py-1.5 sm:px-3 sm:py-2 bg-orange-50 text-orange-700 rounded-lg hover:bg-orange-100 transition-colors text-xs sm:text-sm font-medium"
                     >
-                      <FaDownload className="mr-1" />
+                      <FaDownload className="mr-1 text-xs sm:text-sm" />
                       Export Profile
                     </button>
                   </div>
@@ -576,37 +576,37 @@ const TherapistPatientManagement = () => {
 
         {/* Patient List Pagination */}
         {patientTotalPages > 1 && (
-          <div className="flex justify-center items-center space-x-4 mt-8">
+          <div className="flex justify-center items-center space-x-2 sm:space-x-4 mt-6 sm:mt-8">
             <button
               disabled={patientCurrentPage <= 1}
-              className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition-colors"
+              className="flex items-center px-3 py-2 sm:px-4 sm:py-2 bg-gray-100 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition-colors text-sm"
               onClick={() => handlePatientPageChange(patientCurrentPage - 1)}
             >
-              <FaTimes className="mr-2 rotate-45" />
+              <FaTimes className="mr-1 sm:mr-2 rotate-45 text-xs sm:text-sm" />
               Previous
             </button>
-            <span className="text-sm text-gray-600">
+            <span className="text-xs sm:text-sm text-gray-600 px-2 sm:px-3">
               Page {patientCurrentPage} of {patientTotalPages}
             </span>
             <button
               disabled={patientCurrentPage >= patientTotalPages}
-              className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition-colors"
+              className="flex items-center px-3 py-2 sm:px-4 sm:py-2 bg-gray-100 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition-colors text-sm"
               onClick={() => handlePatientPageChange(patientCurrentPage + 1)}
             >
               Next
-              <FaTimes className="ml-2 -rotate-45" />
+              <FaTimes className="ml-1 sm:ml-2 -rotate-45 text-xs sm:text-sm" />
             </button>
           </div>
         )}
 
         {/* Empty State */}
         {getCurrentPagePatients().length === 0 && (
-          <div className="text-center py-12">
-            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <FaUser className="text-3xl text-gray-400" />
+          <div className="text-center py-8 sm:py-12">
+            <div className="w-16 h-16 sm:w-24 sm:h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+              <FaUser className="text-2xl sm:text-3xl text-gray-400" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No patients found</h3>
-            <p className="text-gray-600">
+            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No patients found</h3>
+            <p className="text-sm sm:text-base text-gray-600">
               {searchTerm || emotionFilter !== "all" 
                 ? "Try adjusting your search or filters."
                 : patientTotalPages > 1 
@@ -644,40 +644,40 @@ const TherapistPatientManagement = () => {
         {selectedPatient && (
           <div className="bg-white rounded-2xl overflow-hidden">
             {/* Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-8 text-white">
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-4 sm:px-6 py-6 sm:py-8 text-white">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-2xl font-bold">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white/20 rounded-full flex items-center justify-center text-lg sm:text-2xl font-bold">
                     {selectedPatient.info?.firstName?.charAt(0) || selectedPatient.username.charAt(0).toUpperCase()}
                   </div>
-                  <div className="ml-4">
-                    <h2 className="text-2xl font-bold">
+                  <div className="ml-3 sm:ml-4">
+                    <h2 className="text-lg sm:text-xl lg:text-2xl font-bold">
                       {selectedPatient.info?.firstName && selectedPatient.info?.lastName
                         ? `${selectedPatient.info.firstName} ${selectedPatient.info.lastName}`
                         : selectedPatient.username}
                     </h2>
-                    <p className="text-blue-100">Patient Profile</p>
+                    <p className="text-blue-100 text-sm sm:text-base">Patient Profile</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setViewProfileModalOpen(false)}
                   className="text-white/80 hover:text-white transition-colors"
                 >
-                  <FaTimes className="text-xl" />
+                  <FaTimes className="text-lg sm:text-xl" />
                 </button>
               </div>
             </div>
 
             {/* Content */}
-            <div className="p-6 space-y-6">
+            <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
               {/* Basic Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="flex items-center p-4 bg-gray-50 rounded-lg">
-                    <FaUser className="text-blue-600 mr-3" />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="flex items-center p-3 sm:p-4 bg-gray-50 rounded-lg">
+                    <FaUser className="text-blue-600 mr-2 sm:mr-3" />
                     <div>
-                      <p className="text-sm text-gray-600">Full Name</p>
-                      <p className="font-semibold">
+                      <p className="text-xs sm:text-sm text-gray-600">Full Name</p>
+                      <p className="font-semibold text-sm sm:text-base">
                         {selectedPatient.info?.firstName && selectedPatient.info?.lastName
                           ? `${selectedPatient.info.firstName} ${selectedPatient.info.lastName}`
                           : selectedPatient.username}
@@ -685,37 +685,37 @@ const TherapistPatientManagement = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center p-4 bg-gray-50 rounded-lg">
-                    <FaBirthdayCake className="text-green-600 mr-3" />
+                  <div className="flex items-center p-3 sm:p-4 bg-gray-50 rounded-lg">
+                    <FaBirthdayCake className="text-green-600 mr-2 sm:mr-3" />
                     <div>
-                      <p className="text-sm text-gray-600">Age</p>
-                      <p className="font-semibold">{selectedPatient.info?.age || "Not specified"}</p>
+                      <p className="text-xs sm:text-sm text-gray-600">Age</p>
+                      <p className="font-semibold text-sm sm:text-base">{selectedPatient.info?.age || "Not specified"}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center p-4 bg-gray-50 rounded-lg">
-                    <FaPhone className="text-purple-600 mr-3" />
+                  <div className="flex items-center p-3 sm:p-4 bg-gray-50 rounded-lg">
+                    <FaPhone className="text-purple-600 mr-2 sm:mr-3" />
                     <div>
-                      <p className="text-sm text-gray-600">Contact</p>
-                      <p className="font-semibold">{selectedPatient.info?.contact || "Not provided"}</p>
+                      <p className="text-xs sm:text-sm text-gray-600">Contact</p>
+                      <p className="font-semibold text-sm sm:text-base">{selectedPatient.info?.contact || "Not provided"}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <div className="flex items-center p-4 bg-gray-50 rounded-lg">
-                    <FaNotesMedical className="text-red-600 mr-3" />
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="flex items-center p-3 sm:p-4 bg-gray-50 rounded-lg">
+                    <FaNotesMedical className="text-red-600 mr-2 sm:mr-3" />
                     <div>
-                      <p className="text-sm text-gray-600">Diagnosis</p>
-                      <p className="font-semibold">{selectedPatient.info?.diagnosis || "Not specified"}</p>
+                      <p className="text-xs sm:text-sm text-gray-600">Diagnosis</p>
+                      <p className="font-semibold text-sm sm:text-base">{selectedPatient.info?.diagnosis || "Not specified"}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center p-4 bg-gray-50 rounded-lg">
-                    <FaHeart className="text-pink-600 mr-3" />
+                  <div className="flex items-center p-3 sm:p-4 bg-gray-50 rounded-lg">
+                    <FaHeart className="text-pink-600 mr-2 sm:mr-3" />
                     <div>
-                      <p className="text-sm text-gray-600">Primary Emotion</p>
-                      <p className="font-semibold">
+                      <p className="text-xs sm:text-sm text-gray-600">Primary Emotion</p>
+                      <p className="font-semibold text-sm sm:text-base">
                         {selectedPatient.info?.pastSessionSummary?.emotion 
                           ? `${emotionEmojiMap[selectedPatient.info.pastSessionSummary.emotion]} ${selectedPatient.info.pastSessionSummary.emotion}`
                           : "Not assessed"}
@@ -723,11 +723,11 @@ const TherapistPatientManagement = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center p-4 bg-gray-50 rounded-lg">
-                    <FaClipboardList className="text-orange-600 mr-3" />
+                  <div className="flex items-center p-3 sm:p-4 bg-gray-50 rounded-lg">
+                    <FaClipboardList className="text-orange-600 mr-2 sm:mr-3" />
                     <div>
-                      <p className="text-sm text-gray-600">Therapy Plan</p>
-                      <p className="font-semibold">{selectedPatient.info?.therapyPlan?.length || 0} items</p>
+                      <p className="text-xs sm:text-sm text-gray-600">Therapy Plan</p>
+                      <p className="font-semibold text-sm sm:text-base">{selectedPatient.info?.therapyPlan?.length || 0} items</p>
                     </div>
                   </div>
                 </div>
@@ -736,15 +736,15 @@ const TherapistPatientManagement = () => {
               {/* Therapy Plan */}
               {selectedPatient.info?.therapyPlan?.length > 0 && (
                 <div>
-                  <h3 className="text-lg font-semibold mb-3 flex items-center">
-                    <FaClipboardList className="mr-2 text-orange-600" />
+                  <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3 flex items-center">
+                    <FaClipboardList className="mr-1.5 sm:mr-2 text-orange-600" />
                     Therapy Plan
                   </h3>
-                  <div className="space-y-2">
+                  <div className="space-y-1.5 sm:space-y-2">
                     {selectedPatient.info.therapyPlan.map((plan, index) => (
-                      <div key={plan.id} className="flex items-start p-3 bg-orange-50 rounded-lg">
-                        <span className="text-orange-600 mr-3 mt-1">•</span>
-                        <span className="text-gray-700">
+                      <div key={plan.id} className="flex items-start p-2.5 sm:p-3 bg-orange-50 rounded-lg">
+                        <span className="text-orange-600 mr-2 sm:mr-3 mt-1">•</span>
+                        <span className="text-gray-700 text-sm sm:text-base">
                           {plan.step}
                         </span>
                       </div>
@@ -756,31 +756,31 @@ const TherapistPatientManagement = () => {
               {/* Therapist Notes */}
               {selectedPatient.info?.pastSessionSummary?.note && (
                 <div>
-                  <h3 className="text-lg font-semibold mb-3 flex items-center">
-                    <FaNotesMedical className="mr-2 text-blue-600" />
+                  <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3 flex items-center">
+                    <FaNotesMedical className="mr-1.5 sm:mr-2 text-blue-600" />
                     Therapist Notes
                   </h3>
-                  <div className="p-4 bg-blue-50 rounded-lg">
-                    <p className="text-gray-700">{selectedPatient.info.pastSessionSummary.note}</p>
+                  <div className="p-3 sm:p-4 bg-blue-50 rounded-lg">
+                    <p className="text-gray-700 text-sm sm:text-base">{selectedPatient.info.pastSessionSummary.note}</p>
                   </div>
                 </div>
               )}
 
               {/* Action Buttons */}
-              <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+              <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-4 border-t border-gray-200">
                 <button
                   onClick={() => {
                     setViewProfileModalOpen(false);
                     handleManageProfile(selectedPatient);
                   }}
-                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="flex items-center justify-center px-3 py-2 sm:px-4 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base"
                 >
-                  <FaEdit className="mr-2" />
+                  <FaEdit className="mr-1.5 sm:mr-2" />
                   Edit Profile
                 </button>
                 <button
                   onClick={() => setViewProfileModalOpen(false)}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                  className="px-3 py-2 sm:px-4 sm:py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm sm:text-base"
                 >
                   Close
                 </button>
@@ -816,11 +816,11 @@ const TherapistPatientManagement = () => {
       >
         <div className="bg-white rounded-2xl overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-6 text-white">
+          <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-4 sm:px-6 py-4 sm:py-6 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold">Appointment History</h2>
-                <p className="text-purple-100">
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold">Appointment History</h2>
+                <p className="text-purple-100 text-sm sm:text-base">
                   {selectedPatient?.info?.firstName} {selectedPatient?.info?.lastName}
                 </p>
               </div>
@@ -829,34 +829,34 @@ const TherapistPatientManagement = () => {
                   onClick={() => setHistoryModalOpen(false)}
                   className="text-white/80 hover:text-white transition-colors"
                 >
-                  <FaTimes className="text-xl" />
+                  <FaTimes className="text-lg sm:text-xl" />
                 </button>
               </div>
             </div>
           </div>
 
           {/* Content */}
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             {appointmentHistory.length === 0 ? (
-              <div className="text-center py-8">
-                <FaCalendarAlt className="text-4xl text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No appointments found</h3>
-                <p className="text-gray-600">This patient hasn't had any appointments yet.</p>
+              <div className="text-center py-6 sm:py-8">
+                <FaCalendarAlt className="text-3xl sm:text-4xl text-gray-400 mx-auto mb-3 sm:mb-4" />
+                <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No appointments found</h3>
+                <p className="text-sm sm:text-base text-gray-600">This patient hasn't had any appointments yet.</p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {appointmentHistory.map((app) => (
-                  <div key={app._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center space-x-4">
-                        <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  <div key={app._id} className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-sm transition-shadow">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 space-y-2 sm:space-y-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-4">
+                        <div className={`px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs font-medium ${
                           app.status === 'Accepted' ? 'bg-green-100 text-green-800' :
                           app.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
                           'bg-red-100 text-red-800'
                         }`}>
                           {app.status}
                         </div>
-                        <div className="text-sm text-gray-600">
+                        <div className="text-xs sm:text-sm text-gray-600">
                           <FaCalendarAlt className="inline mr-1" />
                           {app.date} at {app.time}
                           <span className="ml-2 text-xs text-gray-500">
@@ -865,7 +865,7 @@ const TherapistPatientManagement = () => {
                         </div>
                       </div>
                       <button
-                        className="flex items-center px-3 py-1 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-sm"
+                        className="flex items-center justify-center px-2 py-1 sm:px-3 sm:py-1 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-xs sm:text-sm"
                         onClick={() => {
                           setSelectedAppointmentId(app._id);
                           setNoteText("");
@@ -878,16 +878,16 @@ const TherapistPatientManagement = () => {
                     </div>
 
                     {app.sessionNotes?.length > 0 ? (
-                      <div className="space-y-2">
-                        <h4 className="font-medium text-gray-900 flex items-center">
-                          <FaNotesMedical className="mr-2 text-blue-600" />
+                      <div className="space-y-1.5 sm:space-y-2">
+                        <h4 className="font-medium text-gray-900 flex items-center text-sm sm:text-base">
+                          <FaNotesMedical className="mr-1.5 sm:mr-2 text-blue-600" />
                           Session Notes
                         </h4>
                         {app.sessionNotes.map((n, i) => (
-                          <div key={i} className="bg-gray-50 p-3 rounded-lg">
+                          <div key={i} className="bg-gray-50 p-2.5 sm:p-3 rounded-lg">
                             <div className="flex justify-between items-start">
                               <div className="flex-1">
-                                <p className="text-gray-700">🗒️ {n.note}</p>
+                                <p className="text-gray-700 text-sm sm:text-base">🗒️ {n.note}</p>
                                 <p className="text-xs text-gray-500 mt-1">
                                   {new Date(n.timestamp).toLocaleString()}
                                 </p>
@@ -896,14 +896,14 @@ const TherapistPatientManagement = () => {
                                 className="ml-2 text-red-500 hover:text-red-700 transition-colors"
                                 onClick={() => handleDeleteNote(app._id, i)}
                               >
-                                <FaTimes />
+                                <FaTimes className="text-xs sm:text-sm" />
                               </button>
                             </div>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-gray-500 text-sm">No session notes yet.</p>
+                      <p className="text-gray-500 text-xs sm:text-sm">No session notes yet.</p>
                     )}
                   </div>
                 ))}
@@ -912,25 +912,25 @@ const TherapistPatientManagement = () => {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
+              <div className="flex justify-between items-center mt-4 sm:mt-6 pt-4 border-t border-gray-200">
                 <button
                   disabled={currentPage <= 1}
-                  className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition-colors"
+                  className="flex items-center px-3 py-2 sm:px-4 sm:py-2 bg-gray-100 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition-colors text-sm"
                   onClick={() => handleViewAppointmentHistory(selectedPatient, currentPage - 1)}
                 >
-                  <FaTimes className="mr-2 rotate-45" />
+                  <FaTimes className="mr-1 sm:mr-2 rotate-45 text-xs sm:text-sm" />
                   Previous
                 </button>
-                <span className="text-sm text-gray-600">
+                <span className="text-xs sm:text-sm text-gray-600 px-2 sm:px-3">
                   Page {currentPage} of {totalPages}
                 </span>
                 <button
                   disabled={currentPage >= totalPages}
-                  className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition-colors"
+                  className="flex items-center px-3 py-2 sm:px-4 sm:py-2 bg-gray-100 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition-colors text-sm"
                   onClick={() => handleViewAppointmentHistory(selectedPatient, currentPage + 1)}
                 >
                   Next
-                  <FaTimes className="ml-2 -rotate-45" />
+                  <FaTimes className="ml-1 sm:ml-2 -rotate-45 text-xs sm:text-sm" />
                 </button>
               </div>
             )}
@@ -963,36 +963,36 @@ const TherapistPatientManagement = () => {
       >
         <div className="bg-white rounded-2xl overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-green-600 to-teal-600 px-6 py-6 text-white">
+          <div className="bg-gradient-to-r from-green-600 to-teal-600 px-4 sm:px-6 py-4 sm:py-6 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold">Session Notes</h2>
-                <p className="text-green-100">Add or manage session notes</p>
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold">Session Notes</h2>
+                <p className="text-green-100 text-sm sm:text-base">Add or manage session notes</p>
               </div>
               <button
                 onClick={() => setNoteModalOpen(false)}
                 className="text-white/80 hover:text-white transition-colors"
               >
-                <FaTimes className="text-xl" />
+                <FaTimes className="text-lg sm:text-xl" />
               </button>
             </div>
           </div>
 
           {/* Content */}
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             {/* Existing Notes */}
-            <div className="mb-6">
-              <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
-                <FaNotesMedical className="mr-2 text-green-600" />
+            <div className="mb-4 sm:mb-6">
+              <h3 className="font-semibold text-gray-900 mb-2 sm:mb-3 flex items-center text-sm sm:text-base">
+                <FaNotesMedical className="mr-1.5 sm:mr-2 text-green-600" />
                 Existing Notes
               </h3>
-              <div className="max-h-48 overflow-y-auto space-y-2">
+              <div className="max-h-48 overflow-y-auto space-y-1.5 sm:space-y-2">
                 {appointmentHistory.find(app => app._id === selectedAppointmentId)?.sessionNotes?.length > 0 ? (
                   appointmentHistory.find(app => app._id === selectedAppointmentId)?.sessionNotes.map((n, i) => (
-                    <div key={i} className="bg-gray-50 p-3 rounded-lg">
+                    <div key={i} className="bg-gray-50 p-2.5 sm:p-3 rounded-lg">
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
-                          <p className="text-gray-700">🗒️ {n.note}</p>
+                          <p className="text-gray-700 text-sm sm:text-base">🗒️ {n.note}</p>
                           <p className="text-xs text-gray-500 mt-1">
                             {new Date(n.timestamp).toLocaleString()}
                           </p>
@@ -1001,44 +1001,44 @@ const TherapistPatientManagement = () => {
                           className="ml-2 text-red-500 hover:text-red-700 transition-colors"
                           onClick={() => handleDeleteNote(selectedAppointmentId, i)}
                         >
-                          <FaTimes />
+                          <FaTimes className="text-xs sm:text-sm" />
                         </button>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <p className="text-gray-500 text-sm">No notes yet.</p>
+                  <p className="text-gray-500 text-xs sm:text-sm">No notes yet.</p>
                 )}
               </div>
             </div>
 
             {/* Add New Note */}
             <div>
-              <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
-                <FaPlus className="mr-2 text-green-600" />
+              <h3 className="font-semibold text-gray-900 mb-2 sm:mb-3 flex items-center text-sm sm:text-base">
+                <FaPlus className="mr-1.5 sm:mr-2 text-green-600" />
                 Add New Note
               </h3>
               <textarea
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+                className="w-full p-2.5 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none text-sm sm:text-base"
                 rows="4"
                 value={noteText}
                 maxLength={200}
                 onChange={(e) => setNoteText(e.target.value)}
                 placeholder="Write a new session note (max 200 characters)..."
               />
-              <div className="flex justify-between items-center mt-2">
-                <span className="text-sm text-gray-500">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-2 space-y-2 sm:space-y-0">
+                <span className="text-xs sm:text-sm text-gray-500">
                   {noteText.length}/200 characters
                 </span>
-                <div className="flex space-x-3">
+                <div className="flex space-x-2 sm:space-x-3">
                   <button
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                    className="flex-1 sm:flex-none px-3 py-2 sm:px-4 sm:py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm"
                     onClick={() => setNoteModalOpen(false)}
                   >
                     Cancel
                   </button>
                   <button
-                    className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 sm:flex-none flex items-center justify-center px-3 py-2 sm:px-4 sm:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                     disabled={!noteText.trim()}
                     onClick={async () => {
                       await updateSessionNote(selectedAppointmentId, noteText);
@@ -1047,7 +1047,7 @@ const TherapistPatientManagement = () => {
                       handleViewAppointmentHistory(selectedPatient, currentPage);
                     }}
                   >
-                    <FaPlus className="mr-2" />
+                    <FaPlus className="mr-1.5 sm:mr-2" />
                     Add Note
                   </button>
                 </div>
@@ -1084,15 +1084,15 @@ const TherapistPatientManagement = () => {
         {managePatient && (
           <div className="bg-white rounded-2xl overflow-hidden">
             {/* Header */}
-            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-6 text-white">
+            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-4 sm:px-6 py-4 sm:py-6 text-white">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-xl font-bold">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-full flex items-center justify-center text-lg sm:text-xl font-bold">
                     {managePatient.info?.firstName?.charAt(0) || managePatient.username.charAt(0).toUpperCase()}
                   </div>
-                  <div className="ml-4">
-                    <h2 className="text-2xl font-bold">Manage Patient Profile</h2>
-                    <p className="text-indigo-100">
+                  <div className="ml-3 sm:ml-4">
+                    <h2 className="text-lg sm:text-xl lg:text-2xl font-bold">Manage Patient Profile</h2>
+                    <p className="text-indigo-100 text-sm sm:text-base">
                       {managePatient.info?.firstName} {managePatient.info?.lastName}
                     </p>
                   </div>
@@ -1101,22 +1101,22 @@ const TherapistPatientManagement = () => {
                   onClick={() => setManageProfileModalOpen(false)}
                   className="text-white/80 hover:text-white transition-colors"
                 >
-                  <FaTimes className="text-xl" />
+                  <FaTimes className="text-lg sm:text-xl" />
                 </button>
               </div>
             </div>
 
             {/* Content */}
-            <div className="p-6 space-y-6">
+            <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
               {/* Diagnosis */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                  <FaNotesMedical className="mr-2 text-indigo-600" />
+                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2 flex items-center">
+                  <FaNotesMedical className="mr-1.5 sm:mr-2 text-indigo-600" />
                   Diagnosis
                 </label>
                 <input
                   type="text"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-3 py-2.5 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
                   value={managePatient.info?.diagnosis || ""}
                   onChange={(e) => setManagePatient({
                     ...managePatient,
@@ -1131,12 +1131,12 @@ const TherapistPatientManagement = () => {
 
               {/* Primary Emotion */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                  <FaHeart className="mr-2 text-red-600" />
+                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2 flex items-center">
+                  <FaHeart className="mr-1.5 sm:mr-2 text-red-600" />
                   Primary Emotion
                 </label>
                 <select
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-3 py-2.5 sm:px-4 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
                   value={managePatient.info?.pastSessionSummary?.emotion || ""}
                   onChange={(e) =>
                     setManagePatient({

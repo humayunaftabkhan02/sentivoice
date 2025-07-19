@@ -352,23 +352,23 @@ export default function PaymentHistory() {
         notifications={pendingCounts.notifications}
       />
       
-      <div className="flex-1 ml-64 p-6 lg:p-8">
+      <div className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8">
         {/* Header Section */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-4 sm:space-y-0">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
                 Payment History
               </h1>
-              <p className="text-gray-600">
+              <p className="text-gray-600 text-sm sm:text-base">
                 Complete transaction logs and payment records
               </p>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="bg-white rounded-lg px-4 py-2 shadow-sm border">
+              <div className="bg-white rounded-lg px-3 sm:px-4 py-2 shadow-sm border">
                 <div className="flex items-center space-x-2">
                   <FaClock className="text-gray-400" />
-                  <span className="text-sm text-gray-600">
+                  <span className="text-xs sm:text-sm text-gray-600">
                     {new Date().toLocaleDateString('en-US', { 
                       weekday: 'long', 
                       year: 'numeric', 
@@ -382,31 +382,31 @@ export default function PaymentHistory() {
           </div>
 
           {/* Navigation Tabs */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-1 mb-6">
-            <div className="flex space-x-1">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-1 mb-4 sm:mb-6">
+            <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-1">
               <button
                 onClick={() => navigate('/payments')}
-                className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                className="flex-1 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
               >
-                <div className="flex items-center justify-center space-x-2">
-                  <FaMoneyBillWave className="w-4 h-4" />
+                <div className="flex items-center justify-center space-x-1 sm:space-x-2">
+                  <FaMoneyBillWave className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span>Payment Approvals</span>
                 </div>
               </button>
               <button
-                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md transition-colors"
+                className="flex-1 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded-md transition-colors"
               >
-                <div className="flex items-center justify-center space-x-2">
-                  <FaHistory className="w-4 h-4" />
+                <div className="flex items-center justify-center space-x-1 sm:space-x-2">
+                  <FaHistory className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span>Payment History</span>
                 </div>
               </button>
               <button
                 onClick={() => navigate('/payment-settings')}
-                className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                className="flex-1 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
               >
-                <div className="flex items-center justify-center space-x-2">
-                  <FaCreditCard className="w-4 h-4" />
+                <div className="flex items-center justify-center space-x-1 sm:space-x-2">
+                  <FaCreditCard className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span>Payment Settings</span>
                 </div>
               </button>
@@ -414,51 +414,51 @@ export default function PaymentHistory() {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Payments</p>
-                  <p className="text-3xl font-bold text-blue-600">{stats.total}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Total Payments</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-blue-600">{stats.total}</p>
                 </div>
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <FaChartLine className="text-2xl text-blue-600" />
+                <div className="p-2 sm:p-3 bg-blue-100 rounded-lg">
+                  <FaChartLine className="text-xl sm:text-2xl text-blue-600" />
                 </div>
               </div>
             </div>
             
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Approved</p>
-                  <p className="text-3xl font-bold text-green-600">{stats.approved}</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Approved</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-green-600">{stats.approved}</p>
                 </div>
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <FaCheckCircle className="text-2xl text-green-600" />
+                <div className="p-2 sm:p-3 bg-green-100 rounded-lg">
+                  <FaCheckCircle className="text-xl sm:text-2xl text-green-600" />
                 </div>
               </div>
             </div>
             
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Amount</p>
-                  <p className="text-3xl font-bold text-emerald-600">{stats.totalAmount.toLocaleString()} PKR</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Total Amount</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-emerald-600">{stats.totalAmount.toLocaleString()} PKR</p>
                 </div>
-                <div className="p-3 bg-emerald-100 rounded-lg">
-                  <FaMoneyBillWave className="text-2xl text-emerald-600" />
+                <div className="p-2 sm:p-3 bg-emerald-100 rounded-lg">
+                  <FaMoneyBillWave className="text-xl sm:text-2xl text-emerald-600" />
                 </div>
               </div>
             </div>
             
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Approved Amount</p>
-                  <p className="text-3xl font-bold text-green-600">{stats.approvedAmount.toLocaleString()} PKR</p>
+                  <p className="text-xs sm:text-sm font-medium text-gray-600">Approved Amount</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-green-600">{stats.approvedAmount.toLocaleString()} PKR</p>
                 </div>
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <FaCheckCircle className="text-2xl text-green-600" />
+                <div className="p-2 sm:p-3 bg-green-100 rounded-lg">
+                  <FaCheckCircle className="text-xl sm:text-2xl text-green-600" />
                 </div>
               </div>
             </div>
@@ -477,22 +477,22 @@ export default function PaymentHistory() {
 
         {/* Main Content */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
+          <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between space-y-4 lg:space-y-0">
-              <h2 className="text-xl font-semibold text-gray-900">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
                 Payment Records ({sortedPayments.length})
               </h2>
               
               <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
                 {/* Search */}
-                <div className="relative">
+                <div className="relative w-full sm:w-auto">
                   <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input
                     type="text"
                     placeholder="Search payments..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full sm:w-auto pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                   />
                 </div>
                 
@@ -500,7 +500,7 @@ export default function PaymentHistory() {
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full sm:w-auto px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                 >
                   <option value="all">All Status</option>
                   <option value="Approved">Approved</option>
@@ -513,16 +513,16 @@ export default function PaymentHistory() {
                 <button
                   onClick={fetchHistory}
                   disabled={loading}
-                  className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 disabled:opacity-50"
+                  className="flex items-center space-x-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-blue-600 hover:text-blue-700 disabled:opacity-50"
                 >
-                  <FaSpinner className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                  <FaSpinner className={`w-3 h-3 sm:w-4 sm:h-4 ${loading ? 'animate-spin' : ''}`} />
                   <span>{loading ? 'Loading...' : 'Refresh'}</span>
                 </button>
               </div>
             </div>
           </div>
 
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
         {loading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="text-center">
@@ -558,168 +558,272 @@ export default function PaymentHistory() {
               </div>
             ) : (
               <>
-          <div className="space-y-4">
-                  {/* Sortable Headers */}
-                  <div className="grid grid-cols-14 gap-4 px-4 py-3 bg-gray-50 rounded-lg text-sm font-medium text-gray-700">
-                    <div className="col-span-2">
-                      <button 
-                        onClick={() => handleSort('patient')}
-                        className="flex items-center space-x-1 hover:text-blue-600"
-                      >
-                        <span>Patient</span>
-                        {getSortIcon('patient')}
-                      </button>
-                    </div>
-                    <div className="col-span-2">
-                      <button 
-                        onClick={() => handleSort('therapist')}
-                        className="flex items-center space-x-1 hover:text-blue-600"
-                      >
-                        <span>Therapist</span>
-                        {getSortIcon('therapist')}
-                      </button>
-                    </div>
-                    <div className="col-span-2">
-                      <button 
-                        onClick={() => handleSort('date')}
-                        className="flex items-center space-x-1 hover:text-blue-600"
-                      >
-                        <span>Appt. Date</span>
-                        {getSortIcon('date')}
-                      </button>
-                    </div>
-                    <div className="col-span-2">
-                      <button 
-                        onClick={() => handleSort('request')}
-                        className="flex items-center space-x-1 hover:text-blue-600"
-                      >
-                        <span>Request Date</span>
-                        {getSortIcon('request')}
-                      </button>
-                    </div>
-                    <div className="col-span-2">
-                      <button 
-                        onClick={() => handleSort('amount')}
-                        className="flex items-center space-x-1 hover:text-blue-600"
-                      >
-                        <span>Amount</span>
-                        {getSortIcon('amount')}
-                      </button>
-                    </div>
-                    <div className="col-span-1 text-center">Payment Status</div>
-                    <div className="col-span-1 text-center">Booking Status</div>
-                    <div className="col-span-2 text-center">Actions</div>
-                  </div>
-
+                {/* Mobile Payment Cards */}
+                <div className="lg:hidden space-y-4">
                   {paginatedPayments.map((payment) => {
                     const safeUrl = `${apiOrigin}/${payment.receiptUrl.replace(/\\/g, "/")}`;
                     return (
-                      <div key={payment._id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-                        <div className="grid grid-cols-14 gap-4 items-center">
-                          <div className="col-span-2">
-                            <div className="flex items-center space-x-3">
-                              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                                <FaUser className="text-white text-sm" />
+                      <div key={payment._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div className="flex items-start space-x-3 mb-3">
+                          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                            <FaUser className="text-white text-sm" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                              <h3 className="font-semibold text-gray-900 truncate">
+                                {payment.patientFullName || 'Patient'}
+                              </h3>
+                              <div className="flex items-center space-x-2">
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusBadge(payment.status)}`}>
+                                  {getStatusIcon(payment.status)}
+                                  <span className="ml-1">{payment.status}</span>
+                                </span>
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${getBookingStatusBadge(payment.bookingStatus)}`}>
+                                  {getBookingStatusIcon(payment.bookingStatus)}
+                                  <span className="ml-1">{payment.bookingStatus || 'N/A'}</span>
+                                </span>
                               </div>
-                              <div>
-                                <h3 className="font-semibold text-gray-900">
-                                  {payment.patientFullName || 'Patient'}
-                                </h3>
-                                <p className="text-sm text-gray-500">Ref: {payment.referenceNo}</p>
-                              </div>
                             </div>
+                            <p className="text-xs text-gray-500">Ref: {payment.referenceNo}</p>
                           </div>
-                          
-                          <div className="col-span-2">
-                            <div className="flex items-center space-x-2">
-                              <FaUserTie className="text-gray-400" />
-                              <span className="text-sm text-gray-700">{payment.therapistFullName || 'N/A'}</span>
-                            </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm text-gray-600 mb-3">
+                          <div className="flex items-center space-x-2">
+                            <FaUserTie className="text-gray-400 flex-shrink-0" />
+                            <span className="truncate">{payment.therapistFullName || 'N/A'}</span>
                           </div>
-                          
-                          <div className="col-span-2">
-                            <div className="flex items-center space-x-2">
-                              <FaCalendarAlt className="text-gray-400" />
-                              <span className="text-sm text-gray-700">
-                                {formatDate(payment.bookingInfo?.date)}
-                              </span>
-                            </div>
+                          <div className="flex items-center space-x-2">
+                            <FaCalendarAlt className="text-gray-400 flex-shrink-0" />
+                            <span className="truncate">{formatDate(payment.bookingInfo?.date)}</span>
                           </div>
-                          
-                          <div className="col-span-2">
-                            <span className="text-sm text-gray-700">
+                          <div className="flex items-center space-x-2">
+                            <FaClock className="text-gray-400 flex-shrink-0" />
+                            <span className="truncate">
                               {formatDate(payment.requestedAt || payment.createdAt)}
-                              {" "}
-                              <span className="text-xs text-gray-400">{payment.requestedAt ? new Date(payment.requestedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
+                              {payment.requestedAt && (
+                                <span className="text-gray-400 ml-1">
+                                  {new Date(payment.requestedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              )}
                             </span>
                           </div>
+                          <div className="flex items-center space-x-2">
+                            {getPaymentMethodIcon(payment.method)}
+                            <span className="font-semibold text-green-600">
+                              {payment.amount} PKR
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
+                          <a
+                            href={safeUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center space-x-1 px-3 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                          >
+                            <FaEye className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <span>View Receipt</span>
+                          </a>
                           
-                          <div className="col-span-2">
-                            <div className="flex items-center space-x-2">
-                              {getPaymentMethodIcon(payment.method)}
-                              <span className="font-semibold text-green-600">
-                                {payment.amount} PKR
+                          <button
+                            onClick={() => handleViewDetails(payment)}
+                            className="flex items-center justify-center space-x-1 px-3 py-2 text-xs sm:text-sm font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors"
+                          >
+                            <FaEye className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <span>Details</span>
+                          </button>
+                          
+                          {payment.status === "Declined" && (
+                            <button
+                              onClick={() => handleRefund(payment)}
+                              disabled={processing === payment._id}
+                              className={`flex items-center justify-center space-x-1 px-3 py-2 text-xs sm:text-sm font-medium text-white rounded-lg transition-colors ${
+                                processing === payment._id
+                                  ? 'bg-gray-400 cursor-not-allowed'
+                                  : 'bg-orange-600 hover:bg-orange-700'
+                              }`}
+                            >
+                              {processing === payment._id ? (
+                                <FaSpinner className="animate-spin w-3 h-3 sm:w-4 sm:h-4" />
+                              ) : (
+                                <FaUndoAlt className="w-3 h-3 sm:w-4 sm:h-4" />
+                              )}
+                              <span>{processing === payment._id ? 'Processing...' : 'Refund'}</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                {/* Desktop Table */}
+                <div className="hidden lg:block">
+                  <div className="space-y-4">
+                    {/* Sortable Headers */}
+                    <div className="grid grid-cols-14 gap-4 px-4 py-3 bg-gray-50 rounded-lg text-sm font-medium text-gray-700">
+                      <div className="col-span-2">
+                        <button 
+                          onClick={() => handleSort('patient')}
+                          className="flex items-center space-x-1 hover:text-blue-600"
+                        >
+                          <span>Patient</span>
+                          {getSortIcon('patient')}
+                        </button>
+                      </div>
+                      <div className="col-span-2">
+                        <button 
+                          onClick={() => handleSort('therapist')}
+                          className="flex items-center space-x-1 hover:text-blue-600"
+                        >
+                          <span>Therapist</span>
+                          {getSortIcon('therapist')}
+                        </button>
+                      </div>
+                      <div className="col-span-2">
+                        <button 
+                          onClick={() => handleSort('date')}
+                          className="flex items-center space-x-1 hover:text-blue-600"
+                        >
+                          <span>Appt. Date</span>
+                          {getSortIcon('date')}
+                        </button>
+                      </div>
+                      <div className="col-span-2">
+                        <button 
+                          onClick={() => handleSort('request')}
+                          className="flex items-center space-x-1 hover:text-blue-600"
+                        >
+                          <span>Request Date</span>
+                          {getSortIcon('request')}
+                        </button>
+                      </div>
+                      <div className="col-span-2">
+                        <button 
+                          onClick={() => handleSort('amount')}
+                          className="flex items-center space-x-1 hover:text-blue-600"
+                        >
+                          <span>Amount</span>
+                          {getSortIcon('amount')}
+                        </button>
+                      </div>
+                      <div className="col-span-1 text-center">Payment Status</div>
+                      <div className="col-span-1 text-center">Booking Status</div>
+                      <div className="col-span-2 text-center">Actions</div>
+                    </div>
+
+                    {paginatedPayments.map((payment) => {
+                      const safeUrl = `${apiOrigin}/${payment.receiptUrl.replace(/\\/g, "/")}`;
+                      return (
+                        <div key={payment._id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                          <div className="grid grid-cols-14 gap-4 items-center">
+                            <div className="col-span-2">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                  <FaUser className="text-white text-sm" />
+                                </div>
+                                <div>
+                                  <h3 className="font-semibold text-gray-900">
+                                    {payment.patientFullName || 'Patient'}
+                                  </h3>
+                                  <p className="text-sm text-gray-500">Ref: {payment.referenceNo}</p>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="col-span-2">
+                              <div className="flex items-center space-x-2">
+                                <FaUserTie className="text-gray-400" />
+                                <span className="text-sm text-gray-700">{payment.therapistFullName || 'N/A'}</span>
+                              </div>
+                            </div>
+                            
+                            <div className="col-span-2">
+                              <div className="flex items-center space-x-2">
+                                <FaCalendarAlt className="text-gray-400" />
+                                <span className="text-sm text-gray-700">
+                                  {formatDate(payment.bookingInfo?.date)}
+                                </span>
+                              </div>
+                            </div>
+                            
+                            <div className="col-span-2">
+                              <span className="text-sm text-gray-700">
+                                {formatDate(payment.requestedAt || payment.createdAt)}
+                                {" "}
+                                <span className="text-xs text-gray-400">{payment.requestedAt ? new Date(payment.requestedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
                               </span>
                             </div>
-                          </div>
-                          
-                          <div className="col-span-1 text-center">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusBadge(payment.status)}`}>
-                              {getStatusIcon(payment.status)}
-                              <span className="ml-1">{payment.status}</span>
-                            </span>
-                          </div>
-                          <div className="col-span-1 text-center">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getBookingStatusBadge(payment.bookingStatus)}`}>
-                              {getBookingStatusIcon(payment.bookingStatus)}
-                              <span className="ml-1">{payment.bookingStatus || 'N/A'}</span>
-                            </span>
-                          </div>
-                          
-                          <div className="col-span-2 flex items-center justify-center space-x-2">
-                            <a
-                              href={safeUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center space-x-1 px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                            >
-                              <FaEye className="w-3 h-3" />
-                              <span>Receipt</span>
-                            </a>
                             
-                            <button
-                              onClick={() => handleViewDetails(payment)}
-                              className="flex items-center space-x-1 px-3 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors"
-                            >
-                              <FaEye className="w-3 h-3" />
-                              <span>Details</span>
-                            </button>
+                            <div className="col-span-2">
+                              <div className="flex items-center space-x-2">
+                                {getPaymentMethodIcon(payment.method)}
+                                <span className="font-semibold text-green-600">
+                                  {payment.amount} PKR
+                                </span>
+                              </div>
+                            </div>
                             
-                            {payment.status === "Declined" && (
-                        <button
-                                onClick={() => handleRefund(payment)}
-                                disabled={processing === payment._id}
-                                className={`flex items-center space-x-1 px-3 py-1 text-xs font-medium text-white rounded-lg transition-colors ${
-                                  processing === payment._id
-                                    ? 'bg-gray-400 cursor-not-allowed'
-                                    : 'bg-orange-600 hover:bg-orange-700'
-                                }`}
+                            <div className="col-span-1 text-center">
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusBadge(payment.status)}`}>
+                                {getStatusIcon(payment.status)}
+                                <span className="ml-1">{payment.status}</span>
+                              </span>
+                            </div>
+                            <div className="col-span-1 text-center">
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getBookingStatusBadge(payment.bookingStatus)}`}>
+                                {getBookingStatusIcon(payment.bookingStatus)}
+                                <span className="ml-1">{payment.bookingStatus || 'N/A'}</span>
+                              </span>
+                            </div>
+                            
+                            <div className="col-span-2 flex items-center justify-center space-x-2">
+                              <a
+                                href={safeUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center space-x-1 px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                               >
-                                {processing === payment._id ? (
-                                  <FaSpinner className="animate-spin w-3 h-3" />
-                                ) : (
-                                  <FaUndoAlt className="w-3 h-3" />
-                                )}
-                                <span>{processing === payment._id ? 'Processing...' : 'Refund'}</span>
-                        </button>
-                        )}
-                    </div>
+                                <FaEye className="w-3 h-3" />
+                                <span>Receipt</span>
+                              </a>
+                              
+                              <button
+                                onClick={() => handleViewDetails(payment)}
+                                className="flex items-center space-x-1 px-3 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors"
+                              >
+                                <FaEye className="w-3 h-3" />
+                                <span>Details</span>
+                              </button>
+                              
+                              {payment.status === "Declined" && (
+                                <button
+                                  onClick={() => handleRefund(payment)}
+                                  disabled={processing === payment._id}
+                                  className={`flex items-center space-x-1 px-3 py-1 text-xs font-medium text-white rounded-lg transition-colors ${
+                                    processing === payment._id
+                                      ? 'bg-gray-400 cursor-not-allowed'
+                                      : 'bg-orange-600 hover:bg-orange-700'
+                                  }`}
+                                >
+                                  {processing === payment._id ? (
+                                    <FaSpinner className="animate-spin w-3 h-3" />
+                                  ) : (
+                                    <FaUndoAlt className="w-3 h-3" />
+                                  )}
+                                  <span>{processing === payment._id ? 'Processing...' : 'Refund'}</span>
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
-              );
-            })}
-                </div>
-
+                
                 {/* Pagination */}
                 {totalPages > 1 && (
                   <div className="mt-8 flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
@@ -813,9 +917,10 @@ export default function PaymentHistory() {
           <>
             {/* Overlay */}
             <div className="fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-300 animate-fadeIn" style={{ background: 'rgba(0,0,0,0.10)' }}>
-              <div className="fixed left-64 top-0 w-[calc(100vw-16rem)] h-full flex items-center justify-center pointer-events-none">
+              {/* Mobile: Full screen, Desktop: Sidebar offset */}
+              <div className="fixed lg:left-64 top-0 w-full lg:w-[calc(100vw-16rem)] h-full flex items-center justify-center pointer-events-none p-4 lg:p-0">
                 <div
-                  className="relative bg-white bg-opacity-95 rounded-2xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto border-2 border-gray-300 p-6 transform transition-all duration-300 animate-scaleIn pointer-events-auto"
+                  className="relative bg-white bg-opacity-95 rounded-xl lg:rounded-2xl shadow-2xl w-full max-w-sm sm:max-w-md lg:max-w-2xl mx-auto max-h-[95vh] lg:max-h-[90vh] overflow-y-auto border-2 border-gray-300 p-4 sm:p-6 transform transition-all duration-300 animate-scaleIn pointer-events-auto"
                   role="dialog"
                   aria-modal="true"
                   tabIndex={-1}
@@ -823,76 +928,80 @@ export default function PaymentHistory() {
                   {/* Close Button */}
                   <button
                     onClick={() => setSelectedPayment(null)}
-                    className="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-2xl focus:outline-none focus:ring-2 focus:ring-red-400 rounded-full transition-colors duration-200"
+                    className="absolute top-2 sm:top-4 right-2 sm:right-4 text-gray-400 hover:text-red-500 text-xl sm:text-2xl focus:outline-none focus:ring-2 focus:ring-red-400 rounded-full transition-colors duration-200"
                     aria-label="Close modal"
                   >
                     <FaTimes />
                   </button>
-                  <div className="mb-4">
-                    <h3 className="text-2xl font-semibold text-gray-900">Payment Details</h3>
+                  
+                  <div className="mb-3 sm:mb-4">
+                    <h3 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900">Payment Details</h3>
                   </div>
-                  <div className="flex items-center space-x-4 mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                      <FaUser className="text-white text-2xl" />
+                  
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 mb-4 sm:mb-6">
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                      <FaUser className="text-white text-lg sm:text-2xl" />
                     </div>
-                    <div>
-                      <h4 className="text-xl font-semibold text-gray-900">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 truncate">
                         {selectedPayment.patientFullName || 'Patient'}
                       </h4>
-                      <p className="text-gray-600">Reference: {selectedPayment.referenceNo}</p>
+                      <p className="text-xs sm:text-sm text-gray-600">Reference: {selectedPayment.referenceNo}</p>
                     </div>
                   </div>
-                  <div className="space-y-4">
+                  
+                  <div className="space-y-3 sm:space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Patient</label>
-                      <p className="text-gray-900">{selectedPayment.patientFullName || 'N/A'}</p>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Patient</label>
+                      <p className="text-sm sm:text-base text-gray-900 break-words">{selectedPayment.patientFullName || 'N/A'}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Therapist</label>
-                      <p className="text-gray-900">{selectedPayment.therapistFullName || 'N/A'}</p>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Therapist</label>
+                      <p className="text-sm sm:text-base text-gray-900 break-words">{selectedPayment.therapistFullName || 'N/A'}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Appointment</label>
-                      <p className="text-gray-900">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Appointment</label>
+                      <p className="text-sm sm:text-base text-gray-900">
                         {formatDate(selectedPayment.bookingInfo?.date)} at {formatTime(selectedPayment.bookingInfo?.time)}
                       </p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
-                      <p className="text-gray-900">{selectedPayment.method?.toUpperCase() || 'N/A'}</p>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                      <p className="text-sm sm:text-base text-gray-900">{selectedPayment.method?.toUpperCase() || 'N/A'}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Reference Number</label>
-                      <p className="text-gray-900">{selectedPayment.referenceNo || 'N/A'}</p>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Reference Number</label>
+                      <p className="text-sm sm:text-base text-gray-900 break-all">{selectedPayment.referenceNo || 'N/A'}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-                      <p className="text-2xl font-bold text-green-600">{selectedPayment.amount} PKR</p>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Amount</label>
+                      <p className="text-xl sm:text-2xl font-bold text-green-600">{selectedPayment.amount} PKR</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusBadge(selectedPayment.status)}`}>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Status</label>
+                      <span className={`inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium border ${getStatusBadge(selectedPayment.status)}`}>
                         {getStatusIcon(selectedPayment.status)}
-                        <span className="ml-2">{selectedPayment.status}</span>
+                        <span className="ml-1 sm:ml-2">{selectedPayment.status}</span>
                       </span>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Receipt</label>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Receipt</label>
                       <a
                         href={`${apiOrigin}/${selectedPayment.receiptUrl.replace(/\\/g, "/")}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-700"
+                        className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-700 text-sm sm:text-base"
                       >
-                        <FaDownload className="w-4 h-4" />
+                        <FaDownload className="w-3 h-3 sm:w-4 sm:h-4" />
                         <span>View Receipt</span>
                       </a>
                     </div>
                   </div>
-                  <div className="flex items-center justify-end space-x-3 mt-6 pt-6 border-t border-gray-200">
+                  
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end space-y-2 sm:space-y-0 sm:space-x-3 mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200">
                     <button
                       onClick={() => setSelectedPayment(null)}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                      className="flex-1 sm:flex-none px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                     >
                       Close
                     </button>
@@ -903,16 +1012,16 @@ export default function PaymentHistory() {
                           setSelectedPayment(null);
                         }}
                         disabled={processing === selectedPayment._id}
-                        className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
+                        className={`flex-1 sm:flex-none flex items-center justify-center space-x-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white rounded-lg transition-colors ${
                           processing === selectedPayment._id
                             ? 'bg-gray-400 cursor-not-allowed'
                             : 'bg-orange-600 hover:bg-orange-700'
                         }`}
                       >
                         {processing === selectedPayment._id ? (
-                          <FaSpinner className="animate-spin w-4 h-4" />
+                          <FaSpinner className="animate-spin w-3 h-3 sm:w-4 sm:h-4" />
                         ) : (
-                          <FaUndoAlt className="w-4 h-4" />
+                          <FaUndoAlt className="w-3 h-3 sm:w-4 sm:h-4" />
                         )}
                         <span>{processing === selectedPayment._id ? 'Processing...' : 'Mark as Refunded'}</span>
                       </button>

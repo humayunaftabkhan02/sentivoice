@@ -498,24 +498,24 @@ const PatientMessaging = () => {
       <PatientSidebar current="messages" />
 
       {/* Main Content */}
-      <div className="flex-1 ml-64 p-6">
+      <div className="flex-1 lg:ml-64 p-4 sm:p-6">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 space-y-4 sm:space-y-0">
           <div>
-            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-800">
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-800">
               Messages
             </h1>
-            <p className="text-gray-600 mt-1">Chat with your therapist and manage your conversations</p>
+            <p className="text-sm sm:text-base text-gray-600 mt-1">Chat with your therapist and manage your conversations</p>
           </div>
           <UserTopBar username={username} fullName={fullName} role={"patient"} profilePicture={profilePicture} />
         </div>
 
         {/* Chat Layout */}
-        <div className="flex-1 flex h-full min-h-0">
+        <div className="flex-1 flex flex-col lg:flex-row h-full min-h-0">
           {/* Conversations Sidebar */}
-          <div className="w-80 bg-white border-r border-gray-200 flex flex-col h-full">
+          <div className="w-full lg:w-80 bg-white border-b lg:border-b-0 lg:border-r border-gray-200 flex flex-col h-96 lg:h-full">
             {/* Search Header */}
-            <div className="p-4 border-b border-gray-200 flex-shrink-0">
+            <div className="p-3 sm:p-4 border-b border-gray-200 flex-shrink-0">
               <div className="relative">
                 <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
@@ -523,7 +523,7 @@ const PatientMessaging = () => {
                   placeholder="Search therapists..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                 />
               </div>
             </div>
@@ -531,38 +531,38 @@ const PatientMessaging = () => {
             {/* Conversations List */}
             <div className="flex-1 overflow-y-auto min-h-0">
               {filteredAppointments.length === 0 ? (
-                <div className="p-6 text-center text-gray-500">
-                  <FaComments className="text-4xl mx-auto mb-2 text-gray-300" />
-                  <p>No conversations yet</p>
-                  <p className="text-sm">Accepted appointments will appear here</p>
+                <div className="p-4 sm:p-6 text-center text-gray-500">
+                  <FaComments className="text-3xl sm:text-4xl mx-auto mb-2 text-gray-300" />
+                  <p className="text-sm sm:text-base">No conversations yet</p>
+                  <p className="text-xs sm:text-sm">Accepted appointments will appear here</p>
                 </div>
               ) : (
                 filteredAppointments.map((appt) => (
                   <div
                     key={appt._id}
                     onClick={() => handleSelect(appt)}
-                    className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
+                    className={`p-3 sm:p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
                       selectedAppointment?._id === appt._id ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-2 sm:space-x-3">
                         <div className="relative">
-                          <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                            <FaUserMd className="text-green-600" />
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-full flex items-center justify-center">
+                            <FaUserMd className="text-green-600 text-sm sm:text-base" />
                           </div>
-                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                          <div className="absolute -bottom-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-green-500 rounded-full border-2 border-white"></div>
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
-                            <h3 className="font-semibold text-gray-900 truncate">
+                            <h3 className="font-semibold text-gray-900 truncate text-sm sm:text-base">
                               {formatTherapistName(appt.therapistFullName, appt.therapistUsername)}
                             </h3>
                             <span className="text-xs text-gray-500">
                               {new Date(appt.date).toLocaleDateString()}
                             </span>
                           </div>
-                          <p className="text-sm text-gray-600 truncate">
+                          <p className="text-xs sm:text-sm text-gray-600 truncate">
                             Appointment: {appt.date} @ {appt.time}
                           </p>
                           {getUnreadCount(appt._id) > 0 && (
@@ -587,20 +587,20 @@ const PatientMessaging = () => {
             {selectedAppointment ? (
               <>
                 {/* Chat Header */}
-                <div className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
+                <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2 sm:space-x-3">
                       <div className="relative">
-                        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                          <FaUserMd className="text-green-600" />
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-full flex items-center justify-center">
+                          <FaUserMd className="text-green-600 text-sm sm:text-base" />
                         </div>
-                        <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                        <div className="absolute -bottom-1 -right-1 w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded-full border-2 border-white"></div>
                       </div>
                       <div>
-                        <h2 className="font-semibold text-gray-900">
+                        <h2 className="font-semibold text-gray-900 text-sm sm:text-base">
                           {formatTherapistName(selectedAppointment.therapistFullName, selectedAppointment.therapistUsername)}
                         </h2>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-xs sm:text-sm text-gray-600">
                           Appointment: {selectedAppointment.date} @ {selectedAppointment.time}
                         </p>
                       </div>
@@ -614,20 +614,20 @@ const PatientMessaging = () => {
                           <FaEllipsisV />
                         </button>
                         {showTranscriptMenu && (
-                          <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-10">
+                          <div className="absolute right-0 mt-2 w-40 sm:w-48 bg-white rounded-md shadow-lg border border-gray-200 z-10">
                             <div className="py-1">
                               <button
                                 onClick={downloadTranscript}
-                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                                className="block w-full text-left px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                                 disabled={downloadingTranscript}
                               >
                                 {downloadingTranscript ? (
                                   <div className="flex items-center space-x-2">
-                                    <svg className="animate-spin h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <svg className="animate-spin h-3 w-3 sm:h-4 sm:w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                    <span>Downloading...</span>
+                                    <span className="text-xs sm:text-sm">Downloading...</span>
                                   </div>
                                 ) : (
                                   "Download Transcript"
@@ -642,35 +642,35 @@ const PatientMessaging = () => {
                 </div>
 
                 {/* Messages Area */}
-                <div className="flex-1 overflow-y-auto p-6 bg-gray-50 min-h-0">
-                  <div className="space-y-4">
+                <div className="flex-1 overflow-y-auto p-3 sm:p-6 bg-gray-50 min-h-0">
+                  <div className="space-y-3 sm:space-y-4">
                     {messages.map((msg, i) => (
                       <div
                         key={i}
                         className={`flex ${msg.senderUsername === username ? 'justify-end' : 'justify-start'}`}
                       >
-                        <div className={`max-w-xs lg:max-w-md xl:max-w-lg ${
+                        <div className={`max-w-[280px] sm:max-w-xs lg:max-w-md xl:max-w-lg ${
                           msg.senderUsername === username ? 'order-2' : 'order-1'
                         }`}>
-                          <div className={`px-4 py-3 rounded-2xl ${
+                          <div className={`px-3 sm:px-4 py-2 sm:py-3 rounded-2xl ${
                             msg.senderUsername === username
                               ? 'bg-blue-600 text-white'
                               : 'bg-white text-gray-900 shadow-sm border border-gray-200'
                           }`}>
                             {/* Message Content */}
-                            <p className="text-sm leading-relaxed">{msg.content}</p>
+                            <p className="text-xs sm:text-sm leading-relaxed">{msg.content}</p>
                             
                             {/* Attachment Display */}
                             {msg.attachment && msg.attachment.originalName && (
-                              <div className={`mt-3 p-3 rounded-lg ${
+                              <div className={`mt-2 sm:mt-3 p-2 sm:p-3 rounded-lg ${
                                 msg.senderUsername === username 
                                   ? 'bg-blue-500 text-white' 
                                   : 'bg-gray-100 text-gray-700'
                               }`}>
                                 <div className="flex items-center space-x-2">
-                                  <FaFile className="flex-shrink-0" />
+                                  <FaFile className="flex-shrink-0 text-xs sm:text-sm" />
                                   <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium truncate">
+                                    <p className="text-xs sm:text-sm font-medium truncate">
                                       {msg.attachment.originalName}
                                     </p>
                                     <p className="text-xs opacity-75">
@@ -693,7 +693,7 @@ const PatientMessaging = () => {
                             )}
                             
                             {/* Message Timestamp */}
-                            <div className={`flex items-center justify-end mt-2 space-x-1 ${
+                            <div className={`flex items-center justify-end mt-1 sm:mt-2 space-x-1 ${
                               msg.senderUsername === username ? 'text-blue-100' : 'text-gray-500'
                             }`}>
                               <span className="text-xs">{formatTime(msg.timestamp)}</span>
@@ -707,7 +707,7 @@ const PatientMessaging = () => {
                     ))}
                     {isTyping && (
                       <div className="flex justify-start">
-                        <div className="bg-white px-4 py-3 rounded-2xl shadow-sm border border-gray-200">
+                        <div className="bg-white px-3 sm:px-4 py-2 sm:py-3 rounded-2xl shadow-sm border border-gray-200">
                           <div className="flex space-x-1">
                             <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                             <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
@@ -721,29 +721,29 @@ const PatientMessaging = () => {
                 </div>
 
                 {/* Message Input */}
-                <div className="bg-white border-t border-gray-200 p-4 flex-shrink-0">
+                <div className="bg-white border-t border-gray-200 p-3 sm:p-4 flex-shrink-0">
                   {/* File Preview */}
                   {selectedFile && (
-                    <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="mb-3 p-2 sm:p-3 bg-blue-50 rounded-lg border border-blue-200">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
-                          <FaFile className="text-blue-600" />
-                          <span className="text-sm text-blue-800">{selectedFile.name}</span>
+                          <FaFile className="text-blue-600 text-sm sm:text-base" />
+                          <span className="text-xs sm:text-sm text-blue-800 truncate">{selectedFile.name}</span>
                           <span className="text-xs text-blue-600">
                             ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
                           </span>
                         </div>
                         <button
                           onClick={() => setSelectedFile(null)}
-                          className="text-blue-600 hover:text-blue-800"
+                          className="text-blue-600 hover:text-blue-800 p-1"
                         >
-                          <FaTimes />
+                          <FaTimes className="text-sm sm:text-base" />
                         </button>
                       </div>
                     </div>
                   )}
 
-                  <div className="flex items-end space-x-3">
+                  <div className="flex items-end space-x-2 sm:space-x-3">
                     {/* File Upload Button */}
                     <input
                       ref={fileInputRef}
@@ -757,7 +757,7 @@ const PatientMessaging = () => {
                       className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                       title="Attach file"
                     >
-                      <FaFile />
+                      <FaFile className="text-sm sm:text-base" />
                     </button>
 
                     {/* Emoji Picker Button */}
@@ -766,7 +766,7 @@ const PatientMessaging = () => {
                       className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                       title="Add emoji"
                     >
-                      <FaSmile />
+                      <FaSmile className="text-sm sm:text-base" />
                     </button>
 
                     <div className="flex-1">
@@ -782,7 +782,7 @@ const PatientMessaging = () => {
                         onKeyUp={handleStopTyping}
                         onKeyDown={handleTyping}
                         placeholder="Type a message..."
-                        className="w-full px-4 py-3 border border-gray-300 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                         rows="1"
                         style={{ minHeight: '44px', maxHeight: '120px' }}
                       />
@@ -790,14 +790,14 @@ const PatientMessaging = () => {
                     <button
                       onClick={sendMessage}
                       disabled={!newMessage.trim() && !selectedFile}
-                      className="p-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="p-2 sm:p-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
-                      <FaPaperPlane />
+                      <FaPaperPlane className="text-sm sm:text-base" />
                     </button>
                   </div>
-                  <div className="flex justify-between items-center mt-2 text-xs text-gray-500">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mt-2 text-xs text-gray-500 space-y-1 sm:space-y-0">
                     <span>{newMessage.length}/500 characters</span>
-                    <span>Press Enter to send, Shift+Enter for new line</span>
+                    <span className="hidden sm:block">Press Enter to send, Shift+Enter for new line</span>
                   </div>
                 </div>
 
@@ -814,10 +814,10 @@ const PatientMessaging = () => {
               </>
             ) : (
               <div className="flex-1 flex items-center justify-center">
-                <div className="text-center">
-                  <FaComments className="text-6xl text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-600 mb-2">Select a conversation</h3>
-                  <p className="text-gray-500">Choose a therapist from the list to start messaging</p>
+                <div className="text-center p-4">
+                  <FaComments className="text-4xl sm:text-6xl text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-600 mb-2">Select a conversation</h3>
+                  <p className="text-sm sm:text-base text-gray-500">Choose a therapist from the list to start messaging</p>
                 </div>
               </div>
             )}

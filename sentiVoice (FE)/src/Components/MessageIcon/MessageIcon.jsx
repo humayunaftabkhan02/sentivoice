@@ -47,9 +47,9 @@ const MessageIcon = ({ username }) => {
 
   return (
     <div className="relative cursor-pointer" onClick={() => (window.location.href = username.includes("therapist") ? '/th-messaging' : '/pa-messaging')}>
-      <FaCommentDots className="text-2xl" />
+      <FaCommentDots className="text-xl sm:text-2xl" />
       {unreadCount > 0 && (
-        <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
           {unreadCount}
         </span>
       )}

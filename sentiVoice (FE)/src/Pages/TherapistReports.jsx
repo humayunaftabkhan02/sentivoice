@@ -284,40 +284,40 @@ const TherapistReports = () => {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen overflow-x-hidden">
       <TherapistSidebar current="reports" />
       
       {/* Main Content */}
-      <div className="flex-1 p-8 space-y-6 ml-64">
+      <div className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 lg:mb-8 space-y-3 sm:space-y-0">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">
               Reports
             </h1>
-            <p className="text-gray-600">View and download your patient reports</p>
+            <p className="text-sm sm:text-base text-gray-600">View and download your patient reports</p>
           </div>
           <UserTopBar username={username} fullName={fullName} role={"therapist"} profilePicture={profilePicture} />
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-blue-500">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6 lg:mb-8">
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md border-l-4 border-blue-500">
             <div className="flex items-center">
-              <FaFileAlt className="text-3xl text-blue-500 mr-4" />
+              <FaFileAlt className="text-2xl sm:text-3xl text-blue-500 mr-3 sm:mr-4" />
               <div>
-                <p className="text-sm text-gray-600">Total Reports</p>
-                <p className="text-2xl font-bold text-gray-800">{reports.length}</p>
+                <p className="text-xs sm:text-sm text-gray-600">Total Reports</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-800">{reports.length}</p>
               </div>
             </div>
           </div>
           
-          <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-green-500">
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md border-l-4 border-green-500">
             <div className="flex items-center">
-              <FaCalendarAlt className="text-3xl text-green-500 mr-4" />
+              <FaCalendarAlt className="text-2xl sm:text-3xl text-green-500 mr-3 sm:mr-4" />
               <div>
-                <p className="text-sm text-gray-600">This Month</p>
-                <p className="text-2xl font-bold text-gray-800">
+                <p className="text-xs sm:text-sm text-gray-600">This Month</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-800">
                   {reports.filter(report => {
                     const reportDate = new Date(report.sentAt);
                     const now = new Date();
@@ -329,12 +329,12 @@ const TherapistReports = () => {
             </div>
           </div>
           
-          <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-purple-500">
+          <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md border-l-4 border-purple-500 sm:col-span-2 lg:col-span-1">
             <div className="flex items-center">
-              <FaClock className="text-3xl text-purple-500 mr-4" />
+              <FaClock className="text-2xl sm:text-3xl text-purple-500 mr-3 sm:mr-4" />
               <div>
-                <p className="text-sm text-gray-600">Recent Activity</p>
-                <p className="text-2xl font-bold text-gray-800">
+                <p className="text-xs sm:text-sm text-gray-600">Recent Activity</p>
+                <p className="text-xl sm:text-2xl font-bold text-gray-800">
                   {reports.filter(report => {
                     const reportDate = new Date(report.sentAt);
                     const now = new Date();
@@ -350,12 +350,12 @@ const TherapistReports = () => {
 
         {/* Filters Section */}
         <div className="bg-white rounded-lg shadow-md">
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-gray-800">All Reports</h2>
+          <div className="p-4 sm:p-6 border-b border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-800">All Reports</h2>
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-colors"
+                className="flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm sm:text-base"
               >
                 <FaFilter className="mr-2" />
                 {showFilters ? 'Hide Filters' : 'Show Filters'}
@@ -363,13 +363,13 @@ const TherapistReports = () => {
             </div>
             
             {showFilters && (
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+              <div className="mt-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
                 {/* Quick Filters */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                <div className="mb-4 sm:mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2 sm:mb-3">
                     Quick Filters
                   </label>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5 sm:gap-2">
                     {[
                       { key: 'today', label: 'Today' },
                       { key: 'yesterday', label: 'Yesterday' },
@@ -382,7 +382,7 @@ const TherapistReports = () => {
                       <button
                         key={key}
                         onClick={() => setQuickFilter(key)}
-                        className={`px-3 py-1 text-sm rounded-full transition-colors ${
+                        className={`px-2.5 sm:px-3 py-1 text-xs sm:text-sm rounded-full transition-colors ${
                           isQuickFilterActive(key)
                             ? 'bg-blue-500 text-white'
                             : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
@@ -394,42 +394,42 @@ const TherapistReports = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                   {/* Date From */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                       From Date
                     </label>
                     <input
                       type="date"
                       value={dateFrom}
                       onChange={(e) => setDateFrom(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                     />
                   </div>
                   
                   {/* Date To */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                       To Date
                     </label>
                     <input
                       type="date"
                       value={dateTo}
                       onChange={(e) => setDateTo(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                     />
                   </div>
                   
                   {/* Patient Filter - Dropdown */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                       Patient
                     </label>
                     <select
                       value={patientFilter}
                       onChange={(e) => setPatientFilter(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                     >
                       <option value="">All Patients</option>
                       {getUniquePatients().map((patient, index) => (
@@ -442,13 +442,13 @@ const TherapistReports = () => {
                   
                 </div>
                 
-                <div className="mt-4 flex justify-between items-center">
-                  <div className="text-sm text-gray-600">
+                <div className="mt-4 flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-2 sm:space-y-0">
+                  <div className="text-xs sm:text-sm text-gray-600">
                     Showing {filteredReports.length} of {reports.length} reports
                   </div>
                   <button
                     onClick={clearFilters}
-                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                    className="text-blue-600 hover:text-blue-800 text-xs sm:text-sm font-medium"
                   >
                     Clear All Filters
                   </button>
@@ -458,28 +458,28 @@ const TherapistReports = () => {
           </div>
           
           {loading ? (
-            <div className="p-8 text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Loading reports...</p>
+            <div className="p-4 sm:p-8 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-blue-500 mx-auto"></div>
+              <p className="mt-2 sm:mt-4 text-sm sm:text-base text-gray-600">Loading reports...</p>
             </div>
           ) : error ? (
-            <div className="p-8 text-center">
-              <div className="text-red-500 text-6xl mb-4">⚠️</div>
-              <p className="text-red-600 mb-2">{error}</p>
+            <div className="p-4 sm:p-8 text-center">
+              <div className="text-red-500 text-4xl sm:text-6xl mb-3 sm:mb-4">⚠️</div>
+              <p className="text-red-600 mb-2 text-sm sm:text-base">{error}</p>
               <button
                 onClick={() => fetchReports(username)}
-                className="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded"
+                className="bg-blue-500 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded text-sm sm:text-base"
               >
                 Try Again
               </button>
             </div>
           ) : filteredReports.length === 0 ? (
-            <div className="p-8 text-center">
-              <div className="text-gray-400 text-6xl mb-4">📄</div>
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">
+            <div className="p-4 sm:p-8 text-center">
+              <div className="text-gray-400 text-4xl sm:text-6xl mb-3 sm:mb-4">📄</div>
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-600 mb-2">
                 {reports.length === 0 ? 'No Reports Available' : 'No Reports Match Filters'}
               </h3>
-              <p className="text-gray-500 mb-4">
+              <p className="text-sm sm:text-base text-gray-500 mb-3 sm:mb-4">
                 {reports.length === 0 
                   ? 'Reports will appear here when patients complete voice analysis sessions or when you send manual reports.'
                   : 'Try adjusting your filters to see more results.'
@@ -488,7 +488,7 @@ const TherapistReports = () => {
               {reports.length > 0 && (
                 <button
                   onClick={clearFilters}
-                  className="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded"
+                  className="bg-blue-500 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded text-sm sm:text-base"
                 >
                   Clear Filters
                 </button>
@@ -498,40 +498,44 @@ const TherapistReports = () => {
             <>
               <div className="divide-y divide-gray-200">
                 {currentReports.map((report, index) => (
-                  <div key={report._id || index} className="p-6 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-start justify-between">
+                  <div key={report._id || index} className="p-4 sm:p-6 hover:bg-gray-50 transition-colors">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-3 sm:space-y-0">
                       <div className="flex-1">
-                        <div className="flex items-center mb-3">
-                          <FaUser className="text-blue-500 mr-3" />
-                          <h3 className="text-lg font-semibold text-gray-800">
+                        <div className="flex items-center mb-2 sm:mb-3">
+                          <FaUser className="text-blue-500 mr-2 sm:mr-3 text-sm sm:text-base" />
+                          <h3 className="text-base sm:text-lg font-semibold text-gray-800">
                             Report from {report.patientName || report.patientUsername}
                           </h3>
                         </div>
                         
-                        <div className="flex items-center text-sm text-gray-600 mb-3">
-                          <FaCalendarAlt className="mr-2" />
-                          <span>{formatDate(report.sentAt)}</span>
-                          <FaClock className="ml-4 mr-2" />
-                          <span>{formatTime(report.sentAt)}</span>
+                        <div className="flex flex-col sm:flex-row sm:items-center text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 space-y-1 sm:space-y-0">
+                          <div className="flex items-center">
+                            <FaCalendarAlt className="mr-1.5 sm:mr-2" />
+                            <span>{formatDate(report.sentAt)}</span>
+                          </div>
+                          <div className="flex items-center sm:ml-4">
+                            <FaClock className="mr-1.5 sm:mr-2" />
+                            <span>{formatTime(report.sentAt)}</span>
+                          </div>
                         </div>
                         
                         {report.message && (
-                          <div className="mt-3 p-4 bg-blue-50 border-l-4 border-blue-400 rounded">
-                            <p className="text-sm font-medium text-blue-800 mb-1">Patient Message:</p>
-                            <p className="text-sm text-blue-700">{report.message}</p>
+                          <div className="mt-2 sm:mt-3 p-3 sm:p-4 bg-blue-50 border-l-4 border-blue-400 rounded">
+                            <p className="text-xs sm:text-sm font-medium text-blue-800 mb-1">Patient Message:</p>
+                            <p className="text-xs sm:text-sm text-blue-700">{report.message}</p>
                           </div>
                         )}
                       </div>
                       
-                      <div className="ml-6 flex flex-col items-end space-y-3 min-w-0">
+                      <div className="flex flex-col items-start sm:items-end space-y-2 sm:space-y-3 min-w-0">
                         <button
                           onClick={() => downloadReport(report._id, report.fileName)}
-                          className="flex items-center bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
+                          className="flex items-center justify-center bg-blue-500 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors whitespace-nowrap text-sm sm:text-base w-full sm:w-auto"
                         >
-                          <FaDownload className="mr-2" />
+                          <FaDownload className="mr-1.5 sm:mr-2" />
                           Download PDF
                         </button>
-                        <div className="text-xs text-gray-500 text-center max-w-48 break-words">
+                        <div className="text-xs text-gray-500 text-center sm:text-right max-w-full sm:max-w-48 break-words">
                           {report.fileName}
                         </div>
                       </div>
@@ -542,27 +546,27 @@ const TherapistReports = () => {
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="px-6 py-4 border-t border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-gray-600">
+                <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+                    <div className="text-xs sm:text-sm text-gray-600 text-center sm:text-left">
                       Showing {indexOfFirstReport + 1} to {Math.min(indexOfLastReport, filteredReports.length)} of {filteredReports.length} reports
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center justify-center sm:justify-end space-x-1 sm:space-x-2">
                       <button
                         onClick={() => paginate(currentPage - 1)}
                         disabled={currentPage === 1}
-                        className="flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <FaChevronLeft className="mr-1" />
                         Previous
                       </button>
                       
-                      <div className="flex space-x-1">
+                      <div className="flex space-x-0.5 sm:space-x-1">
                         {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
                           <button
                             key={number}
                             onClick={() => paginate(number)}
-                            className={`px-3 py-2 text-sm font-medium rounded-md ${
+                            className={`px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-md ${
                               currentPage === number
                                 ? 'bg-blue-500 text-white'
                                 : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
@@ -576,7 +580,7 @@ const TherapistReports = () => {
                       <button
                         onClick={() => paginate(currentPage + 1)}
                         disabled={currentPage === totalPages}
-                        className="flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Next
                         <FaChevronRight className="ml-1" />

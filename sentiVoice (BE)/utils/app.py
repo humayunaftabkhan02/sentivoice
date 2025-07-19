@@ -20,35 +20,92 @@ def extract_feature(file_name, **kwargs):
     tonnetz = kwargs.get("tonnetz")
 
     try:
+        print(f"Loading audio file: {file_name}")
         X, sample_rate = librosa.load(file_name, sr=None)
+        print(f"Audio loaded - Duration: {len(X)/sample_rate:.2f}s, Sample rate: {sample_rate}Hz")
+        print(f"Audio range: {np.min(X):.4f} to {np.max(X):.4f}")
+        
+        # Check if audio is too short or silent
+        if len(X) < sample_rate * 0.1:  # Less than 0.1 seconds
+            print("Warning: Audio file is too short!")
+            return np.zeros(60)  # Return zeros for expected feature length
+            
+        if np.max(np.abs(X)) < 0.01:  # Very quiet audio
+            print("Warning: Audio file is very quiet!")
+            
     except Exception as e:
         print(f"Error loading audio file: {e}")
         raise
+    
     result = np.array([])
 
     if chroma or contrast:
         stft = np.abs(librosa.stft(X))
+        print(f"STFT shape: {stft.shape}")
 
     if mfcc:
-        mfccs = np.mean(librosa.feature.mfcc(y=X, sr=sample_rate, n_mfcc=40).T, axis=0)
-        result = np.hstack((result, mfccs))
+        try:
+            mfccs = np.mean(librosa.feature.mfcc(y=X, sr=sample_rate, n_mfcc=40).T, axis=0)
+            print(f"MFCC features shape: {mfccs.shape}, range: {np.min(mfccs):.4f} to {np.max(mfccs):.4f}")
+            result = np.hstack((result, mfccs))
+        except Exception as e:
+            print(f"Error extracting MFCC features: {e}")
+            mfccs = np.zeros(40)
+            result = np.hstack((result, mfccs))
 
     if chroma:
-        chroma_features = np.mean(librosa.feature.chroma_stft(S=stft, sr=sample_rate).T, axis=0)
-        result = np.hstack((result, chroma_features))
+        try:
+            chroma_features = np.mean(librosa.feature.chroma_stft(S=stft, sr=sample_rate).T, axis=0)
+            print(f"Chroma features shape: {chroma_features.shape}, range: {np.min(chroma_features):.4f} to {np.max(chroma_features):.4f}")
+            result = np.hstack((result, chroma_features))
+        except Exception as e:
+            print(f"Error extracting chroma features: {e}")
+            chroma_features = np.zeros(12)
+            result = np.hstack((result, chroma_features))
 
     if mel:
-        mel_features = np.mean(librosa.feature.melspectrogram(y=X, sr=sample_rate).T, axis=0)
-        result = np.hstack((result, mel_features))
+        try:
+            mel_features = np.mean(librosa.feature.melspectrogram(y=X, sr=sample_rate).T, axis=0)
+            print(f"Mel features shape: {mel_features.shape}, range: {np.min(mel_features):.4f} to {np.max(mel_features):.4f}")
+            result = np.hstack((result, mel_features))
+        except Exception as e:
+            print(f"Error extracting mel features: {e}")
+            mel_features = np.zeros(128)
+            result = np.hstack((result, mel_features))
 
     if contrast:
-        contrast_features = np.mean(librosa.feature.spectral_contrast(S=stft, sr=sample_rate).T, axis=0)
-        result = np.hstack((result, contrast_features))
+        try:
+            contrast_features = np.mean(librosa.feature.spectral_contrast(S=stft, sr=sample_rate).T, axis=0)
+            print(f"Contrast features shape: {contrast_features.shape}, range: {np.min(contrast_features):.4f} to {np.max(contrast_features):.4f}")
+            result = np.hstack((result, contrast_features))
+        except Exception as e:
+            print(f"Error extracting contrast features: {e}")
+            contrast_features = np.zeros(7)
+            result = np.hstack((result, contrast_features))
 
     if tonnetz:
-        tonnetz_features = np.mean(librosa.feature.tonnetz(y=librosa.effects.harmonic(X), sr=sample_rate).T, axis=0)
-        result = np.hstack((result, tonnetz_features))
+        try:
+            tonnetz_features = np.mean(librosa.feature.tonnetz(y=librosa.effects.harmonic(X), sr=sample_rate).T, axis=0)
+            print(f"Tonnetz features shape: {tonnetz_features.shape}, range: {np.min(tonnetz_features):.4f} to {np.max(tonnetz_features):.4f}")
+            result = np.hstack((result, tonnetz_features))
+        except Exception as e:
+            print(f"Error extracting tonnetz features: {e}")
+            tonnetz_features = np.zeros(6)
+            result = np.hstack((result, tonnetz_features))
 
+    print(f"Final feature vector length: {len(result)}")
+    print(f"Final feature range: {np.min(result):.4f} to {np.max(result):.4f}")
+    
+    # Ensure we have the expected number of features (40+12+128+7+6 = 193)
+    expected_length = 40 + 12 + 128 + 7 + 6  # mfcc + chroma + mel + contrast + tonnetz
+    if len(result) != expected_length:
+        print(f"Warning: Expected {expected_length} features, got {len(result)}")
+        # Pad or truncate to expected length
+        if len(result) < expected_length:
+            result = np.pad(result, (0, expected_length - len(result)), 'constant')
+        else:
+            result = result[:expected_length]
+    
     return result
 
 def predict_emotion(audio_path):

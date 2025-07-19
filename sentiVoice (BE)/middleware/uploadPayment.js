@@ -19,7 +19,7 @@ const upload = multer({
   limits: {
     fileSize: 50 * 1024 * 1024, // 50MB limit (increased for audio files)
     files: 1,
-    fieldSize: 10 * 1024 * 1024, // 10MB limit for field values (for base64 audio data)
+    fieldSize: 20 * 1024 * 1024, // 20MB limit for field values (for base64 audio data)
     fieldNameSize: 100, // 100 bytes for field names
     fields: 10 // Allow up to 10 fields
   },

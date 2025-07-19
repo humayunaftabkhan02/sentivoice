@@ -256,95 +256,95 @@ const TherapistAppointmentCalendar = () => {
   const stats = getAppointmentStats();
 
   return (
-    <div className="flex min-h-screen bg-[#EBEDE9]">
+    <div className="flex min-h-screen bg-[#EBEDE9] overflow-x-hidden">
       <TherapistSidebar current="calendar" />
       
       {/* Main Content */}
-      <div className="flex-1 p-8 space-y-6 ml-64">
+      <div className="flex-1 p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 lg:ml-64">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 sm:mb-8 space-y-4 sm:space-y-0">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
               Appointment Calendar
             </h1>
-            <p className="text-gray-600">Manage and view your therapy appointments</p>
+            <p className="text-sm sm:text-base text-gray-600 mt-1">Manage and view your therapy appointments</p>
           </div>
           <UserTopBar username={username} fullName={fullName} role={"therapist"} profilePicture={profilePicture} />
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-          <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-blue-500">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
+          <div className="bg-white rounded-xl shadow-sm p-3 sm:p-4 lg:p-6 border-l-4 border-blue-500">
             <div className="flex items-center">
-              <div className="p-3 rounded-full bg-blue-100">
-                <FaCalendarAlt className="text-2xl text-blue-600" />
+              <div className="p-2 sm:p-3 rounded-full bg-blue-100">
+                <FaCalendarAlt className="text-lg sm:text-xl lg:text-2xl text-blue-600" />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Appointments</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+              <div className="ml-2 sm:ml-3 lg:ml-4">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Total</p>
+                <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{stats.total}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-green-500">
+          <div className="bg-white rounded-xl shadow-sm p-3 sm:p-4 lg:p-6 border-l-4 border-green-500">
             <div className="flex items-center">
-              <div className="p-3 rounded-full bg-green-100">
-                <FaCheckCircle className="text-2xl text-green-600" />
+              <div className="p-2 sm:p-3 rounded-full bg-green-100">
+                <FaCheckCircle className="text-lg sm:text-xl lg:text-2xl text-green-600" />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Accepted</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.accepted}</p>
+              <div className="ml-2 sm:ml-3 lg:ml-4">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Accepted</p>
+                <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{stats.accepted}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-yellow-500">
+          <div className="bg-white rounded-xl shadow-sm p-3 sm:p-4 lg:p-6 border-l-4 border-yellow-500">
             <div className="flex items-center">
-              <div className="p-3 rounded-full bg-yellow-100">
-                <FaExclamationTriangle className="text-2xl text-yellow-600" />
+              <div className="p-2 sm:p-3 rounded-full bg-yellow-100">
+                <FaExclamationTriangle className="text-lg sm:text-xl lg:text-2xl text-yellow-600" />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Pending</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.pending}</p>
+              <div className="ml-2 sm:ml-3 lg:ml-4">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Pending</p>
+                <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{stats.pending}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-gray-500">
+          <div className="bg-white rounded-xl shadow-sm p-3 sm:p-4 lg:p-6 border-l-4 border-gray-500">
             <div className="flex items-center">
-              <div className="p-3 rounded-full bg-gray-100">
-                <FaClock className="text-2xl text-gray-600" />
+              <div className="p-2 sm:p-3 rounded-full bg-gray-100">
+                <FaClock className="text-lg sm:text-xl lg:text-2xl text-gray-600" />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Finished</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.finished}</p>
+              <div className="ml-2 sm:ml-3 lg:ml-4">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Finished</p>
+                <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{stats.finished}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-red-500">
+          <div className="bg-white rounded-xl shadow-sm p-3 sm:p-4 lg:p-6 border-l-4 border-red-500 sm:col-span-3 lg:col-span-1">
             <div className="flex items-center">
-              <div className="p-3 rounded-full bg-red-100">
-                <FaTimes className="text-2xl text-red-600" />
+              <div className="p-2 sm:p-3 rounded-full bg-red-100">
+                <FaTimes className="text-lg sm:text-xl lg:text-2xl text-red-600" />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Canceled</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.cancelled}</p>
+              <div className="ml-2 sm:ml-3 lg:ml-4">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Canceled</p>
+                <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{stats.cancelled}</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Calendar */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">Calendar View</h2>
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+          <div className="mb-4 sm:mb-6">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Calendar View</h2>
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <p className="ml-3 text-gray-600">Loading appointments...</p>
+            <div className="flex items-center justify-center py-8 sm:py-12">
+              <div className="inline-block animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-blue-600"></div>
+              <p className="ml-2 sm:ml-3 text-sm sm:text-base text-gray-600">Loading appointments...</p>
             </div>
           ) : (
             <FullCalendar
@@ -383,6 +383,16 @@ const TherapistAppointmentCalendar = () => {
               dayMaxEvents={true}
               moreLinkClick="popover"
               eventClassNames="cursor-pointer hover:opacity-80 transition-opacity"
+              views={{
+                dayGridMonth: {
+                  dayMaxEvents: 3,
+                  moreLinkClick: 'popover'
+                },
+                timeGridWeek: {
+                  dayMaxEvents: 5,
+                  moreLinkClick: 'popover'
+                }
+              }}
             />
           )}
         </div>
@@ -414,11 +424,11 @@ const TherapistAppointmentCalendar = () => {
         {selectedAppointment && (
           <div className="bg-white rounded-2xl overflow-hidden">
             {/* Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-6 text-white">
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-4 sm:px-6 py-4 sm:py-6 text-white">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-bold">Appointment Details</h2>
-                  <p className="text-blue-100 text-sm mt-1">
+                  <h2 className="text-lg sm:text-xl font-bold">Appointment Details</h2>
+                  <p className="text-blue-100 text-xs sm:text-sm mt-1">
                     {selectedAppointment.patientFullName || selectedAppointment.patientUsername}
                   </p>
                 </div>
@@ -426,34 +436,34 @@ const TherapistAppointmentCalendar = () => {
                   onClick={() => setAppointmentOptionsModalIsOpen(false)}
                   className="text-white/80 hover:text-white transition-colors"
                 >
-                  <FaTimes className="text-xl" />
+                  <FaTimes className="text-lg sm:text-xl" />
                 </button>
               </div>
             </div>
 
             {/* Content */}
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-600">Date</p>
-                  <p className="font-semibold">{selectedAppointment.date}</p>
+            <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
+                  <p className="text-xs sm:text-sm text-gray-600">Date</p>
+                  <p className="text-sm sm:text-base font-semibold">{selectedAppointment.date}</p>
                 </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-600">Time</p>
-                  <p className="font-semibold">{selectedAppointment.time}</p>
+                <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
+                  <p className="text-xs sm:text-sm text-gray-600">Time</p>
+                  <p className="text-sm sm:text-base font-semibold">{selectedAppointment.time}</p>
                 </div>
-                <div className="bg-gray-50 p-4 rounded-lg col-span-2">
-                  <p className="text-sm text-gray-600">Session Type</p>
-                  <p className="font-semibold">
+                <div className="bg-gray-50 p-3 sm:p-4 rounded-lg sm:col-span-2">
+                  <p className="text-xs sm:text-sm text-gray-600">Session Type</p>
+                  <p className="text-sm sm:text-base font-semibold">
                     {selectedAppointment.sessionType === 'in-person' ? 'In-person' : selectedAppointment.sessionType === 'online' ? 'Online' : 'N/A'}
                   </p>
                 </div>
               </div>
 
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600">Status</p>
+              <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
+                <p className="text-xs sm:text-sm text-gray-600">Status</p>
                 <div className="flex items-center mt-1">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                  <span className={`inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full text-xs font-medium ${
                     selectedAppointment.status === 'Accepted' 
                       ? 'bg-green-100 text-green-800'
                       : selectedAppointment.status === 'Pending'
@@ -466,23 +476,23 @@ const TherapistAppointmentCalendar = () => {
               </div>
 
               {selectedAppointment?.status !== "Finished" ? (
-                <div className="flex space-x-3 pt-4">
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
                   <button
                     onClick={openCancelModal}
-                    className="flex-1 bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-lg font-medium transition-colors"
+                    className="flex-1 bg-red-500 hover:bg-red-600 text-white px-3 py-2 sm:px-4 sm:py-3 rounded-lg text-sm sm:text-base font-medium transition-colors"
                   >
                     Cancel Appointment
                   </button>
                   <button
                     onClick={handleReschedule}
-                    className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-lg font-medium transition-colors"
+                    className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 sm:px-4 sm:py-3 rounded-lg text-sm sm:text-base font-medium transition-colors"
                   >
                     Reschedule
                   </button>
                 </div>
               ) : (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p className="text-blue-800 text-sm">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+                  <p className="text-blue-800 text-xs sm:text-sm">
                     This appointment is marked as finished and can no longer be modified.
                   </p>
                 </div>
@@ -517,11 +527,11 @@ const TherapistAppointmentCalendar = () => {
       >
         <div className="bg-white rounded-2xl overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-6 text-white">
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-4 sm:px-6 py-4 sm:py-6 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-bold">Reschedule Appointment</h2>
-                <p className="text-blue-100 text-sm mt-1">
+                <h2 className="text-lg sm:text-xl font-bold">Reschedule Appointment</h2>
+                <p className="text-blue-100 text-xs sm:text-sm mt-1">
                   Update appointment date and time
                 </p>
               </div>
@@ -529,16 +539,16 @@ const TherapistAppointmentCalendar = () => {
                 onClick={() => setRescheduleModalIsOpen(false)}
                 className="text-white/80 hover:text-white transition-colors"
               >
-                <FaTimes className="text-xl" />
+                <FaTimes className="text-lg sm:text-xl" />
               </button>
             </div>
           </div>
 
           {/* Content */}
-          <div className="p-6">
-            <form onSubmit={handleRescheduleSubmit} className="space-y-4">
+          <div className="p-4 sm:p-6">
+            <form onSubmit={handleRescheduleSubmit} className="space-y-3 sm:space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                   New Date
                 </label>
                 <input
@@ -546,11 +556,11 @@ const TherapistAppointmentCalendar = () => {
                   value={rescheduleDate}
                   onChange={(e) => setRescheduleDate(e.target.value)}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                   New Time (e.g. 02:00 PM)
                 </label>
                 <input
@@ -559,20 +569,20 @@ const TherapistAppointmentCalendar = () => {
                   onChange={(e) => setRescheduleTime(e.target.value)}
                   required
                   placeholder="02:00 PM"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                 />
               </div>
-              <div className="flex space-x-3 pt-4">
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-lg font-medium transition-colors"
+                  className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 sm:px-4 sm:py-3 rounded-lg text-sm sm:text-base font-medium transition-colors"
                 >
                   Reschedule
                 </button>
                 <button
                   type="button"
                   onClick={() => setRescheduleModalIsOpen(false)}
-                  className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-3 rounded-lg font-medium transition-colors"
+                  className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 sm:px-4 sm:py-3 rounded-lg text-sm sm:text-base font-medium transition-colors"
                 >
                   Cancel
                 </button>
@@ -587,6 +597,7 @@ const TherapistAppointmentCalendar = () => {
           appointment={reschedulingApp}
           onClose={() => setReschedulingApp(null)}
           onConfirm={handleConfirmReschedule}
+          userRole="therapist"
         />
       )}
 
@@ -594,6 +605,7 @@ const TherapistAppointmentCalendar = () => {
         <CancelModal
           onClose={() => setShowCancelModal(false)}
           onConfirm={(reason) => cancelAppointment(cancelAppId, reason)}
+          userRole="therapist"
         />
       )}
     </div>
