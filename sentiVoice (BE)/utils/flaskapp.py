@@ -218,6 +218,15 @@ def predict_emotion(audio_path):
 app = Flask(__name__)
 CORS(app)
 
+@app.route('/', methods=['GET'])
+def root():
+    """Root endpoint for health check"""
+    return jsonify({
+        "status": "healthy",
+        "service": "emotion-analysis",
+        "message": "SentiVoice Flask API is running"
+    })
+
 @app.route('/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
@@ -347,11 +356,14 @@ def get_features():
 
 if __name__ == '__main__':
     import os
-    # Get port from environment variable or default to 5000 for localhost
-    port = int(os.environ.get('PORT', 5000))
+    # Get port from environment variable or default to 8080 for deployment
+    port = int(os.environ.get('PORT', 8080))
     host = '0.0.0.0'  # Allow external connections
     
     print(f"Starting Flask app on {host}:{port}")
-    print(f"Environment: {os.environ.get('FLASK_ENV', 'development')}")
+    print(f"Environment: {os.environ.get('FLASK_ENV', 'production')}")
+    print(f"Debug mode: {os.environ.get('FLASK_ENV') == 'development'}")
     
-    app.run(host=host, port=port, debug=os.environ.get('FLASK_ENV') == 'development')
+    # For deployment, always run in production mode
+    debug_mode = os.environ.get('FLASK_ENV') == 'development'
+    app.run(host=host, port=port, debug=debug_mode)
