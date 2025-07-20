@@ -659,173 +659,173 @@ useEffect(() => {
             {/* Step Content */}
             <div className="p-4 sm:p-6 lg:p-8">
             {step === 1 && (
-  <div className="space-y-4 sm:space-y-6">
-    {/* Personal Information */}
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-      <div>
+                <div className="space-y-4 sm:space-y-6">
+                  {/* Personal Information */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                    <div>
         <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2" htmlFor="fullName">
-          <FaUser className="inline mr-2 text-blue-600" />
+                        <FaUser className="inline mr-2 text-blue-600" />
           Full Name <span className="text-red-500" aria-hidden="true">*</span>
-        </label>
-        <input
+                      </label>
+                      <input
           id="fullName"
-          type="text"
-          placeholder="Enter your full name"
-          className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${
-            hasStoredFullName 
-              ? 'bg-gray-50 border-gray-200 cursor-not-allowed' 
+                        type="text"
+                        placeholder="Enter your full name"
+                        className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${
+                          hasStoredFullName 
+                            ? 'bg-gray-50 border-gray-200 cursor-not-allowed' 
               : errors.fullName ? 'border-red-500' : 'border-gray-300 hover:border-blue-400'
-          }`}
-          value={fullName}
-          onChange={(e) => {
-            const val = e.target.value;
-            if (!hasStoredFullName && (val === "" || isValidName(val))) {
-              setFullName(val);
+                        }`}
+                        value={fullName}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (!hasStoredFullName && (val === "" || isValidName(val))) {
+                            setFullName(val);
               setErrors((prev) => ({ ...prev, fullName: undefined }));
-            }
-          }}
+                          }
+                        }}
           onBlur={handleFullNameBlur}
-          readOnly={hasStoredFullName}
+                        readOnly={hasStoredFullName}
           aria-required="true"
           aria-invalid={!!errors.fullName}
           aria-describedby={errors.fullName ? 'fullName-error' : undefined}
-        />
+                      />
         {!hasStoredFullName && errors.fullName && (
           <p id="fullName-error" className="text-red-500 text-xs sm:text-sm mt-1" role="alert">{errors.fullName}</p>
-        )}
-      </div>
-      <div>
+                      )}
+                    </div>
+                    <div>
         <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2" htmlFor="phone">
-          <FaPhone className="inline mr-2 text-blue-600" />
+                        <FaPhone className="inline mr-2 text-blue-600" />
           Phone Number <span className="text-red-500" aria-hidden="true">*</span>
-        </label>
-        <input
+                      </label>
+                      <input
           id="phone"
-          type="text"
-          placeholder="03XXXXXXXXX or +923XXXXXXXXX"
-          className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${
-            hasStoredPhone 
-              ? 'bg-gray-50 border-gray-200 cursor-not-allowed' 
+                        type="text"
+                        placeholder="03XXXXXXXXX or +923XXXXXXXXX"
+                        className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${
+                          hasStoredPhone 
+                            ? 'bg-gray-50 border-gray-200 cursor-not-allowed' 
               : errors.phone ? 'border-red-500' : 'border-gray-300 hover:border-blue-400'
-          }`}
-          value={phone}
-          onChange={(e) => {
-            const val = e.target.value;
-            if (!hasStoredPhone && /^(\+)?[0-9]*$/.test(val)) {
-              setPhone(val);
+                        }`}
+                        value={phone}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (!hasStoredPhone && /^(\+)?[0-9]*$/.test(val)) {
+                            setPhone(val);
               setErrors((prev) => ({ ...prev, phone: undefined }));
-            }
-          }}
+                          }
+                        }}
           onBlur={handlePhoneBlur}
-          readOnly={hasStoredPhone}
+                        readOnly={hasStoredPhone}
           aria-required="true"
           aria-invalid={!!errors.phone}
           aria-describedby={errors.phone ? 'phone-error' : undefined}
-        />
+                      />
         {!hasStoredPhone && errors.phone && (
           <p id="phone-error" className="text-red-500 text-xs sm:text-sm mt-1" role="alert">{errors.phone}</p>
-        )}
-      </div>
-    </div>
-    {/* Therapist Selection */}
-    <div>
+                      )}
+                    </div>
+                  </div>
+                  {/* Therapist Selection */}
+                  <div>
       <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2" htmlFor="therapist">
-        <FaUserMd className="inline mr-2 text-blue-600" />
+                      <FaUserMd className="inline mr-2 text-blue-600" />
         Select Therapist <span className="text-red-500" aria-hidden="true">*</span>
-      </label>
+                    </label>
       {/* TherapistSelection already handles selection, add aria-required and error if needed */}
-      <TherapistSelection
-        therapistList={therapistList}
-        selectedTherapist={therapistUsername}
-        onTherapistSelect={(username) => {
-          setTherapistUsername(username);
+                    <TherapistSelection
+                      therapistList={therapistList}
+                      selectedTherapist={therapistUsername}
+                      onTherapistSelect={(username) => {
+                        setTherapistUsername(username);
           setErrors((prev) => ({ ...prev, therapist: undefined }));
-          const selectedTherapist = therapistList.find(t => t.username === username);
-          if (selectedTherapist?.info?.availability) {
-            if (sessionType === 'in-person') {
-              setAvailableSlots(selectedTherapist.info.availability.inPerson || []);
-            } else if (sessionType === 'online') {
-              setAvailableSlots(selectedTherapist.info.availability.online || []);
-            } else {
-              setAvailableSlots([]);
-            }
-          } else {
-            setAvailableSlots([]);
-          }
-        }}
-        onAvailabilityUpdate={() => {}}
+                        const selectedTherapist = therapistList.find(t => t.username === username);
+                        if (selectedTherapist?.info?.availability) {
+                          if (sessionType === 'in-person') {
+                            setAvailableSlots(selectedTherapist.info.availability.inPerson || []);
+                          } else if (sessionType === 'online') {
+                            setAvailableSlots(selectedTherapist.info.availability.online || []);
+                          } else {
+                            setAvailableSlots([]);
+                          }
+                        } else {
+                          setAvailableSlots([]);
+                        }
+                      }}
+                      onAvailabilityUpdate={() => {}}
         aria-required="true"
         aria-invalid={!!errors.therapist}
-      />
+                    />
       {errors.therapist && (
         <p className="text-red-500 text-xs sm:text-sm mt-1" role="alert">{errors.therapist}</p>
       )}
-    </div>
-    {/* Session Type */}
-    <div>
+                  </div>
+                  {/* Session Type */}
+                  <div>
       <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2" htmlFor="sessionType">
-        <FaComments className="inline mr-2 text-blue-600" />
+                      <FaComments className="inline mr-2 text-blue-600" />
         Session Type <span className="text-red-500" aria-hidden="true">*</span>
-      </label>
-      <select
+                    </label>
+                    <select
         id="sessionType"
-        value={sessionType}
-        onChange={(e) => {
-          setSessionType(e.target.value);
+                      value={sessionType}
+                      onChange={(e) => {
+                        setSessionType(e.target.value);
           setErrors((prev) => ({ ...prev, sessionType: undefined }));
-          const selectedTherapist = therapistList.find(t => t.username === therapistUsername);
-          if (selectedTherapist?.info?.availability) {
-            if (e.target.value === 'in-person' || e.target.value === 'In-person') {
-              setAvailableSlots(selectedTherapist.info.availability.inPerson || []);
-            } else if (e.target.value === 'online' || e.target.value === 'Online') {
-              setAvailableSlots(selectedTherapist.info.availability.online || []);
-            } else {
-              setAvailableSlots([]);
-            }
-          } else {
-            setAvailableSlots([]);
-          }
-        }}
+                        const selectedTherapist = therapistList.find(t => t.username === therapistUsername);
+                        if (selectedTherapist?.info?.availability) {
+                          if (e.target.value === 'in-person' || e.target.value === 'In-person') {
+                            setAvailableSlots(selectedTherapist.info.availability.inPerson || []);
+                          } else if (e.target.value === 'online' || e.target.value === 'Online') {
+                            setAvailableSlots(selectedTherapist.info.availability.online || []);
+                          } else {
+                            setAvailableSlots([]);
+                          }
+                        } else {
+                          setAvailableSlots([]);
+                        }
+                      }}
         className={`w-full px-3 sm:px-4 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${errors.sessionType ? 'border-red-500' : 'border-gray-300 hover:border-blue-400'}`}
-        required
+                      required
         aria-required="true"
         aria-invalid={!!errors.sessionType}
         aria-describedby={errors.sessionType ? 'sessionType-error' : undefined}
-      >
-        <option value="">Select Session Type</option>
-        <option value="online">Online</option>
-        <option value="in-person">In-person</option>
-      </select>
+                    >
+                      <option value="">Select Session Type</option>
+                      <option value="online">Online</option>
+                      <option value="in-person">In-person</option>
+                    </select>
       {errors.sessionType && (
         <p id="sessionType-error" className="text-red-500 text-xs sm:text-sm mt-1" role="alert">{errors.sessionType}</p>
       )}
-    </div>
-    {/* Date and Time Selection */}
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-      <div>
+                  </div>
+                  {/* Date and Time Selection */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                    <div>
         <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2" htmlFor="date">
-          <FaCalendarAlt className="inline mr-2 text-blue-600" />
+                        <FaCalendarAlt className="inline mr-2 text-blue-600" />
           Appointment Date <span className="text-red-500" aria-hidden="true">*</span>
-        </label>
-        <input
+                      </label>
+                      <input
           id="date"
-          type="date"
+                        type="date"
           className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${errors.date ? 'border-red-500' : 'border-gray-300 hover:border-blue-400'}`}
-          value={date}
-          onChange={(e) => {
-            const selected = e.target.value;
-            setDate(selected);
-            setSelectedDate(selected);
+                        value={date}
+                        onChange={(e) => {
+                          const selected = e.target.value;
+                          setDate(selected);
+                          setSelectedDate(selected);
             setErrors((prev) => ({ ...prev, date: undefined }));
-            const selectedDay = new Date(selected).toLocaleDateString("en-US", {
-              weekday: "long"
-            });
-            setSelectedDay(selectedDay);
-          }}
-          required
-          min={new Date().toISOString().split("T")[0]}
-          max={new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split("T")[0]}
-          onKeyDown={(e) => e.preventDefault()}
+                          const selectedDay = new Date(selected).toLocaleDateString("en-US", {
+                            weekday: "long"
+                          });
+                          setSelectedDay(selectedDay);
+                        }}
+                        required
+                        min={new Date().toISOString().split("T")[0]}
+                        max={new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split("T")[0]}
+                        onKeyDown={(e) => e.preventDefault()}
           onBlur={() => {
             if (!date) setErrors((prev) => ({ ...prev, date: 'Date is required.' }));
             else {
@@ -848,45 +848,45 @@ useEffect(() => {
         {errors.date && (
           <p id="date-error" className="text-red-500 text-xs sm:text-sm mt-1" role="alert">{errors.date}</p>
         )}
-      </div>
-      <div>
+                    </div>
+                    <div>
         <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2" htmlFor="time">
-          <FaClock className="inline mr-2 text-blue-600" />
+                        <FaClock className="inline mr-2 text-blue-600" />
           Available Time <span className="text-red-500" aria-hidden="true">*</span>
-        </label>
-        <select
+                      </label>
+                      <select
           id="time"
-          value={time}
+                        value={time}
           onChange={(e) => {
             setTime(e.target.value);
             setErrors((prev) => ({ ...prev, time: undefined }));
           }}
           className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${errors.time ? 'border-red-500' : 'border-gray-300 hover:border-blue-400'}`}
-          required
+                        required
           aria-required="true"
           aria-invalid={!!errors.time}
           aria-describedby={errors.time ? 'time-error' : undefined}
-        >
-          <option value="">Select available time</option>
-          {getTimesForDay(selectedDay).map((slot, idx) => {
-            const isBooked = bookedSlots.includes(slot);
-            return (
-              <option key={idx} value={slot} disabled={isBooked}>
-                {isBooked ? `🛑 ${slot} (Booked)` : slot}
-              </option>
-            );
-          })}
-        </select>
+                      >
+                        <option value="">Select available time</option>
+                        {getTimesForDay(selectedDay).map((slot, idx) => {
+                          const isBooked = bookedSlots.includes(slot);
+                          return (
+                            <option key={idx} value={slot} disabled={isBooked}>
+                              {isBooked ? `🛑 ${slot} (Booked)` : slot}
+                            </option>
+                          );
+                        })}
+                      </select>
         {errors.time && (
           <p id="time-error" className="text-red-500 text-xs sm:text-sm mt-1" role="alert">{errors.time}</p>
         )}
-      </div>
-    </div>
-    {/* Continue Button */}
-    <div className="flex justify-end pt-4 sm:pt-6">
-      <button
-        type="button"
-        onClick={async () => {
+                    </div>
+                  </div>
+                  {/* Continue Button */}
+                  <div className="flex justify-end pt-4 sm:pt-6">
+                    <button
+                      type="button"
+                      onClick={async () => {
           let newErrors = {};
           // Step-by-step validation for step 1 only
           if (!fullName || !isValidFullName(fullName)) {
@@ -894,7 +894,7 @@ useEffect(() => {
             else if (!isValidName(fullName)) newErrors.fullName = 'Only letters and spaces are allowed.';
             else if (fullName.length < MIN_NAME_LENGTH) newErrors.fullName = `Full name must be at least ${MIN_NAME_LENGTH} characters.`;
             else if (fullName.length > MAX_NAME_LENGTH) newErrors.fullName = `Full name must be at most ${MAX_NAME_LENGTH} characters.`;
-          }
+                        }
           if (!phone || !/^((\+92)|(0))3[0-9]{9}$/.test(phone)) {
             if (!phone) newErrors.phone = 'Phone number is required.';
             else newErrors.phone = 'Invalid phone number. Use 03XXXXXXXXX or +923XXXXXXXXX format.';
@@ -910,7 +910,7 @@ useEffect(() => {
             selected.setHours(0,0,0,0);
             if (selected < today) {
               newErrors.date = 'You cannot book for a past date.';
-            }
+                        }
           }
           if (!time) newErrors.time = 'Please select a time.';
 
@@ -926,22 +926,22 @@ useEffect(() => {
 
           setErrors(newErrors);
           if (Object.keys(newErrors).length > 0) return;
-          const hasDuplicate = await checkDuplicateBooking(username, therapistUsername);
-          if (hasDuplicate) {
+                        const hasDuplicate = await checkDuplicateBooking(username, therapistUsername);
+                        if (hasDuplicate) {
             setErrors((prev) => ({ ...prev, therapist: 'You already have a pending or accepted appointment with this therapist.' }));
-            return;
-          }
-          nextStep();
-        }}
-        className="flex items-center px-6 sm:px-8 py-2 sm:py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl text-sm sm:text-base"
+                          return;
+                        }
+                        nextStep();
+                      }}
+                      className="flex items-center px-6 sm:px-8 py-2 sm:py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl text-sm sm:text-base"
         aria-label="Continue to Payment"
-      >
-        Continue to Payment
-        <FaArrowRight className="ml-2" />
-      </button>
-    </div>
-  </div>
-)}
+                    >
+                      Continue to Payment
+                      <FaArrowRight className="ml-2" />
+                    </button>
+                  </div>
+              </div>
+            )}
 
             {step === 2 && (
                 <div className="space-y-4 sm:space-y-6">

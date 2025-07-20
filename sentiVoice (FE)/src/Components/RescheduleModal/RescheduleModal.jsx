@@ -78,8 +78,8 @@ const RescheduleModal = ({ appointment, onClose, onConfirm, userRole = 'patient'
           api.get(`/api/therapist/${therapist}/availability?sessionType=${encodeURIComponent(sessionType)}`),
           api.get(`/api/appointments/booked?therapist=${therapist}&date=${selectedDate}`)
         ]);
-        const slotData = slotRes;
-        const bookedData = bookedRes;
+                  const slotData = slotRes;
+          const bookedData = bookedRes;
         setAvailableSlots(slotData.slots || []);
         setBookedSlots(bookedData.bookedTimes || []);
       } catch (err) {

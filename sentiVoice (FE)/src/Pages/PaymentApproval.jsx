@@ -124,7 +124,7 @@ export default function PaymentApproval() {
       }, 1000);
       } catch (err) {
         setActionError(prev => ({ ...prev, [payment._id]: `Failed to update payment status: ${err.message || 'Unknown error'}` }));
-        setProcessing(null);
+      setProcessing(null);
       console.error("Payment status update error:", err);
     }
   };

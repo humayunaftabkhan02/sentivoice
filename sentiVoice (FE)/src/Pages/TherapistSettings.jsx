@@ -655,9 +655,9 @@ const TherapistSettings = () => {
                           onBlur={() => { setTouched({ ...touched, phone: true }); setErrors(prev => ({ ...prev, phone: validateField('phone', formData.phone) })); }}
                           inputClass="w-full h-10 px-3 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                           placeholder="Phone number"
-                          disabled={loading}
-                        />
-                      </div>
+                        disabled={loading}
+                      />
+                    </div>
                       {touched.phone && errors.phone && (
                         <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
                       )}
@@ -739,7 +739,7 @@ const TherapistSettings = () => {
                       {touched.specialization && errors.specialization && (
                         <p className="text-red-500 text-xs mt-1">{errors.specialization}</p>
                       )}
-
+                      
                       {formData.specialization === "Other" && (
                         <input
                           type="text"

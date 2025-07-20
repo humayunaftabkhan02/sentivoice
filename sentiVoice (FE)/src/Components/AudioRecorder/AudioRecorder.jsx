@@ -1,163 +1,9 @@
 import { AudioRecorder } from 'react-audio-voice-recorder';
-import { FaMicrophone, FaCheckCircle, FaTimesCircle, FaSpinner } from 'react-icons/fa';
+import { FaMicrophone } from 'react-icons/fa';
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { generateAndSendPatientReport } from '../../utils/generatePDF.js';
 import { api } from "../../utils/api";
-import { useState } from 'react';
-
-// Modern Progress Indicator Component
-const UploadProgressIndicator = ({ isVisible, progress, status, message }) => {
-  if (!isVisible) return null;
-
-  const getStatusIcon = () => {
-    switch (status) {
-      case 'processing':
-        return <FaSpinner className="animate-spin text-blue-600" />;
-      case 'success':
-        return <FaCheckCircle className="text-green-600" />;
-      case 'error':
-        return <FaTimesCircle className="text-red-600" />;
-      default:
-        return <FaSpinner className="animate-spin text-blue-600" />;
-    }
-  };
-
-  const getStatusColor = () => {
-    switch (status) {
-      case 'processing':
-        return 'border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50';
-      case 'success':
-        return 'border-green-100 bg-gradient-to-r from-green-50 to-emerald-50';
-      case 'error':
-        return 'border-red-100 bg-gradient-to-r from-red-50 to-pink-50';
-      default:
-        return 'border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50';
-    }
-  };
-
-  return (
-    <div 
-      className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4"
-      style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
-    >
-      <div className={`max-w-md w-full bg-white rounded-3xl shadow-2xl border border-gray-100 ${getStatusColor()} overflow-hidden animate-scale-in`}>
-        {/* Header */}
-        <div className="p-6 text-center">
-          <div className="flex items-center justify-center space-x-3 mb-4">
-            {getStatusIcon()}
-            <h3 className="text-lg font-semibold text-gray-800">
-              {status === 'processing' && 'Processing Voice Recording'}
-              {status === 'success' && 'Upload Complete'}
-              {status === 'error' && 'Upload Failed'}
-            </h3>
-          </div>
-          
-          <p className="text-sm text-gray-600 mb-6">
-            {message || 'Please wait while we analyze your voice recording...'}
-          </p>
-        </div>
-
-        {/* Progress Bar */}
-        {status === 'processing' && (
-          <div className="px-6 pb-6">
-            <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-              <div 
-                className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full transition-all duration-300 ease-out"
-                style={{ width: `${progress}%` }}
-              ></div>
-            </div>
-            
-            {/* Progress Steps */}
-            <div className="space-y-3">
-              <div className={`flex items-center space-x-3 ${progress >= 25 ? 'text-blue-600' : 'text-gray-400'}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
-                  progress >= 25 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
-                }`}>
-                  {progress >= 25 ? '✓' : '1'}
-                </div>
-                <span className="text-sm">Converting audio format</span>
-              </div>
-              
-              <div className={`flex items-center space-x-3 ${progress >= 50 ? 'text-blue-600' : 'text-gray-400'}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
-                  progress >= 50 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
-                }`}>
-                  {progress >= 50 ? '✓' : '2'}
-                </div>
-                <span className="text-sm">Analyzing audio quality</span>
-              </div>
-              
-              <div className={`flex items-center space-x-3 ${progress >= 75 ? 'text-blue-600' : 'text-gray-400'}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
-                  progress >= 75 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
-                }`}>
-                  {progress >= 75 ? '✓' : '3'}
-                </div>
-                <span className="text-sm">Processing voice data</span>
-              </div>
-              
-              <div className={`flex items-center space-x-3 ${progress >= 100 ? 'text-blue-600' : 'text-gray-400'}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
-                  progress >= 100 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
-                }`}>
-                  {progress >= 100 ? '✓' : '4'}
-                </div>
-                <span className="text-sm">Saving recording</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Success/Error Message */}
-        {(status === 'success' || status === 'error') && (
-          <div className="px-6 pb-6">
-            <div className={`p-4 rounded-lg ${
-              status === 'success' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
-            }`}>
-              <p className={`text-sm ${
-                status === 'success' ? 'text-green-800' : 'text-red-800'
-              }`}>
-                {message}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Action Button */}
-        {(status === 'success' || status === 'error') && (
-          <div className="px-6 pb-6">
-            <button
-              onClick={() => {
-                if (status === 'success') {
-                  // Close the modal and continue
-                  window.location.reload();
-                } else {
-                  // Close the modal and allow retry
-                  window.location.reload();
-                }
-              }}
-              className={`w-full py-3 px-4 rounded-lg font-semibold transition-colors duration-200 ${
-                status === 'success' 
-                  ? 'bg-green-600 hover:bg-green-700 text-white' 
-                  : 'bg-red-600 hover:bg-red-700 text-white'
-              }`}
-            >
-              {status === 'success' ? 'Continue' : 'Try Again'}
-            </button>
-            
-            {/* Auto-close indicator */}
-            <div className="mt-3 text-center">
-              <p className="text-xs text-gray-500">
-                {status === 'success' ? 'This will close automatically in 3 seconds' : 'This will close automatically in 5 seconds'}
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
 
 // Helper function to convert Blob to WAV Blob
 async function convertToWav(blob) {
@@ -323,23 +169,12 @@ export default function AudioRecorderComponent({
   onReportSent,
   onAudioQualityError 
 }) {
-  const [uploadProgress, setUploadProgress] = useState({
-    isVisible: false,
-    progress: 0,
-    status: 'idle', // 'idle', 'processing', 'success', 'error'
-    message: '',
-  });
-
   const addAudioElement = async (blob) => {
     try {
-      setUploadProgress({ isVisible: true, progress: 0, status: 'processing', message: 'Starting voice recording processing...' });
-
-      // Step 1: Convert to WAV (25%)
-      setUploadProgress(prev => ({ ...prev, progress: 25, message: 'Converting audio format...' }));
+      // Convert to WAV
       const wavBlob = await convertToWav(blob);
       
-      // Step 2: Check recording duration (35%)
-      setUploadProgress(prev => ({ ...prev, progress: 35, message: 'Analyzing recording duration...' }));
+      // Check recording duration before sending to Flask
       const arrayBuffer = await wavBlob.arrayBuffer();
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
       const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
@@ -350,13 +185,6 @@ export default function AudioRecorderComponent({
       // Check if recording is too long (over 2 minutes)
       if (duration > 120) {
         console.log('⚠️ Recording too long:', duration, 'seconds');
-        setUploadProgress(prev => ({ 
-          ...prev, 
-          progress: 100, 
-          status: 'error', 
-          message: 'Recording is too long. Please keep it under 2 minutes for optimal analysis.' 
-        }));
-        
         if (onAudioQualityError) {
           onAudioQualityError({
             error_type: 'audio_quality',
@@ -373,8 +201,7 @@ export default function AudioRecorderComponent({
         return; // Don't save the recording
       }
       
-      // Step 3: Analyze audio quality (50%)
-      setUploadProgress(prev => ({ ...prev, progress: 50, message: 'Analyzing audio quality...' }));
+      // Analyze audio quality in real-time
       console.log('🔍 Analyzing audio quality...');
       const qualityResult = await analyzeAudioQuality(wavBlob);
       console.log('📊 Quality result:', qualityResult);
@@ -385,13 +212,6 @@ export default function AudioRecorderComponent({
         console.log('🎯 Error type:', qualityResult.error_type);
         console.log('📝 Message:', qualityResult.message);
         console.log('📊 Analysis:', qualityResult.quality_analysis);
-        
-        setUploadProgress(prev => ({ 
-          ...prev, 
-          progress: 100, 
-          status: 'error', 
-          message: qualityResult.message || 'Audio quality issue detected. Please re-record with better quality.' 
-        }));
         
         if (onAudioQualityError) {
           console.log('📞 Calling onAudioQualityError with:', {
@@ -424,45 +244,19 @@ export default function AudioRecorderComponent({
         return; // Don't save the recording
       }
       
-      // Step 4: Process voice data (75%)
-      setUploadProgress(prev => ({ ...prev, progress: 75, message: 'Processing voice data...' }));
-      
       // Audio quality is good, save the recording
       console.log('✅ Audio quality check passed');
-      
-      // Step 5: Save recording (100%)
-      setUploadProgress(prev => ({ ...prev, progress: 100, message: 'Saving recording...' }));
       
       if (onReportSent) {
         // Pass the blob data to parent for later processing
         onReportSent(null, therapistUsername, wavBlob);
       }
       
-      // Success state
-      setUploadProgress(prev => ({ 
-        ...prev, 
-        status: 'success', 
-        message: 'Voice recording saved successfully! Your emotional assessment has been recorded and will be processed for emotion analysis when you submit your booking.' 
-      }));
-      
-      // Auto-hide success message after 3 seconds
-      setTimeout(() => {
-        setUploadProgress({ isVisible: false, progress: 0, status: 'idle', message: '' });
-      }, 3000);
+      alert(`✅ Voice recording saved successfully!\n\nYour emotional assessment has been recorded and will be processed for emotion analysis when you submit your booking.\n\nYour responses to the 4 assessment questions will help your therapist understand your emotional state better.`);
       
     } catch (error) {
       console.error('Error processing recording:', error);
-      setUploadProgress(prev => ({ 
-        ...prev, 
-        progress: 100, 
-        status: 'error', 
-        message: 'Error processing voice recording. Please try again.' 
-      }));
-      
-      // Auto-hide error message after 5 seconds
-      setTimeout(() => {
-        setUploadProgress({ isVisible: false, progress: 0, status: 'idle', message: '' });
-      }, 5000);
+      alert('Error processing voice recording. Please try again.');
     }
   };
 
@@ -492,12 +286,6 @@ export default function AudioRecorderComponent({
         }}
       />
       <br/>
-      <UploadProgressIndicator
-        isVisible={uploadProgress.isVisible}
-        progress={uploadProgress.progress}
-        status={uploadProgress.status}
-        message={uploadProgress.message}
-      />
     </div>
   );
 }
