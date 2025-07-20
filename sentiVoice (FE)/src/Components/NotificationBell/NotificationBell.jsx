@@ -133,7 +133,7 @@ const NotificationBell = ({ username }) => {
           className={`${
             isMobile 
               ? 'fixed inset-0 z-50 bg-gradient-to-b from-gray-50 to-white flex flex-col' 
-              : `absolute mt-2 sm:mt-3 ${dropdownPosition === 'right' ? 'right-0' : 'left-0'}`
+              : `absolute mt-2 sm:mt-3 ${dropdownPosition === 'right' ? 'right-0' : 'left-0'} z-50`
           } w-full sm:w-72 md:w-80 bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden animate-fade-in`}
         >
           <div className={`${isMobile ? 'bg-white shadow-sm border-b border-gray-100' : 'bg-blue-50 text-blue-700'} px-4 sm:px-4 py-4 sm:py-3 flex items-center justify-between`}>
