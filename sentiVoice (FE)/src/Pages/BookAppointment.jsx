@@ -75,6 +75,12 @@ const generateTimes = (start, end) => {
   return times;
 };
 
+// [NEW] Utility to compare times (assumes 12-hour format with AM/PM)
+function isTimeOverlap(time1, time2) {
+  // Both times are strings like "03:00 PM"
+  return time1 === time2;
+}
+
 const BookAppointment = () => {
   const [username, setUsername] = useState("");
   const [role, setRole] = useState("");
@@ -481,6 +487,57 @@ useEffect(() => {
     "Review and submit your booking"
   ];
 
+  // [1] --- Add state for errors ---
+  const [errors, setErrors] = useState({});
+
+  // [2] --- Add min/max length for full name ---
+  const MIN_NAME_LENGTH = 2;
+  const MAX_NAME_LENGTH = 50;
+  const isValidFullName = (value) => isValidName(value) && value.length >= MIN_NAME_LENGTH && value.length <= MAX_NAME_LENGTH;
+
+  // [3] --- Add onBlur handlers for real-time validation ---
+  const handleFullNameBlur = () => {
+    if (!hasStoredFullName) {
+      if (!fullName) {
+        setErrors((prev) => ({ ...prev, fullName: 'Full name is required.' }));
+      } else if (!isValidName(fullName)) {
+        setErrors((prev) => ({ ...prev, fullName: 'Only letters and spaces are allowed.' }));
+      } else if (fullName.length < MIN_NAME_LENGTH) {
+        setErrors((prev) => ({ ...prev, fullName: `Full name must be at least ${MIN_NAME_LENGTH} characters.` }));
+      } else if (fullName.length > MAX_NAME_LENGTH) {
+        setErrors((prev) => ({ ...prev, fullName: `Full name must be at most ${MAX_NAME_LENGTH} characters.` }));
+      } else {
+        setErrors((prev) => ({ ...prev, fullName: undefined }));
+      }
+    }
+  };
+
+  const handlePhoneBlur = () => {
+    if (!hasStoredPhone) {
+      if (!phone) {
+        setErrors((prev) => ({ ...prev, phone: 'Phone number is required.' }));
+      } else if (!/^((\+92)|(0))3[0-9]{9}$/.test(phone)) {
+        setErrors((prev) => ({ ...prev, phone: 'Invalid phone number. Use 03XXXXXXXXX or +923XXXXXXXXX format.' }));
+      } else {
+        setErrors((prev) => ({ ...prev, phone: undefined }));
+      }
+    }
+  };
+
+  // [NEW] Fetch patient appointments for selected date
+  const fetchPatientAppointmentsForDate = async (date) => {
+    if (!username || !date) return [];
+    try {
+      const data = await api.get(`/api/appointments?username=${username}&role=patient`);
+      // Only consider appointments on the selected date and with status Pending/Accepted
+      return (data.appointments || []).filter(a => a.date === date && ["Pending", "Accepted"].includes(a.status));
+    } catch (err) {
+      return [];
+    }
+  };
+
+  const [patientAppointments, setPatientAppointments] = useState([]);
+
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <PatientSidebar current="appointments" />
@@ -602,229 +659,313 @@ useEffect(() => {
             {/* Step Content */}
             <div className="p-4 sm:p-6 lg:p-8">
             {step === 1 && (
-                <div className="space-y-4 sm:space-y-6">
-                  {/* Personal Information */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                    <div>
-                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-                        <FaUser className="inline mr-2 text-blue-600" />
-                        Full Name
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Enter your full name"
-                        className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${
-                          hasStoredFullName 
-                            ? 'bg-gray-50 border-gray-200 cursor-not-allowed' 
-                            : 'border-gray-300 hover:border-blue-400'
-                        }`}
-                        value={fullName}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          if (!hasStoredFullName && (val === "" || isValidName(val))) {
-                            setFullName(val);
-                          }
-                        }}
-                        readOnly={hasStoredFullName}
-                      />
-                      {!hasStoredFullName && fullName && !isValidName(fullName) && (
-                        <p className="text-red-500 text-xs sm:text-sm mt-1">Only letters and spaces are allowed.</p>
-                      )}
-                    </div>
+  <div className="space-y-4 sm:space-y-6">
+    {/* Personal Information */}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+      <div>
+        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2" htmlFor="fullName">
+          <FaUser className="inline mr-2 text-blue-600" />
+          Full Name <span className="text-red-500" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="fullName"
+          type="text"
+          placeholder="Enter your full name"
+          className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${
+            hasStoredFullName 
+              ? 'bg-gray-50 border-gray-200 cursor-not-allowed' 
+              : errors.fullName ? 'border-red-500' : 'border-gray-300 hover:border-blue-400'
+          }`}
+          value={fullName}
+          onChange={(e) => {
+            const val = e.target.value;
+            if (!hasStoredFullName && (val === "" || isValidName(val))) {
+              setFullName(val);
+              setErrors((prev) => ({ ...prev, fullName: undefined }));
+            }
+          }}
+          onBlur={handleFullNameBlur}
+          readOnly={hasStoredFullName}
+          aria-required="true"
+          aria-invalid={!!errors.fullName}
+          aria-describedby={errors.fullName ? 'fullName-error' : undefined}
+        />
+        {!hasStoredFullName && errors.fullName && (
+          <p id="fullName-error" className="text-red-500 text-xs sm:text-sm mt-1" role="alert">{errors.fullName}</p>
+        )}
+      </div>
+      <div>
+        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2" htmlFor="phone">
+          <FaPhone className="inline mr-2 text-blue-600" />
+          Phone Number <span className="text-red-500" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="phone"
+          type="text"
+          placeholder="03XXXXXXXXX or +923XXXXXXXXX"
+          className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${
+            hasStoredPhone 
+              ? 'bg-gray-50 border-gray-200 cursor-not-allowed' 
+              : errors.phone ? 'border-red-500' : 'border-gray-300 hover:border-blue-400'
+          }`}
+          value={phone}
+          onChange={(e) => {
+            const val = e.target.value;
+            if (!hasStoredPhone && /^(\+)?[0-9]*$/.test(val)) {
+              setPhone(val);
+              setErrors((prev) => ({ ...prev, phone: undefined }));
+            }
+          }}
+          onBlur={handlePhoneBlur}
+          readOnly={hasStoredPhone}
+          aria-required="true"
+          aria-invalid={!!errors.phone}
+          aria-describedby={errors.phone ? 'phone-error' : undefined}
+        />
+        {!hasStoredPhone && errors.phone && (
+          <p id="phone-error" className="text-red-500 text-xs sm:text-sm mt-1" role="alert">{errors.phone}</p>
+        )}
+      </div>
+    </div>
+    {/* Therapist Selection */}
+    <div>
+      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2" htmlFor="therapist">
+        <FaUserMd className="inline mr-2 text-blue-600" />
+        Select Therapist <span className="text-red-500" aria-hidden="true">*</span>
+      </label>
+      {/* TherapistSelection already handles selection, add aria-required and error if needed */}
+      <TherapistSelection
+        therapistList={therapistList}
+        selectedTherapist={therapistUsername}
+        onTherapistSelect={(username) => {
+          setTherapistUsername(username);
+          setErrors((prev) => ({ ...prev, therapist: undefined }));
+          const selectedTherapist = therapistList.find(t => t.username === username);
+          if (selectedTherapist?.info?.availability) {
+            if (sessionType === 'in-person') {
+              setAvailableSlots(selectedTherapist.info.availability.inPerson || []);
+            } else if (sessionType === 'online') {
+              setAvailableSlots(selectedTherapist.info.availability.online || []);
+            } else {
+              setAvailableSlots([]);
+            }
+          } else {
+            setAvailableSlots([]);
+          }
+        }}
+        onAvailabilityUpdate={() => {}}
+        aria-required="true"
+        aria-invalid={!!errors.therapist}
+      />
+      {errors.therapist && (
+        <p className="text-red-500 text-xs sm:text-sm mt-1" role="alert">{errors.therapist}</p>
+      )}
+    </div>
+    {/* Session Type */}
+    <div>
+      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2" htmlFor="sessionType">
+        <FaComments className="inline mr-2 text-blue-600" />
+        Session Type <span className="text-red-500" aria-hidden="true">*</span>
+      </label>
+      <select
+        id="sessionType"
+        value={sessionType}
+        onChange={(e) => {
+          setSessionType(e.target.value);
+          setErrors((prev) => ({ ...prev, sessionType: undefined }));
+          const selectedTherapist = therapistList.find(t => t.username === therapistUsername);
+          if (selectedTherapist?.info?.availability) {
+            if (e.target.value === 'in-person' || e.target.value === 'In-person') {
+              setAvailableSlots(selectedTherapist.info.availability.inPerson || []);
+            } else if (e.target.value === 'online' || e.target.value === 'Online') {
+              setAvailableSlots(selectedTherapist.info.availability.online || []);
+            } else {
+              setAvailableSlots([]);
+            }
+          } else {
+            setAvailableSlots([]);
+          }
+        }}
+        className={`w-full px-3 sm:px-4 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${errors.sessionType ? 'border-red-500' : 'border-gray-300 hover:border-blue-400'}`}
+        required
+        aria-required="true"
+        aria-invalid={!!errors.sessionType}
+        aria-describedby={errors.sessionType ? 'sessionType-error' : undefined}
+      >
+        <option value="">Select Session Type</option>
+        <option value="online">Online</option>
+        <option value="in-person">In-person</option>
+      </select>
+      {errors.sessionType && (
+        <p id="sessionType-error" className="text-red-500 text-xs sm:text-sm mt-1" role="alert">{errors.sessionType}</p>
+      )}
+    </div>
+    {/* Date and Time Selection */}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+      <div>
+        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2" htmlFor="date">
+          <FaCalendarAlt className="inline mr-2 text-blue-600" />
+          Appointment Date <span className="text-red-500" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="date"
+          type="date"
+          className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${errors.date ? 'border-red-500' : 'border-gray-300 hover:border-blue-400'}`}
+          value={date}
+          onChange={(e) => {
+            const selected = e.target.value;
+            setDate(selected);
+            setSelectedDate(selected);
+            setErrors((prev) => ({ ...prev, date: undefined }));
+            const selectedDay = new Date(selected).toLocaleDateString("en-US", {
+              weekday: "long"
+            });
+            setSelectedDay(selectedDay);
+          }}
+          required
+          min={new Date().toISOString().split("T")[0]}
+          max={new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split("T")[0]}
+          onKeyDown={(e) => e.preventDefault()}
+          onBlur={() => {
+            if (!date) setErrors((prev) => ({ ...prev, date: 'Date is required.' }));
+            else {
+              // [NEW] Custom past date validation
+              const today = new Date();
+              const selected = new Date(date);
+              today.setHours(0,0,0,0);
+              selected.setHours(0,0,0,0);
+              if (selected < today) {
+                setErrors((prev) => ({ ...prev, date: 'You cannot book for a past date.' }));
+              } else {
+                setErrors((prev) => ({ ...prev, date: undefined }));
+              }
+            }
+          }}
+          aria-required="true"
+          aria-invalid={!!errors.date}
+          aria-describedby={errors.date ? 'date-error' : undefined}
+        />
+        {errors.date && (
+          <p id="date-error" className="text-red-500 text-xs sm:text-sm mt-1" role="alert">{errors.date}</p>
+        )}
+      </div>
+      <div>
+        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2" htmlFor="time">
+          <FaClock className="inline mr-2 text-blue-600" />
+          Available Time <span className="text-red-500" aria-hidden="true">*</span>
+        </label>
+        <select
+          id="time"
+          value={time}
+          onChange={(e) => {
+            setTime(e.target.value);
+            setErrors((prev) => ({ ...prev, time: undefined }));
+          }}
+          className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${errors.time ? 'border-red-500' : 'border-gray-300 hover:border-blue-400'}`}
+          required
+          aria-required="true"
+          aria-invalid={!!errors.time}
+          aria-describedby={errors.time ? 'time-error' : undefined}
+        >
+          <option value="">Select available time</option>
+          {getTimesForDay(selectedDay).map((slot, idx) => {
+            const isBooked = bookedSlots.includes(slot);
+            return (
+              <option key={idx} value={slot} disabled={isBooked}>
+                {isBooked ? `🛑 ${slot} (Booked)` : slot}
+              </option>
+            );
+          })}
+        </select>
+        {errors.time && (
+          <p id="time-error" className="text-red-500 text-xs sm:text-sm mt-1" role="alert">{errors.time}</p>
+        )}
+      </div>
+    </div>
+    {/* Continue Button */}
+    <div className="flex justify-end pt-4 sm:pt-6">
+      <button
+        type="button"
+        onClick={async () => {
+          let newErrors = {};
+          // Step-by-step validation for step 1 only
+          if (!fullName || !isValidFullName(fullName)) {
+            if (!fullName) newErrors.fullName = 'Full name is required.';
+            else if (!isValidName(fullName)) newErrors.fullName = 'Only letters and spaces are allowed.';
+            else if (fullName.length < MIN_NAME_LENGTH) newErrors.fullName = `Full name must be at least ${MIN_NAME_LENGTH} characters.`;
+            else if (fullName.length > MAX_NAME_LENGTH) newErrors.fullName = `Full name must be at most ${MAX_NAME_LENGTH} characters.`;
+          }
+          if (!phone || !/^((\+92)|(0))3[0-9]{9}$/.test(phone)) {
+            if (!phone) newErrors.phone = 'Phone number is required.';
+            else newErrors.phone = 'Invalid phone number. Use 03XXXXXXXXX or +923XXXXXXXXX format.';
+          }
+          if (!therapistUsername) newErrors.therapist = 'Please select a therapist.';
+          if (!sessionType) newErrors.sessionType = 'Please select a session type.';
+          if (!date) newErrors.date = 'Date is required.';
+          else {
+            // [NEW] Custom past date validation
+            const today = new Date();
+            const selected = new Date(date);
+            today.setHours(0,0,0,0);
+            selected.setHours(0,0,0,0);
+            if (selected < today) {
+              newErrors.date = 'You cannot book for a past date.';
+            }
+          }
+          if (!time) newErrors.time = 'Please select a time.';
 
-                    <div>
-                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-                        <FaPhone className="inline mr-2 text-blue-600" />
-                        Phone Number
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="03XXXXXXXXX or +923XXXXXXXXX"
-                        className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${
-                          hasStoredPhone 
-                            ? 'bg-gray-50 border-gray-200 cursor-not-allowed' 
-                            : 'border-gray-300 hover:border-blue-400'
-                        }`}
-                        value={phone}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          if (!hasStoredPhone && /^(\+)?[0-9]*$/.test(val)) {
-                            setPhone(val);
-                          }
-                        }}
-                        readOnly={hasStoredPhone}
-                      />
-                      {!hasStoredPhone && phone && !/^((\+92)|(0))3[0-9]{9}$/.test(phone) && (
-                        <p className="text-red-500 text-xs sm:text-sm mt-1">
-                          Invalid phone number. Use 03XXXXXXXXX or +923XXXXXXXXX format.
-                        </p>
-                      )}
-                    </div>
-                  </div>
+          // [NEW] Overlapping appointment check
+          if (date && time) {
+            const appts = await fetchPatientAppointmentsForDate(date);
+            setPatientAppointments(appts);
+            const overlap = appts.some(a => isTimeOverlap(a.time, time));
+            if (overlap) {
+              newErrors.time = 'You already have another appointment at this time.';
+            }
+          }
 
-                  {/* Therapist Selection */}
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-                      <FaUserMd className="inline mr-2 text-blue-600" />
-                      Select Therapist
-                    </label>
-                    <TherapistSelection
-                      therapistList={therapistList}
-                      selectedTherapist={therapistUsername}
-                      onTherapistSelect={(username) => {
-                        setTherapistUsername(username);
-                        const selectedTherapist = therapistList.find(t => t.username === username);
-                        // Set available slots based on current sessionType
-                        if (selectedTherapist?.info?.availability) {
-                          if (sessionType === 'in-person') {
-                            setAvailableSlots(selectedTherapist.info.availability.inPerson || []);
-                          } else if (sessionType === 'online') {
-                            setAvailableSlots(selectedTherapist.info.availability.online || []);
-                          } else {
-                            setAvailableSlots([]);
-                          }
-                        } else {
-                          setAvailableSlots([]);
-                        }
-                      }}
-                      onAvailabilityUpdate={() => {}}
-                    />
-                  </div>
-
-                  {/* Session Type */}
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-                      <FaComments className="inline mr-2 text-blue-600" />
-                      Session Type
-                    </label>
-                    <select
-                      value={sessionType}
-                      onChange={(e) => {
-                        setSessionType(e.target.value);
-                        // Update available slots based on session type and selected therapist
-                        const selectedTherapist = therapistList.find(t => t.username === therapistUsername);
-                        if (selectedTherapist?.info?.availability) {
-                          if (e.target.value === 'in-person' || e.target.value === 'In-person') {
-                            setAvailableSlots(selectedTherapist.info.availability.inPerson || []);
-                          } else if (e.target.value === 'online' || e.target.value === 'Online') {
-                            setAvailableSlots(selectedTherapist.info.availability.online || []);
-                          } else {
-                            setAvailableSlots([]);
-                          }
-                        } else {
-                          setAvailableSlots([]);
-                        }
-                      }}
-                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
-                      required
-                    >
-                      <option value="">Select Session Type</option>
-                      <option value="online">Online</option>
-                      <option value="in-person">In-person</option>
-                    </select>
-                  </div>
-
-                  {/* Date and Time Selection */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                    <div>
-                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-                        <FaCalendarAlt className="inline mr-2 text-blue-600" />
-                        Appointment Date
-                      </label>
-                      <input
-                        type="date"
-                        className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 border-gray-300 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base"
-                        value={date}
-                        onChange={(e) => {
-                          const selected = e.target.value;
-                          setDate(selected);
-                          setSelectedDate(selected);
-                          const selectedDay = new Date(selected).toLocaleDateString("en-US", {
-                            weekday: "long"
-                          });
-                          setSelectedDay(selectedDay);
-                        }}
-                        required
-                        min={new Date().toISOString().split("T")[0]}
-                        max={new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split("T")[0]}
-                        onKeyDown={(e) => e.preventDefault()}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-                        <FaClock className="inline mr-2 text-blue-600" />
-                        Available Time
-                      </label>
-                      <select
-                        value={time}
-                        onChange={(e) => setTime(e.target.value)}
-                        className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 border-gray-300 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base"
-                        required
-                      >
-                        <option value="">Select available time</option>
-                        {getTimesForDay(selectedDay).map((slot, idx) => {
-                          const isBooked = bookedSlots.includes(slot);
-                          return (
-                            <option key={idx} value={slot} disabled={isBooked}>
-                              {isBooked ? `🛑 ${slot} (Booked)` : slot}
-                            </option>
-                          );
-                        })}
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Continue Button */}
-                  <div className="flex justify-end pt-4 sm:pt-6">
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        if (!therapistUsername || !sessionType || !date || !time || !phone) {
-                          alert("Please fill out all required fields before proceeding.");
-                          return;
-                        }
-                        
-                        if (!/^((\+92)|(0))3[0-9]{9}$/.test(phone)) {
-                          alert("Invalid phone number. Use 03XXXXXXXXX or +923XXXXXXXXX format.");
-                          return;
-                        }
-                      
-                        const hasDuplicate = await checkDuplicateBooking(username, therapistUsername);
-                        if (hasDuplicate) {
-                          alert("You already have a pending or accepted appointment with this therapist.");
-                          return;
-                        }
-                      
-                        nextStep();
-                      }}
-                      className="flex items-center px-6 sm:px-8 py-2 sm:py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl text-sm sm:text-base"
-                    >
-                      Continue to Payment
-                      <FaArrowRight className="ml-2" />
-                    </button>
-                  </div>
-              </div>
-            )}
+          setErrors(newErrors);
+          if (Object.keys(newErrors).length > 0) return;
+          const hasDuplicate = await checkDuplicateBooking(username, therapistUsername);
+          if (hasDuplicate) {
+            setErrors((prev) => ({ ...prev, therapist: 'You already have a pending or accepted appointment with this therapist.' }));
+            return;
+          }
+          nextStep();
+        }}
+        className="flex items-center px-6 sm:px-8 py-2 sm:py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl text-sm sm:text-base"
+        aria-label="Continue to Payment"
+      >
+        Continue to Payment
+        <FaArrowRight className="ml-2" />
+      </button>
+    </div>
+  </div>
+)}
 
             {step === 2 && (
                 <div className="space-y-4 sm:space-y-6">
                   {/* Payment Method Selection */}
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2" htmlFor="paymentMethod">
                       <FaCreditCard className="inline mr-2 text-blue-600" />
-                      Payment Method
+                      Payment Method <span className="text-red-500" aria-hidden="true">*</span>
                     </label>
                     <select
+                      id="paymentMethod"
                       value={paymentMethod}
                       onChange={(e) => {
                         setPaymentMethod(e.target.value);
                         setReferenceNo("");
                         setSlipFile(null);
                         setUploadProgress(0);
+                        setErrors((prev) => ({ ...prev, paymentMethod: undefined }));
                       }}
-                      className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 border-gray-300 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base"
+                      className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${errors.paymentMethod ? 'border-red-500' : 'border-gray-300 hover:border-blue-400'}`}
                       disabled={loadingPaymentSettings}
+                      aria-required="true"
+                      aria-invalid={!!errors.paymentMethod}
+                      aria-describedby={errors.paymentMethod ? 'paymentMethod-error' : undefined}
                     >
                       <option value="">
                         {loadingPaymentSettings ? "Loading payment methods..." : "Select payment method"}
@@ -835,6 +976,9 @@ useEffect(() => {
                         </option>
                       ))}
                     </select>
+                    {errors.paymentMethod && (
+                      <p id="paymentMethod-error" className="text-red-500 text-xs sm:text-sm mt-1" role="alert">{errors.paymentMethod}</p>
+                    )}
                   </div>
 
                   {/* Account Details */}
@@ -870,27 +1014,42 @@ useEffect(() => {
                   {/* Reference Number */}
                   {paymentMethod && (
                     <div>
-                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-                        Transaction Reference Number
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2" htmlFor="referenceNo">
+                        Transaction Reference Number <span className="text-red-500" aria-hidden="true">*</span>
                       </label>
                       <input
+                        id="referenceNo"
                         type="text"
                         placeholder="Enter your transaction reference number"
                         value={referenceNo}
-                        onChange={(e) => setReferenceNo(e.target.value)}
-                        className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 border-gray-300 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base"
+                        onChange={(e) => {
+                          setReferenceNo(e.target.value);
+                          setErrors((prev) => ({ ...prev, referenceNo: undefined }));
+                        }}
+                        onBlur={() => {
+                          if (!referenceNo) setErrors((prev) => ({ ...prev, referenceNo: 'Reference number is required.' }));
+                          else if (referenceNo.length < 6) setErrors((prev) => ({ ...prev, referenceNo: 'Reference number must be at least 6 characters.' }));
+                          else setErrors((prev) => ({ ...prev, referenceNo: undefined }));
+                        }}
+                        className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${errors.referenceNo ? 'border-red-500' : 'border-gray-300 hover:border-blue-400'}`}
+                        aria-required="true"
+                        aria-invalid={!!errors.referenceNo}
+                        aria-describedby={errors.referenceNo ? 'referenceNo-error' : undefined}
                       />
+                      {errors.referenceNo && (
+                        <p id="referenceNo-error" className="text-red-500 text-xs sm:text-sm mt-1" role="alert">{errors.referenceNo}</p>
+                      )}
                     </div>
                   )}
 
                   {/* File Upload */}
                   {paymentMethod && (
                     <div>
-                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2" htmlFor="file-upload">
                         <FaUpload className="inline mr-2 text-blue-600" />
-                        Payment Screenshot
+                        Payment Screenshot <span className="text-red-500" aria-hidden="true">*</span>
                       </label>
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-6 text-center hover:border-blue-400 transition-colors">
+                      <div className={`border-2 border-dashed rounded-lg p-4 sm:p-6 text-center transition-colors ${errors.slipFile ? 'border-red-500' : 'border-gray-300 hover:border-blue-400'}`}>
                         <input
                           type="file"
                           accept="image/*"
@@ -901,13 +1060,18 @@ useEffect(() => {
                               setUploadProgress(30);
                               setTimeout(() => setUploadProgress(70), 300);
                               setTimeout(() => setUploadProgress(100), 600);
+                              setErrors((prev) => ({ ...prev, slipFile: undefined }));
                             } else {
                               setSlipFile(null);
                               setUploadProgress(0);
+                              setErrors((prev) => ({ ...prev, slipFile: 'Payment screenshot is required.' }));
                             }
                           }}
                           className="hidden"
                           id="file-upload"
+                          aria-required="true"
+                          aria-invalid={!!errors.slipFile}
+                          aria-describedby={errors.slipFile ? 'slipFile-error' : undefined}
                         />
                         <label htmlFor="file-upload" className="cursor-pointer">
                           <FaUpload className="mx-auto text-2xl sm:text-3xl text-gray-400 mb-4" />
@@ -919,6 +1083,9 @@ useEffect(() => {
                           </div>
                         </label>
                       </div>
+                      {errors.slipFile && (
+                        <p id="slipFile-error" className="text-red-500 text-xs sm:text-sm mt-1" role="alert">{errors.slipFile}</p>
+                      )}
                       
                       {/* Upload Progress */}
                       {uploadProgress > 0 && (
@@ -991,7 +1158,17 @@ useEffect(() => {
                     
                     <button
                       type="button"
-                      onClick={nextStep}
+                      onClick={() => {
+                        // Step-by-step validation for step 2 only
+                        let newErrors = {};
+                        if (!paymentMethod) newErrors.paymentMethod = 'Please select a payment method.';
+                        if (!referenceNo) newErrors.referenceNo = 'Reference number is required.';
+                        else if (referenceNo.length < 6) newErrors.referenceNo = 'Reference number must be at least 6 characters.';
+                        if (!slipFile) newErrors.slipFile = 'Payment screenshot is required.';
+                        setErrors(newErrors);
+                        if (Object.keys(newErrors).length > 0) return;
+                        nextStep();
+                      }}
                       disabled={!step2Valid}
                       className={`flex items-center justify-center px-6 sm:px-8 py-2 sm:py-3 font-semibold rounded-lg transition-all duration-200 text-sm sm:text-base ${
                         step2Valid 
@@ -1020,7 +1197,7 @@ useEffect(() => {
                       <FaMicrophone className="text-xl sm:text-2xl text-white" />
                     </div>
                     <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
-                      Emotion Assessment
+                      Emotion Assessment <span className="text-red-500" aria-hidden="true">*</span>
                     </h3>
                     <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8 max-w-2xl mx-auto">
                       Help your therapist understand your emotional state by answering these questions through voice recording
@@ -1121,7 +1298,7 @@ useEffect(() => {
                   {/* Audio Recorder */}
                   <div className="bg-white border-2 border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm">
                     <div className="text-center mb-4">
-                      <h4 className="text-base sm:text-lg font-semibold text-gray-800 mb-2">Ready to Record?</h4>
+                      <h4 className="text-base sm:text-lg font-semibold text-gray-800 mb-2">Ready to Record? <span className="text-red-500" aria-hidden="true">*</span></h4>
                       <p className="text-sm sm:text-base text-gray-600">
                         Click the record button below and answer all 4 questions in one continuous recording
                       </p>
@@ -1136,8 +1313,13 @@ useEffect(() => {
                         patientData={patientData}
                         onReportSent={handleReportSent}
                         onAudioQualityError={handleAudioQualityError}
+                        aria-required="true"
+                        aria-invalid={!recordingSaved}
                       />
                     </div>
+                    {!recordingSaved && (
+                      <p className="text-red-500 text-xs sm:text-sm mt-2" role="alert">Voice recording is required to continue.</p>
+                    )}
                   </div>
 
                   {recordingSaved && (
@@ -1169,13 +1351,22 @@ useEffect(() => {
                     
                     <button
                       type="button"
-                      onClick={nextStep}
+                      onClick={() => {
+                        // Step-by-step validation for step 3 only
+                        if (!recordingSaved) {
+                          setErrors((prev) => ({ ...prev, voiceRecording: 'Voice recording is required to continue.' }));
+                          return;
+                        }
+                        setErrors((prev) => ({ ...prev, voiceRecording: undefined }));
+                        nextStep();
+                      }}
                       disabled={!step3Valid}
                       className={`flex items-center justify-center px-6 sm:px-8 py-2 sm:py-3 font-semibold rounded-lg transition-all duration-200 text-sm sm:text-base ${
                         step3Valid 
                           ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl' 
                           : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       }`}
+                      aria-label="Continue to Review"
                     >
                       {step3Valid ? (
                         <>

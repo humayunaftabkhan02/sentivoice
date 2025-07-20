@@ -15,6 +15,7 @@ const TherapistReports = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [profilePicture, setProfilePicture] = useState(null);
+  const [downloadError, setDownloadError] = useState({});
 
   // Filter states
   const [showFilters, setShowFilters] = useState(false);
@@ -181,22 +182,20 @@ const TherapistReports = () => {
   };
 
   const downloadReport = async (reportId, fileName) => {
+    setDownloadError({});
     try {
       const token = localStorage.getItem('token');
       const headers = {};
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
-
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/reports/download/${reportId}`, {
         method: 'GET',
         headers
       });
-
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -208,8 +207,8 @@ const TherapistReports = () => {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (err) {
+      setDownloadError(prev => ({ ...prev, [reportId]: 'Error downloading report: ' + err.message }));
       console.error("Error downloading report:", err);
-      alert("Error downloading report: " + err.message);
     }
   };
 
@@ -535,6 +534,9 @@ const TherapistReports = () => {
                           <FaDownload className="mr-1.5 sm:mr-2" />
                           Download PDF
                         </button>
+                        {downloadError[report._id] && (
+                          <div className="text-red-500 text-xs mt-1" aria-live="polite" role="alert">{downloadError[report._id]}</div>
+                        )}
                         <div className="text-xs text-gray-500 text-center sm:text-right max-w-full sm:max-w-48 break-words">
                           {report.fileName}
                         </div>

@@ -72,6 +72,53 @@ export default function PaymentSettings() {
     isActive: true
   });
 
+  const [addFormErrors, setAddFormErrors] = useState({});
+  const [editFormErrors, setEditFormErrors] = useState({});
+
+  const validatePaymentForm = (form) => {
+    const errors = {};
+    if (!form.method.trim()) errors.method = 'Payment method is required.';
+    if (!form.accountName.trim()) errors.accountName = 'Account name is required.';
+    if (!form.accountNumber.trim()) errors.accountNumber = 'Account number is required.';
+    if (!form.amount.trim()) errors.amount = 'Amount is required.';
+    else if (isNaN(form.amount) || Number(form.amount) <= 0) errors.amount = 'Amount must be a positive number.';
+    return errors;
+  };
+
+  const handleAddFormChange = (e) => {
+    const { name, value } = e.target;
+    setAddForm((prev) => ({ ...prev, [name]: value }));
+    setAddFormErrors((prev) => {
+      const newForm = { ...addForm, [name]: value };
+      return validatePaymentForm(newForm);
+    });
+  };
+
+  const handleAddFormBlur = (e) => {
+    const { name, value } = e.target;
+    setAddFormErrors((prev) => {
+      const newForm = { ...addForm, [name]: value };
+      return validatePaymentForm(newForm);
+    });
+  };
+
+  const handleEditFormChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm((prev) => ({ ...prev, [name]: value }));
+    setEditFormErrors((prev) => {
+      const newForm = { ...editForm, [name]: value };
+      return validatePaymentForm(newForm);
+    });
+  };
+
+  const handleEditFormBlur = (e) => {
+    const { name, value } = e.target;
+    setEditFormErrors((prev) => {
+      const newForm = { ...editForm, [name]: value };
+      return validatePaymentForm(newForm);
+    });
+  };
+
   const fetchPendingCounts = async () => {
     try {
       // Fetch pending therapist approvals
@@ -171,6 +218,9 @@ export default function PaymentSettings() {
   };
 
   const handleAdd = async () => {
+    const errors = validatePaymentForm(addForm);
+    setAddFormErrors(errors);
+    if (Object.keys(errors).length > 0) return;
     try {
       setLoading(true);
       await api.post("/api/admin/payment-settings", addForm);
@@ -186,6 +236,9 @@ export default function PaymentSettings() {
   };
 
   const handleSave = async () => {
+    const errors = validatePaymentForm(editForm);
+    setEditFormErrors(errors);
+    if (Object.keys(errors).length > 0) return;
     try {
       setLoading(true);
       await api.put(`/api/admin/payment-settings/${editingId}`, editForm);
@@ -476,9 +529,13 @@ export default function PaymentSettings() {
                             Payment Method *
                           </label>
                           <select
+                            name="method"
                             value={addForm.method}
-                            onChange={(e) => setAddForm({...addForm, method: e.target.value})}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-xs sm:text-sm"
+                            onChange={handleAddFormChange}
+                            onBlur={handleAddFormBlur}
+                            className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-xs sm:text-sm ${addFormErrors.method ? 'border-red-500' : ''}`}
+                            aria-invalid={!!addFormErrors.method}
+                            aria-describedby={addFormErrors.method ? 'add-method-error' : undefined}
                           >
                             <option value="">Select Payment Method</option>
                             <option value="easypaisa">Easypaisa</option>
@@ -494,6 +551,7 @@ export default function PaymentSettings() {
                             <option value="apple_pay">Apple Pay</option>
                             <option value="other">Other</option>
                           </select>
+                          {addFormErrors.method && <div id="add-method-error" className="text-red-500 text-xs mt-1" role="alert" aria-live="polite">{addFormErrors.method}</div>}
                         </div>
                         
                         <div>
@@ -515,12 +573,17 @@ export default function PaymentSettings() {
                             Account Name *
                           </label>
                           <input
+                            name="accountName"
                             type="text"
                             value={addForm.accountName}
-                            onChange={(e) => setAddForm({...addForm, accountName: e.target.value})}
+                            onChange={handleAddFormChange}
+                            onBlur={handleAddFormBlur}
                             placeholder="e.g., SentiVoice Easypaisa"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-xs sm:text-sm"
+                            className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-xs sm:text-sm ${addFormErrors.accountName ? 'border-red-500' : ''}`}
+                            aria-invalid={!!addFormErrors.accountName}
+                            aria-describedby={addFormErrors.accountName ? 'add-accountName-error' : undefined}
                           />
+                          {addFormErrors.accountName && <div id="add-accountName-error" className="text-red-500 text-xs mt-1" role="alert" aria-live="polite">{addFormErrors.accountName}</div>}
                         </div>
                         
                         <div>
@@ -528,12 +591,17 @@ export default function PaymentSettings() {
                             Account Number *
                           </label>
                           <input
+                            name="accountNumber"
                             type="text"
                             value={addForm.accountNumber}
-                            onChange={(e) => setAddForm({...addForm, accountNumber: e.target.value})}
+                            onChange={handleAddFormChange}
+                            onBlur={handleAddFormBlur}
                             placeholder="e.g., 0345-0000000"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-xs sm:text-sm"
+                            className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-xs sm:text-sm ${addFormErrors.accountNumber ? 'border-red-500' : ''}`}
+                            aria-invalid={!!addFormErrors.accountNumber}
+                            aria-describedby={addFormErrors.accountNumber ? 'add-accountNumber-error' : undefined}
                           />
+                          {addFormErrors.accountNumber && <div id="add-accountNumber-error" className="text-red-500 text-xs mt-1" role="alert" aria-live="polite">{addFormErrors.accountNumber}</div>}
                         </div>
                         
                         <div>
@@ -541,12 +609,17 @@ export default function PaymentSettings() {
                             Amount (PKR) *
                           </label>
                           <input
+                            name="amount"
                             type="number"
                             value={addForm.amount}
-                            onChange={(e) => setAddForm({...addForm, amount: e.target.value})}
+                            onChange={handleAddFormChange}
+                            onBlur={handleAddFormBlur}
                             placeholder="e.g., 2500"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-xs sm:text-sm"
+                            className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-xs sm:text-sm ${addFormErrors.amount ? 'border-red-500' : ''}`}
+                            aria-invalid={!!addFormErrors.amount}
+                            aria-describedby={addFormErrors.amount ? 'add-amount-error' : undefined}
                           />
+                          {addFormErrors.amount && <div id="add-amount-error" className="text-red-500 text-xs mt-1" role="alert" aria-live="polite">{addFormErrors.amount}</div>}
                         </div>
                       </div>
                       
@@ -572,9 +645,9 @@ export default function PaymentSettings() {
                         </button>
                         <button
                           onClick={handleAdd}
-                          disabled={loading || !addForm.method || !addForm.accountName || !addForm.accountNumber || !addForm.amount}
+                          disabled={Object.keys(addFormErrors).length > 0}
                           className={`flex-1 sm:flex-none flex items-center justify-center space-x-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white rounded-lg transition-colors ${
-                            loading || !addForm.method || !addForm.accountName || !addForm.accountNumber || !addForm.amount
+                            Object.keys(addFormErrors).length > 0
                               ? 'bg-gray-400 cursor-not-allowed'
                               : 'bg-green-600 hover:bg-green-700'
                           }`}
@@ -633,11 +706,16 @@ export default function PaymentSettings() {
                               Account Name
                             </label>
                             <input
+                              name="accountName"
                               type="text"
                               value={editForm.accountName}
-                              onChange={(e) => setEditForm({...editForm, accountName: e.target.value})}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm"
+                              onChange={handleEditFormChange}
+                              onBlur={handleEditFormBlur}
+                              className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm ${editFormErrors.accountName ? 'border-red-500' : ''}`}
+                              aria-invalid={!!editFormErrors.accountName}
+                              aria-describedby={editFormErrors.accountName ? 'edit-accountName-error' : undefined}
                             />
+                            {editFormErrors.accountName && <div id="edit-accountName-error" className="text-red-500 text-xs mt-1" role="alert" aria-live="polite">{editFormErrors.accountName}</div>}
                           </div>
                           
                           <div>
@@ -645,10 +723,12 @@ export default function PaymentSettings() {
                               Account Number
                             </label>
                             <input
+                              name="accountNumber"
                               type="text"
                               value={editForm.accountNumber}
-                              onChange={(e) => setEditForm({...editForm, accountNumber: e.target.value})}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm"
+                              onChange={handleEditFormChange}
+                              onBlur={handleEditFormBlur}
+                              className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm`}
                             />
                           </div>
                           
@@ -657,11 +737,16 @@ export default function PaymentSettings() {
                               Amount (PKR)
                             </label>
                             <input
+                              name="amount"
                               type="number"
                               value={editForm.amount}
-                              onChange={(e) => setEditForm({...editForm, amount: e.target.value})}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm"
+                              onChange={handleEditFormChange}
+                              onBlur={handleEditFormBlur}
+                              className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs sm:text-sm ${editFormErrors.amount ? 'border-red-500' : ''}`}
+                              aria-invalid={!!editFormErrors.amount}
+                              aria-describedby={editFormErrors.amount ? 'edit-amount-error' : undefined}
                             />
+                            {editFormErrors.amount && <div id="edit-amount-error" className="text-red-500 text-xs mt-1" role="alert" aria-live="polite">{editFormErrors.amount}</div>}
                           </div>
                           
                           <div>

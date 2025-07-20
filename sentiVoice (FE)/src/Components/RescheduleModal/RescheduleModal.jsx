@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { FaTimes, FaCalendarAlt, FaClock, FaCommentAlt, FaCheck, FaExclamationTriangle } from "react-icons/fa";
 import { api } from "../../utils/api";
 
@@ -31,72 +31,161 @@ const generateTimes = (start, end) => {
   return times;
 };
 
+// Add normalization function
+function normalizeSessionType(type) {
+  if (!type) return '';
+  const t = type.trim().toLowerCase();
+  if (t === 'in-person' || t === 'in-person session' || t === 'inperson') return 'in-person';
+  if (t === 'online' || t === 'online session') return 'online';
+  return '';
+}
+
 const RescheduleModal = ({ appointment, onClose, onConfirm, userRole = 'patient' }) => {
   const [availableSlots, setAvailableSlots] = useState([]);
   const [bookedSlots, setBookedSlots] = useState([]);
-  const [selectedDate, setSelectedDate] = useState("");
-  const [selectedTime, setSelectedTime] = useState("");
-  const [selectedDay, setSelectedDay] = useState("");
+  const [selectedDate, setSelectedDate] = useState(appointment.date || "");
+  const [selectedTime, setSelectedTime] = useState(appointment.time || "");
+  // Remove selectedDay state
   const [reason, setReason] = useState("");
+  const [reasonError, setReasonError] = useState("");
+  const MAX_REASON_LENGTH = 50;
+
+  const validateReason = (val) => {
+    if (val.length > MAX_REASON_LENGTH) return `Reason cannot exceed ${MAX_REASON_LENGTH} characters`;
+    if (/https?:\/\//i.test(val) || /<script/i.test(val)) return 'Links or code are not allowed in the reason';
+    return '';
+  };
+
+  const handleReasonChange = (e) => {
+    const val = e.target.value;
+    setReason(val);
+    setReasonError(validateReason(val));
+  };
+
+  const handleReasonBlur = (e) => {
+    setReasonError(validateReason(e.target.value));
+  };
+  const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState("");
 
   const therapist = appointment.therapistUsername;
 
   useEffect(() => {
     const fetchAvailability = async () => {
       try {
+        const sessionType = normalizeSessionType(appointment.sessionType);
         const [slotRes, bookedRes] = await Promise.all([
-          api.get(`/therapist/${therapist}/availability`),
-          api.get(`/appointments/booked?therapist=${therapist}&date=${selectedDate}`)
+          api.get(`/api/therapist/${therapist}/availability?sessionType=${encodeURIComponent(sessionType)}`),
+          api.get(`/api/appointments/booked?therapist=${therapist}&date=${selectedDate}`)
         ]);
-
-                  const slotData = slotRes;
-          const bookedData = bookedRes;
-
+        const slotData = slotRes;
+        const bookedData = bookedRes;
         setAvailableSlots(slotData.slots || []);
         setBookedSlots(bookedData.bookedTimes || []);
-      } catch (error) {
-        console.error("Error fetching availability/booked times:", error);
+      } catch (err) {
+        setAvailableSlots([]);
+        setBookedSlots([]);
+        // Error log can remain for actual errors
+        console.error('Error fetching availability/booked times:', err);
       }
     };
+    if (therapist && selectedDate) fetchAvailability();
+  }, [therapist, selectedDate, appointment.sessionType]);
 
-    if (selectedDate) {
-      const weekday = new Date(selectedDate).toLocaleDateString("en-US", {
-        weekday: "long",
-      });
-      setSelectedDay(weekday);
-      fetchAvailability();
-    }
-  }, [selectedDate]);
-
-  const getTimesForDay = () => {
+  // Compute timesForDay using useMemo to always use latest state
+  const timesForDay = useMemo(() => {
+    const dayString = selectedDate
+      ? new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long' })
+      : '';
     const slots = availableSlots.filter(
-      (s) => s.day.toLowerCase() === selectedDay.toLowerCase()
+      (s) => s.day && s.day.toLowerCase() === dayString.toLowerCase()
     );
-  
     const now = new Date();
     const today = new Date().toISOString().split("T")[0];
-  
     return slots.flatMap((s) =>
       generateTimes(s.start, s.end).filter((slot) => {
         if (selectedDate !== today) return true;
-  
-        // Convert slot (e.g., "10:00 AM") to a Date object for today
         const [time, meridian] = slot.split(" ");
         let [hour, minute] = time.split(":").map(Number);
         if (meridian === "PM" && hour < 12) hour += 12;
         if (meridian === "AM" && hour === 12) hour = 0;
-  
         const slotDateTime = new Date();
         slotDateTime.setHours(hour, minute, 0, 0);
-  
         return slotDateTime > now;
       })
     );
+  }, [availableSlots, selectedDate]);
+
+  // Add real-time validation handlers
+  const handleDateChange = (e) => {
+    setSelectedDate(e.target.value);
+    setErrors((prev) => ({ ...prev, date: undefined }));
+    // Validate immediately
+    validateField('date', e.target.value, selectedTime);
+  };
+  const handleDateBlur = (e) => {
+    validateField('date', e.target.value, selectedTime);
+  };
+  const handleTimeChange = (e) => {
+    setSelectedTime(e.target.value);
+    setErrors((prev) => ({ ...prev, time: undefined }));
+    // Validate immediately
+    validateField('time', selectedDate, e.target.value);
+  };
+  const handleTimeBlur = (e) => {
+    validateField('time', selectedDate, e.target.value);
   };
 
-  const handleSubmit = () => {
-    if (!selectedDate || !selectedTime) return alert("Please select both date and time.");
-    onConfirm(selectedDate, selectedTime, reason);
+  function validateField(field, dateVal, timeVal) {
+    let newErrors = { ...errors };
+    if (field === 'date') {
+      if (!dateVal) newErrors.date = 'Please select a date.';
+      else {
+        const today = new Date();
+        const sel = new Date(dateVal);
+        today.setHours(0,0,0,0);
+        sel.setHours(0,0,0,0);
+        if (sel < today) newErrors.date = 'You cannot reschedule to a past date.';
+        else delete newErrors.date;
+      }
+    }
+    if (field === 'time') {
+      if (!timeVal) newErrors.time = 'Please select a time.';
+      else if (dateVal === appointment.date && timeVal === appointment.time) {
+        newErrors.time = 'You cannot reschedule to the same date and time as the original appointment.';
+      } else delete newErrors.time;
+    }
+    setErrors(newErrors);
+  }
+
+  const handleSubmit = async () => {
+    let newErrors = {};
+    setApiError("");
+    // Date validation
+    if (!selectedDate) newErrors.date = "Please select a date.";
+    else {
+      const today = new Date();
+      const sel = new Date(selectedDate);
+      today.setHours(0,0,0,0);
+      sel.setHours(0,0,0,0);
+      if (sel < today) newErrors.date = "You cannot reschedule to a past date.";
+    }
+    // Time validation
+    if (!selectedTime) newErrors.time = "Please select a time.";
+    // Prevent rescheduling to the same date and time
+    if (
+      selectedDate === appointment.date &&
+      selectedTime === appointment.time
+    ) {
+      newErrors.time = "You cannot reschedule to the same date and time as the original appointment.";
+    }
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
+    try {
+      await onConfirm(selectedDate, selectedTime, reason);
+    } catch (err) {
+      setApiError(err?.message || "Failed to reschedule. Please try again.");
+    }
   };
 
   if (!appointment) return null;
@@ -142,6 +231,9 @@ const RescheduleModal = ({ appointment, onClose, onConfirm, userRole = 'patient'
                     : `${appointment.date} at ${appointment.time} with ${appointment.therapistFullName || `Dr. ${appointment.therapistUsername}`}`
                   }
                 </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Session Type: <span className="font-semibold">{appointment.sessionType === 'in-person' ? 'In-person' : appointment.sessionType === 'online' ? 'Online' : 'N/A'}</span>
+                </p>
               </div>
             </div>
           </div>
@@ -154,12 +246,19 @@ const RescheduleModal = ({ appointment, onClose, onConfirm, userRole = 'patient'
             </div>
             <input
               type="date"
-              className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              className={`w-full p-4 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${errors.date ? 'border-red-500' : 'border-gray-200'}`}
               value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
+              onChange={handleDateChange}
+              onBlur={handleDateBlur}
               min={new Date().toISOString().split("T")[0]}
               max={new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split("T")[0]}
+              aria-required="true"
+              aria-invalid={!!errors.date}
+              aria-describedby={errors.date ? 'date-error' : undefined}
             />
+            {errors.date && (
+              <p id="date-error" className="text-red-500 text-xs mt-1" role="alert">{errors.date}</p>
+            )}
           </div>
 
           {/* Time Selection */}
@@ -169,13 +268,17 @@ const RescheduleModal = ({ appointment, onClose, onConfirm, userRole = 'patient'
               <label className="text-sm font-medium text-gray-700">Select New Time</label>
             </div>
             <select
-              className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 disabled:bg-gray-50 disabled:text-gray-500"
+              className={`w-full p-4 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 disabled:bg-gray-50 disabled:text-gray-500 ${errors.time ? 'border-red-500' : 'border-gray-200'}`}
               value={selectedTime}
-              onChange={(e) => setSelectedTime(e.target.value)}
+              onChange={handleTimeChange}
+              onBlur={handleTimeBlur}
               disabled={!selectedDate}
+              aria-required="true"
+              aria-invalid={!!errors.time}
+              aria-describedby={errors.time ? 'time-error' : undefined}
             >
               <option value="">Select a time slot</option>
-              {getTimesForDay().map((slot, idx) => {
+              {timesForDay.map((slot, idx) => {
                 const isBooked = bookedSlots.includes(slot);
                 return (
                   <option key={idx} value={slot} disabled={isBooked}>
@@ -184,6 +287,12 @@ const RescheduleModal = ({ appointment, onClose, onConfirm, userRole = 'patient'
                 );
               })}
             </select>
+            {timesForDay.length === 0 && selectedDate && (
+              <p className="text-red-500 text-xs mt-1" role="alert">No available slots for this day. Please select another date.</p>
+            )}
+            {errors.time && (
+              <p id="time-error" className="text-red-500 text-xs mt-1" role="alert">{errors.time}</p>
+            )}
           </div>
 
           {/* Reason Input */}
@@ -196,9 +305,14 @@ const RescheduleModal = ({ appointment, onClose, onConfirm, userRole = 'patient'
               className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all duration-200"
               rows="3"
               value={reason}
-              onChange={(e) => setReason(e.target.value)}
+              onChange={handleReasonChange}
+              onBlur={handleReasonBlur}
+              maxLength={MAX_REASON_LENGTH + 10}
               placeholder="Please provide a reason for rescheduling to help us improve our services..."
             />
+            {reasonError && (
+              <p className="text-red-500 text-xs mt-1" role="alert">{reasonError}</p>
+            )}
           </div>
 
           {/* Action Buttons */}
@@ -212,11 +326,15 @@ const RescheduleModal = ({ appointment, onClose, onConfirm, userRole = 'patient'
             <button 
               onClick={handleSubmit} 
               className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center space-x-2"
+              disabled={!!reasonError}
             >
               <FaCheck className="text-sm" />
               <span>Confirm Reschedule</span>
             </button>
           </div>
+          {apiError && (
+            <div className="bg-red-100 border border-red-300 text-red-700 rounded-lg p-2 text-xs mb-2" role="alert">{apiError}</div>
+          )}
         </div>
       </div>
     </div>

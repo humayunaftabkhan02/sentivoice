@@ -36,6 +36,8 @@ export default function RefundRequests() {
     refunds: 0,
     notifications: 0
   });
+  const [refundError, setRefundError] = useState({});
+  const [downloadError, setDownloadError] = useState({});
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -75,6 +77,7 @@ export default function RefundRequests() {
   };
 
   const handleMarkRefunded = async (payment) => {
+    setRefundError({});
     const confirmed = window.confirm(
       `Mark this payment as REFUNDED?\n\nPatient: ${payment.patientFullName}\nAmount: ${payment.amount} PKR` +
       (note ? `\nNote: ${note}` : "") +
@@ -96,8 +99,38 @@ export default function RefundRequests() {
         setReference("");
       }, 1000);
     } catch (err) {
-      setError("Failed to update refund status");
+      setRefundError(prev => ({ ...prev, [payment._id]: 'Failed to update refund status: ' + (err.message || 'Unknown error') }));
       setProcessing(null);
+    }
+  };
+
+  const handleDownload = async (payment) => {
+    setDownloadError({});
+    try {
+      const token = localStorage.getItem('token');
+      const headers = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const response = await fetch(`${apiOrigin}/api/payments/download/${payment._id}`, {
+        method: 'GET',
+        headers
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = payment.receiptFileName || 'payment-receipt.pdf';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      setDownloadError(prev => ({ ...prev, [payment._id]: 'Error downloading receipt: ' + err.message }));
     }
   };
 
@@ -296,6 +329,19 @@ export default function RefundRequests() {
                             <span>Mark Refunded</span>
                           </button>
                         </div>
+                        {refundError[payment._id] && (
+                          <div className="text-red-500 text-xs mt-1" aria-live="polite" role="alert">{refundError[payment._id]}</div>
+                        )}
+                        <button
+                          onClick={() => handleDownload(payment)}
+                          className="flex items-center justify-center space-x-1 px-3 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                        >
+                          <FaHistory className="w-3 h-3 sm:w-4 sm:h-4" />
+                          <span>Download Receipt</span>
+                        </button>
+                        {downloadError[payment._id] && (
+                          <div className="text-red-500 text-xs mt-1" aria-live="polite" role="alert">{downloadError[payment._id]}</div>
+                        )}
                       </div>
                       
                       {/* Desktop Layout */}
@@ -348,6 +394,19 @@ export default function RefundRequests() {
                             <span>Mark Refunded</span>
                           </button>
                         </div>
+                        {refundError[payment._id] && (
+                          <div className="text-red-500 text-xs mt-1" aria-live="polite" role="alert">{refundError[payment._id]}</div>
+                        )}
+                        <button
+                          onClick={() => handleDownload(payment)}
+                          className="flex items-center space-x-1 px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                        >
+                          <FaHistory className="w-3 h-3" />
+                          <span>Download Receipt</span>
+                        </button>
+                        {downloadError[payment._id] && (
+                          <div className="text-red-500 text-xs mt-1" aria-live="polite" role="alert">{downloadError[payment._id]}</div>
+                        )}
                       </div>
                     </div>
                   );

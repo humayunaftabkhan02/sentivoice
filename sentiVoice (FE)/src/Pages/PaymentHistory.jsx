@@ -53,6 +53,8 @@ export default function PaymentHistory() {
     refunds: 0,
     notifications: 0
   });
+  const [refundError, setRefundError] = useState({});
+  const [downloadError, setDownloadError] = useState({});
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -101,6 +103,7 @@ export default function PaymentHistory() {
   };
 
   const handleRefund = async (payment) => {
+    setRefundError({});
     const confirmed = window.confirm(
       `Are you sure you want to mark this payment as REFUNDED?\n\nPatient: ${payment.patientFullName}\nAmount: ${payment.amount} PKR\n\nThis action will be logged and cannot be undone.`
     );
@@ -118,9 +121,40 @@ export default function PaymentHistory() {
         setProcessing(null);
       }, 1000);
     } catch (err) {
-      setError("Failed to update refund status");
+      setRefundError(prev => ({ ...prev, [payment._id]: 'Failed to update refund status: ' + (err.message || 'Unknown error') }));
       setProcessing(null);
       console.error("Refund error:", err);
+    }
+  };
+
+  const handleDownload = async (payment) => {
+    setDownloadError({});
+    try {
+      const token = localStorage.getItem('token');
+      const headers = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const response = await fetch(`${apiOrigin}/api/payments/download/${payment._id}`, {
+        method: 'GET',
+        headers
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = payment.receiptFileName || 'payment-receipt.pdf';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      setDownloadError(prev => ({ ...prev, [payment._id]: 'Error downloading receipt: ' + err.message }));
+      console.error("Download error:", err);
     }
   };
 
@@ -653,6 +687,9 @@ export default function PaymentHistory() {
                               <span>{processing === payment._id ? 'Processing...' : 'Refund'}</span>
                             </button>
                           )}
+                          {refundError[payment._id] && (
+                            <div className="text-red-500 text-xs mt-1" aria-live="polite" role="alert">{refundError[payment._id]}</div>
+                          )}
                         </div>
                       </div>
                     );
@@ -815,6 +852,9 @@ export default function PaymentHistory() {
                                   )}
                                   <span>{processing === payment._id ? 'Processing...' : 'Refund'}</span>
                                 </button>
+                              )}
+                              {refundError[payment._id] && (
+                                <div className="text-red-500 text-xs mt-1" aria-live="polite" role="alert">{refundError[payment._id]}</div>
                               )}
                             </div>
                           </div>

@@ -3,6 +3,24 @@ import { FaTimes, FaExclamationTriangle, FaCalendarTimes, FaCommentAlt } from "r
 
 const CancelModal = ({ onClose, onConfirm, userRole = 'patient' }) => {
   const [reason, setReason] = useState("");
+  const [error, setError] = useState("");
+  const MAX_REASON_LENGTH = 50;
+
+  const validateReason = (val) => {
+    if (val.length > MAX_REASON_LENGTH) return `Reason cannot exceed ${MAX_REASON_LENGTH} characters`;
+    if (/https?:\/\//i.test(val) || /<script/i.test(val)) return 'Links or code are not allowed in the reason';
+    return '';
+  };
+
+  const handleReasonChange = (e) => {
+    const val = e.target.value;
+    setReason(val);
+    setError(validateReason(val));
+  };
+
+  const handleReasonBlur = (e) => {
+    setError(validateReason(e.target.value));
+  };
 
   return (
     <div 
@@ -60,8 +78,13 @@ const CancelModal = ({ onClose, onConfirm, userRole = 'patient' }) => {
               rows="3"
               placeholder="Please provide a reason for cancellation to help us improve our services..."
               value={reason}
-              onChange={(e) => setReason(e.target.value)}
+              onChange={handleReasonChange}
+              onBlur={handleReasonBlur}
+              maxLength={MAX_REASON_LENGTH + 10}
             />
+            {error && (
+              <p className="text-red-500 text-xs mt-1" role="alert">{error}</p>
+            )}
           </div>
 
           {/* Action Buttons */}
@@ -75,6 +98,7 @@ const CancelModal = ({ onClose, onConfirm, userRole = 'patient' }) => {
             <button
               onClick={() => onConfirm(reason)}
               className="flex-1 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+              disabled={!!error}
             >
               Cancel Appointment
             </button>

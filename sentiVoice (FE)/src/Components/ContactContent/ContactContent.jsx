@@ -21,6 +21,53 @@ const ContactContent = () => {
     const handleChange = (e) => {
         const { name, value } = e.target
         setFormData(prev => ({ ...prev, [name]: value }))
+        // Real-time validation for the changed field
+        setErrors(prev => {
+            const newErrors = { ...prev };
+            const tempForm = { ...formData, [name]: value };
+            const validation = validateField(name, tempForm[name], tempForm);
+            if (validation) newErrors[name] = validation;
+            else delete newErrors[name];
+            return newErrors;
+        });
+    }
+
+    // Real-time validation on blur
+    const handleBlur = (e) => {
+        const { name, value } = e.target;
+        setErrors(prev => {
+            const newErrors = { ...prev };
+            const validation = validateField(name, value, formData);
+            if (validation) newErrors[name] = validation;
+            else delete newErrors[name];
+            return newErrors;
+        });
+    };
+
+    // Validate a single field
+    function validateField(name, value, allValues) {
+        const nameTrimmed = (allValues.name || '').trim();
+        const emailTrimmed = (allValues.email || '').trim();
+        const messageTrimmed = (allValues.message || '').trim();
+        if (name === 'name') {
+            if (!nameTrimmed) return 'Full name is required';
+            if (!/^[A-Za-z]+(?: [A-Za-z]+)*$/.test(nameTrimmed)) return 'Only first and last name allowed (letters only)';
+            if (nameTrimmed.length < 3 || nameTrimmed.length > 30) return 'Name must be between 3 and 30 characters';
+        }
+        if (name === 'email') {
+            if (!emailTrimmed) return 'Email is required';
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrimmed)) return 'Invalid email format';
+            const domain = emailTrimmed.split('@')[1];
+            if (!allowedDomains.includes(domain)) return 'Invalid e-mail address';
+            if (disposableDomains.includes(domain)) return 'Disposable email addresses are not allowed';
+        }
+        if (name === 'message') {
+            if (!messageTrimmed) return 'Message is required';
+            if (messageTrimmed.length < 30) return 'Message must be at least 30 characters';
+            if (messageTrimmed.length > MAX_MESSAGE_LENGTH) return `Message cannot exceed ${MAX_MESSAGE_LENGTH} characters`;
+            if (/https?:\/\//i.test(messageTrimmed) || /<script/i.test(messageTrimmed)) return 'Links or code are not allowed in the message';
+        }
+        return null;
     }
 
     const validate = () => {
@@ -257,6 +304,7 @@ const ContactContent = () => {
                                             required
                                             value={formData.name}
                                             onChange={handleChange}
+                                            onBlur={handleBlur}
                                             placeholder="Enter your full name"
                                             disabled={isSubmitting}
                                             className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
@@ -281,6 +329,7 @@ const ContactContent = () => {
                                             required
                                             value={formData.email}
                                             onChange={handleChange}
+                                            onBlur={handleBlur}
                                             placeholder="Enter your email address"
                                             disabled={isSubmitting}
                                             className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
@@ -304,6 +353,7 @@ const ContactContent = () => {
                                             required
                                             value={formData.message}
                                             onChange={handleChange}
+                                            onBlur={handleBlur}
                                             rows="5"
                                             maxLength={MAX_MESSAGE_LENGTH + 100}
                                             placeholder="Tell us about your inquiry or how we can help you..."

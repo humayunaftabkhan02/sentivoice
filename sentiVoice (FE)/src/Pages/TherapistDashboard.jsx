@@ -31,6 +31,7 @@ const TherapistDashboard = () => {
   const [cancelAppId, setCancelAppId] = useState(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [profilePicture, setProfilePicture] = useState(null);
+  const [actionError, setActionError] = useState({});
 
   // Pagination states
   const [pendingPage, setPendingPage] = useState(1);
@@ -116,11 +117,14 @@ const TherapistDashboard = () => {
 
   // Accept
   const acceptAppointment = async (appointmentId) => {
+    setActionError({});
+    if (!window.confirm('Are you sure you want to accept this appointment?')) return;
     try {
       await api.put(`/api/appointments/${appointmentId}/accept`);
       alert("Appointment accepted.");
       fetchAppointments(username);
     } catch (err) {
+      setActionError(prev => ({ ...prev, [appointmentId]: 'Failed to accept appointment: ' + (err.message || 'Unknown error') }));
       console.error("Failed to accept appointment:", err);
       alert("Failed to accept appointment.");
     }
@@ -128,11 +132,14 @@ const TherapistDashboard = () => {
 
   // Reject
   const rejectAppointment = async (appointmentId) => {
+    setActionError({});
+    if (!window.confirm('Are you sure you want to reject this appointment?')) return;
     try {
       await api.put(`/api/appointments/${appointmentId}/reject`, { reason: "Rejected by therapist" });
       alert("Appointment rejected.");
       fetchAppointments(username);
     } catch (err) {
+      setActionError(prev => ({ ...prev, [appointmentId]: 'Failed to reject appointment: ' + (err.message || 'Unknown error') }));
       console.error("Failed to reject appointment:", err);
       alert("Failed to reject appointment.");
     }
@@ -140,11 +147,14 @@ const TherapistDashboard = () => {
 
   // Cancel
   const cancelAppointment = async (appointmentId, reason) => {
+    setActionError({});
+    if (!window.confirm('Are you sure you want to cancel this appointment?')) return;
     try {
       await api.put(`/api/appointments/${appointmentId}/cancel`, { reason });
       alert("Appointment canceled.");
       fetchAppointments(username);
     } catch (err) {
+      setActionError(prev => ({ ...prev, [appointmentId]: 'Failed to cancel appointment: ' + (err.message || 'Unknown error') }));
       console.error("Failed to cancel appointment:", err);
       alert("Failed to cancel.");
     }
@@ -484,6 +494,9 @@ const TherapistDashboard = () => {
                             <span>Reject</span>
                           </button>
                         </div>
+                      )}
+                      {actionError[app._id] && (
+                        <div className="text-red-500 text-xs mt-1" aria-live="polite" role="alert">{actionError[app._id]}</div>
                       )}
                     </div>
                   </div>

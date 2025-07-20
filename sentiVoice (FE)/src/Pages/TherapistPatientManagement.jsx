@@ -208,7 +208,30 @@ const TherapistPatientManagement = () => {
     setPatientCurrentPage(newPage);
   };
 
+  const [noteError, setNoteError] = useState("");
+  const [actionError, setActionError] = useState("");
+  const MAX_NOTE_LENGTH = 300;
+
+  const validateNote = (val) => {
+    if (!val.trim()) return 'Note is required.';
+    if (val.length > MAX_NOTE_LENGTH) return `Note cannot exceed ${MAX_NOTE_LENGTH} characters.`;
+    if (/https?:\/\//i.test(val) || /<script/i.test(val)) return 'Links or code are not allowed in the note.';
+    return '';
+  };
+
+  const handleNoteChange = (e) => {
+    setNoteText(e.target.value);
+    setNoteError(validateNote(e.target.value));
+  };
+
+  const handleNoteBlur = (e) => {
+    setNoteError(validateNote(e.target.value));
+  };
+
   const updateSessionNote = async (appointmentId, note) => {
+    setActionError("");
+    setNoteError(validateNote(note));
+    if (validateNote(note)) return;
     try {
       await api.put(`/api/appointments/${appointmentId}/session-note`, { note });
       alert("Session note saved.");
@@ -222,18 +245,22 @@ const TherapistPatientManagement = () => {
             : a
         )
       );
+      setNoteText("");
     } catch (err) {
+      setActionError('Failed to save note: ' + (err.message || 'Unknown error'));
       console.error("Failed to save note:", err);
       alert("Failed to save note.");
     }
   };
   
   const handleDeleteNote = async (appointmentId, noteIndex) => {
+    setActionError("");
     try {
       await api.delete(`/api/appointments/${appointmentId}/session-note/${noteIndex}`);
       alert("Note deleted successfully.");
       handleViewAppointmentHistory(selectedPatient, currentPage);
     } catch (err) {
+      setActionError('Failed to delete note: ' + (err.message || 'Unknown error'));
       console.error("Error deleting note:", err);
       alert("Failed to delete note.");
     }
@@ -348,6 +375,7 @@ const TherapistPatientManagement = () => {
   };
 
   const handleExportCompleteReport = async (patient) => {
+    setActionError("");
     try {
       // Fetch all appointment history for this patient (without pagination)
       const response = await api.get(`/api/appointments?username=${username}&role=therapist&patientUsername=${patient.username}&all=true`);
@@ -355,8 +383,9 @@ const TherapistPatientManagement = () => {
       
       // Generate the complete report
       await generateCompletePatientReport(patient, appointmentHistory);
-    } catch (error) {
-      console.error('Error generating report:', error);
+    } catch (err) {
+      setActionError('Failed to export report: ' + (err.message || 'Unknown error'));
+      console.error('Error generating report:', err);
       alert('Failed to generate report. Please try again.');
     }
   };
@@ -869,6 +898,7 @@ const TherapistPatientManagement = () => {
                         onClick={() => {
                           setSelectedAppointmentId(app._id);
                           setNoteText("");
+                          setNoteError(""); // Clear previous errors
                           setNoteModalOpen(true);
                         }}
                       >
@@ -1019,13 +1049,16 @@ const TherapistPatientManagement = () => {
                 Add New Note
               </h3>
               <textarea
-                className="w-full p-2.5 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none text-sm sm:text-base"
-                rows="4"
                 value={noteText}
-                maxLength={200}
-                onChange={(e) => setNoteText(e.target.value)}
-                placeholder="Write a new session note (max 200 characters)..."
+                onChange={handleNoteChange}
+                onBlur={handleNoteBlur}
+                maxLength={MAX_NOTE_LENGTH + 10}
+                className="w-full p-3 border rounded-lg mb-2"
+                placeholder="Add a session note..."
               />
+              {noteError && (
+                <div className="text-red-500 text-xs mt-1" aria-live="polite" role="alert">{noteError}</div>
+              )}
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-2 space-y-2 sm:space-y-0">
                 <span className="text-xs sm:text-sm text-gray-500">
                   {noteText.length}/200 characters
@@ -1039,7 +1072,7 @@ const TherapistPatientManagement = () => {
                   </button>
                   <button
                     className="flex-1 sm:flex-none flex items-center justify-center px-3 py-2 sm:px-4 sm:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                    disabled={!noteText.trim()}
+                    disabled={!!noteError}
                     onClick={async () => {
                       await updateSessionNote(selectedAppointmentId, noteText);
                       setNoteModalOpen(false);

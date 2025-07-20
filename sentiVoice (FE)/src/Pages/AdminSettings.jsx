@@ -26,6 +26,10 @@ export default function AdminSystemSettings() {
     endDate: ''
   });
 
+  // Add state for errors and touched for announcement form
+  const [announcementErrors, setAnnouncementErrors] = useState({});
+  const [announcementTouched, setAnnouncementTouched] = useState({});
+
   const fetchPendingCounts = async () => {
     try {
       const pendingApprovals = await api.get("/api/admin/pending-therapists");
@@ -119,10 +123,40 @@ export default function AdminSystemSettings() {
   };
 
   // Announcement functions
+  // Validation functions
+  const validateAnnouncementField = (name, value) => {
+    let error = '';
+    if (name === 'message') {
+      if (!value || value.trim().length === 0) error = 'Message is required';
+      else if (value.length < 5) error = 'Message must be at least 5 characters';
+      else if (value.length > 50) error = 'Message must be less than or equal to 50 characters';
+    }
+    if (name === 'endDate') {
+      if (value && announcementForm.startDate && new Date(value) <= new Date(announcementForm.startDate)) {
+        error = 'End date must be after start date';
+      }
+    }
+    return error;
+  };
+
+  const validateAnnouncementForm = () => {
+    const newErrors = {};
+    if (!announcementForm.message || announcementForm.message.trim().length === 0) newErrors.message = 'Message is required';
+    else if (announcementForm.message.length < 5) newErrors.message = 'Message must be at least 5 characters';
+    else if (announcementForm.message.length > 50) newErrors.message = 'Message must be less than or equal to 50 characters';
+    if (announcementForm.endDate && announcementForm.startDate && new Date(announcementForm.endDate) <= new Date(announcementForm.startDate)) {
+      newErrors.endDate = 'End date must be after start date';
+    }
+    setAnnouncementErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // In handleAnnouncementSubmit, call validateAnnouncementForm and block submit if invalid
   const handleAnnouncementSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
+    if (!validateAnnouncementForm()) return;
 
     try {
       if (editingAnnouncement) {
@@ -351,15 +385,27 @@ export default function AdminSystemSettings() {
                   </h4>
                   <form onSubmit={handleAnnouncementSubmit} className="space-y-3">
                     <div>
-                      <label className="block text-xs sm:text-sm font-medium mb-1">Message *</label>
+                      <label className="block text-xs sm:text-sm font-medium mb-1">Message <span className="text-red-600">*</span></label>
                       <textarea
                         value={announcementForm.message}
-                        onChange={(e) => setAnnouncementForm({...announcementForm, message: e.target.value})}
+                        onChange={(e) => {
+                          setAnnouncementForm({...announcementForm, message: e.target.value});
+                          setAnnouncementTouched({...announcementTouched, message: true});
+                          setAnnouncementErrors(prev => ({...prev, message: validateAnnouncementField('message', e.target.value)}));
+                        }}
+                        onBlur={() => {
+                          setAnnouncementTouched({...announcementTouched, message: true});
+                          setAnnouncementErrors(prev => ({...prev, message: validateAnnouncementField('message', announcementForm.message)}));
+                        }}
                         rows={2}
                         required
                         placeholder="Enter announcement message..."
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-xs sm:text-sm"
+                        maxLength={50}
                       />
+                      {announcementTouched.message && announcementErrors.message && (
+                        <p className="text-red-600 text-xs mt-1">{announcementErrors.message}</p>
+                      )}
                     </div>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -381,9 +427,20 @@ export default function AdminSystemSettings() {
                         <input
                           type="datetime-local"
                           value={announcementForm.endDate}
-                          onChange={(e) => setAnnouncementForm({...announcementForm, endDate: e.target.value})}
+                          onChange={(e) => {
+                            setAnnouncementForm({...announcementForm, endDate: e.target.value});
+                            setAnnouncementTouched({...announcementTouched, endDate: true});
+                            setAnnouncementErrors(prev => ({...prev, endDate: validateAnnouncementField('endDate', e.target.value)}));
+                          }}
+                          onBlur={() => {
+                            setAnnouncementTouched({...announcementTouched, endDate: true});
+                            setAnnouncementErrors(prev => ({...prev, endDate: validateAnnouncementField('endDate', announcementForm.endDate)}));
+                          }}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-xs sm:text-sm"
                         />
+                        {announcementTouched.endDate && announcementErrors.endDate && (
+                          <p className="text-red-600 text-xs mt-1">{announcementErrors.endDate}</p>
+                        )}
                       </div>
                     </div>
                     

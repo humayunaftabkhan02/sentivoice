@@ -353,7 +353,6 @@ def get_features():
             "status": "error",
             "message": str(e)
         }), 500
-
 if __name__ == '__main__':
     import os
     # Get port from environment variable or default to 8080 for deployment
@@ -367,3 +366,4 @@ if __name__ == '__main__':
     # For deployment, always run in production mode
     debug_mode = os.environ.get('FLASK_ENV') == 'development'
     app.run(host=host, port=port, debug=debug_mode)
+

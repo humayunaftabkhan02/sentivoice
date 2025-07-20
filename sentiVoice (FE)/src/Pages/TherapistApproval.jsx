@@ -32,6 +32,7 @@ export default function TherapistApproval() {
     refunds: 0,
     notifications: 0
   });
+  const [actionError, setActionError] = useState({});
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -77,6 +78,10 @@ export default function TherapistApproval() {
   };
 
   const handleApprove = async (therapist) => {
+    setActionError({});
+    // Confirmation dialog
+    const confirmMsg = `Are you sure you want to approve ${therapist.info?.firstName && therapist.info?.lastName ? therapist.info.firstName + ' ' + therapist.info.lastName : therapist.username}?`;
+    if (!window.confirm(confirmMsg)) return;
     try {
       setApproving(therapist.username);
       await api.put(`/api/admin/approve-therapist/${therapist.username}`);
@@ -98,7 +103,7 @@ export default function TherapistApproval() {
         setApproving(null);
       }, 1000);
     } catch (err) {
-      setError("Failed to approve therapist");
+      setActionError(prev => ({ ...prev, [therapist.username]: 'Failed to approve therapist: ' + (err.message || 'Unknown error') }));
       setApproving(null);
       console.error('Error approving therapist:', err);
     }
@@ -454,6 +459,9 @@ export default function TherapistApproval() {
                             )}
                             <span>{approving === therapist.username ? 'Approving...' : 'Approve'}</span>
                           </button>
+                          {actionError[therapist.username] && (
+                            <div className="text-red-500 text-xs mt-1" aria-live="polite" role="alert">{actionError[therapist.username]}</div>
+                          )}
                           {therapist.info?.cvDocument && (
                             <a
                               href={`${apiOrigin.replace(/\/$/, "")}/${therapist.info.cvDocument.replace(/^\//, "").replace(/\\/g, "/")}`}

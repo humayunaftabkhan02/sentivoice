@@ -53,6 +53,7 @@ const TherapistMessaging = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const fileInputRef = useRef(null);
   const [profilePicture, setProfilePicture] = useState(null);
+  const [inputError, setInputError] = useState("");
 
   // Initialize socket connection
   useEffect(() => {
@@ -268,8 +269,12 @@ const TherapistMessaging = () => {
   };
 
   const sendMessage = async () => {
+    setInputError("");
     const trimmedMessage = newMessage.trim();
-    if ((!trimmedMessage && !selectedFile) || !selectedAppointment) return;
+    if ((!trimmedMessage && !selectedFile) || !selectedAppointment) {
+      if (!trimmedMessage && !selectedFile) setInputError("Cannot send an empty message.");
+      return;
+    }
   
     let messageData = {
       senderUsername: username,
@@ -354,10 +359,11 @@ const TherapistMessaging = () => {
     if (file) {
       // Check file size (25MB limit)
       if (file.size > 25 * 1024 * 1024) {
-        alert('File size must be less than 25MB');
+        setInputError('File size must be less than 25MB');
         return;
       }
       setSelectedFile(file);
+      setInputError("");
     }
   };
 
@@ -778,7 +784,10 @@ const TherapistMessaging = () => {
                       <FaPaperPlane />
                     </button>
                   </div>
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-2 text-xs text-gray-500 space-y-1 sm:space-y-0">
+                  {inputError && (
+                    <div className="text-red-500 text-xs mt-2" role="alert">{inputError}</div>
+                  )}
+                  <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center mt-2 text-xs text-gray-500 space-y-1 sm:space-y-0">
                     <span>{newMessage.length}/500 characters</span>
                     <span className="hidden sm:block">Press Enter to send, Shift+Enter for new line</span>
                   </div>

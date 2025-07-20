@@ -1,6 +1,6 @@
 // src/Components/LoginComp/LoginComp.jsx
 import React, { useState, useEffect } from 'react';
-import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaArrowLeft, FaExclamationCircle, FaCheckCircle } from 'react-icons/fa';
 import emotions  from '../../assets/emotiondetect.png';
 import logo      from '../../assets/logo.png';
 import { Link, useNavigate } from 'react-router-dom';
@@ -15,7 +15,108 @@ const LoginComp = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
   const navigate = useNavigate();
+
+  // Email domain restrictions (same as signup)
+  const allowedEmailDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 'live.com', 'sentivoice.com'];
+  const disposableDomains = ['mailinator.com', 'tempmail.com', '10minutemail.com', 'guerrillamail.com'];
+
+  /* ─── validation functions ─────────────────────────────────────── */
+  const validateEmail = (email) => {
+    const trimmedEmail = email.trim();
+    
+    if (!trimmedEmail) {
+      return 'Email is required';
+    }
+    
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      return 'Invalid email format';
+    }
+    
+    const domain = trimmedEmail.split('@')[1];
+    if (!allowedEmailDomains.includes(domain)) {
+      return 'Email domain is not supported';
+    }
+    
+    if (disposableDomains.includes(domain)) {
+      return 'Temporary email addresses are not allowed';
+    }
+    
+    return null;
+  };
+
+  const validatePassword = (password) => {
+    if (!password) {
+      return 'Password is required';
+    }
+    
+    if (password.length < 8) {
+      return 'Password must be at least 8 characters';
+    }
+    
+    if (password.length > 50) {
+      return 'Password must be less than 50 characters';
+    }
+    
+    return null;
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    const emailError = validateEmail(email);
+    if (emailError) newErrors.email = emailError;
+    
+    const passwordError = validatePassword(password);
+    if (passwordError) newErrors.password = passwordError;
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  /* ─── input handlers ──────────────────────────────────────────── */
+  const handleEmailChange = (e) => {
+    const value = e.target.value;
+    setEmail(value);
+    
+    // Real-time validation
+    if (touched.email) {
+      const error = validateEmail(value);
+      setErrors(prev => ({
+        ...prev,
+        email: error
+      }));
+    }
+  };
+
+  const handlePasswordChange = (e) => {
+    const value = e.target.value;
+    setPassword(value);
+    
+    // Real-time validation
+    if (touched.password) {
+      const error = validatePassword(value);
+      setErrors(prev => ({
+        ...prev,
+        password: error
+      }));
+    }
+  };
+
+  const handleBlur = (field) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    
+    // Validate on blur
+    if (field === 'email') {
+      const error = validateEmail(email);
+      setErrors(prev => ({ ...prev, email: error }));
+    } else if (field === 'password') {
+      const error = validatePassword(password);
+      setErrors(prev => ({ ...prev, password: error }));
+    }
+  };
 
   /* ─── check for remembered credentials ────────────────────────── */
   useEffect(() => {
@@ -33,14 +134,24 @@ const LoginComp = () => {
   /* ─── login handler ───────────────────────────────────────────── */
   const handleLogin = async (e) => {
     e.preventDefault();
+    
+    // Validate form before submission
+    if (!validateForm()) {
+      return;
+    }
+    
     setIsLoading(true);
     setMessage('');
+    setErrors({});
 
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:3000"}/api/login`, {
         method : 'POST',
         headers: { 'Content-Type':'application/json' },
-        body   : JSON.stringify({ email, password })
+        body   : JSON.stringify({ 
+          email: email.trim(), 
+          password: password.trim() 
+        })
       });
 
       /* 1) ───── success ────────────────────────────────────────── */
@@ -59,8 +170,8 @@ const LoginComp = () => {
 
         // (1.b) handle remember me
         if (rememberMe) {
-          localStorage.setItem('rememberedEmail', email);
-          localStorage.setItem('rememberedPassword', password);
+          localStorage.setItem('rememberedEmail', email.trim());
+          localStorage.setItem('rememberedPassword', password.trim());
           localStorage.setItem('rememberMe', 'true');
         } else {
           localStorage.removeItem('rememberedEmail');
@@ -107,7 +218,7 @@ const LoginComp = () => {
       setIsLoading(false);
 
     } catch (error) {
-      setMessage('Error: ' + error.message);
+      setMessage('Network error. Please check your connection and try again.');
       setMsgType('error');
       setIsLoading(false);
     }
@@ -134,6 +245,17 @@ const LoginComp = () => {
         <div className="w-full max-w-md">
           {/* Login Card */}
           <div className="bg-white rounded-2xl shadow-2xl p-8 lg:p-10">
+            {/* Back to Home Button */}
+            <div className="mb-6">
+              <Link 
+                to="/" 
+                className="inline-flex items-center text-[#1B6675] hover:text-[#0f4a5a] font-medium transition duration-200 group"
+              >
+                <FaArrowLeft className="mr-2 group-hover:-translate-x-1 transition-transform duration-200" />
+                Back to Home
+              </Link>
+            </div>
+
             {/* Logo and Header */}
             <div className="text-center mb-8">
               <img src={logo} alt="Logo" className="mx-auto w-20 h-20 mb-6" />
@@ -178,47 +300,84 @@ const LoginComp = () => {
               {/* email */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
+                  Email Address <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input
                     type="email"
                     required
-                    className="w-full pl-12 pr-4 py-4 border border-gray-300 rounded-xl bg-gray-50
+                    className={`w-full pl-12 pr-10 py-4 border rounded-xl bg-gray-50
                                focus:outline-none focus:ring-2 focus:ring-[#1B6675] focus:border-transparent
-                               transition duration-200 text-gray-900 placeholder-gray-500"
+                               transition duration-200 text-gray-900 placeholder-gray-500
+                               ${errors.email 
+                                 ? 'border-red-300 focus:ring-red-500' 
+                                 : touched.email && !errors.email 
+                                   ? 'border-green-300 focus:ring-green-500' 
+                                   : 'border-gray-300'
+                               }`}
                     placeholder="Enter your email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={handleEmailChange}
+                    onBlur={() => handleBlur('email')}
+                    disabled={isLoading}
+                    aria-describedby={errors.email ? "email-error" : undefined}
                   />
+                  {touched.email && !errors.email && email && (
+                    <FaCheckCircle className="absolute right-4 top-1/2 -translate-y-1/2 text-green-500" />
+                  )}
+                  {errors.email && (
+                    <FaExclamationCircle className="absolute right-4 top-1/2 -translate-y-1/2 text-red-500" />
+                  )}
                 </div>
+                {errors.email && (
+                  <p id="email-error" className="mt-1 text-sm text-red-600 flex items-center">
+                    <FaExclamationCircle className="mr-1 text-xs" />
+                    {errors.email}
+                  </p>
+                )}
               </div>
 
               {/* password */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Password
+                  Password <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
                     required
-                    className="w-full pl-4 pr-12 py-4 border border-gray-300 rounded-xl bg-gray-50
+                    className={`w-full pl-4 pr-12 py-4 border rounded-xl bg-gray-50
                                focus:outline-none focus:ring-2 focus:ring-[#1B6675] focus:border-transparent
-                               transition duration-200 text-gray-900 placeholder-gray-500"
+                               transition duration-200 text-gray-900 placeholder-gray-500
+                               ${errors.password 
+                                 ? 'border-red-300 focus:ring-red-500' 
+                                 : touched.password && !errors.password 
+                                   ? 'border-green-300 focus:ring-green-500' 
+                                   : 'border-gray-300'
+                               }`}
                     placeholder="Enter your password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={handlePasswordChange}
+                    onBlur={() => handleBlur('password')}
+                    disabled={isLoading}
+                    aria-describedby={errors.password ? "password-error" : undefined}
                   />
                   <button
                     type="button"
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                     onClick={() => setShowPassword(!showPassword)}
+                    disabled={isLoading}
                   >
                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                   </button>
                 </div>
+                {errors.password && (
+                  <p id="password-error" className="mt-1 text-sm text-red-600 flex items-center">
+                    <FaExclamationCircle className="mr-1 text-xs" />
+                    {errors.password}
+                  </p>
+                )}
               </div>
 
               {/* extras */}
@@ -229,6 +388,7 @@ const LoginComp = () => {
                     className="w-4 h-4 text-[#1B6675] bg-gray-100 border-gray-300 rounded focus:ring-[#1B6675] focus:ring-2" 
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
+                    disabled={isLoading}
                   />
                   <span className="ml-2 text-sm text-gray-600">Remember me</span>
                 </label>
@@ -240,7 +400,7 @@ const LoginComp = () => {
               {/* submit */}
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || (email.trim() === '' || password.trim() === '')}
                 className="w-full bg-[#1B6675] text-white py-4 rounded-xl font-semibold text-lg
                            hover:bg-[#0f4a5a] focus:outline-none focus:ring-2 focus:ring-[#1B6675] focus:ring-offset-2
                            transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed

@@ -195,51 +195,37 @@ export default function AdminUserList() {
     return sortDirection === "asc" ? <FaSortUp className="text-blue-500" /> : <FaSortDown className="text-blue-500" />;
   };
 
+  const [actionError, setActionError] = useState({});
+
   const handleUserAction = async (action, user) => {
+    setActionError({});
+    // Confirmation dialog
+    let confirmMsg = '';
+    if (action === 'approve') confirmMsg = `Are you sure you want to approve ${user.fullName || user.username}?`;
+    if (action === 'suspend') confirmMsg = `Are you sure you want to suspend ${user.fullName || user.username}?`;
+    if (action === 'activate') confirmMsg = `Are you sure you want to activate ${user.fullName || user.username}?`;
+    if (confirmMsg && !window.confirm(confirmMsg)) return;
     try {
-      console.log(`🔄 Starting ${action} action for user:`, user);
-      console.log(`📋 User data:`, {
-        username: user.username,
-        role: user.role,
-        status: user.status,
-        isActive: user.isActive
-      });
       setActionLoading(user.username);
-      
+      setError(null);
       let response;
       switch (action) {
         case 'approve':
-          console.log(`📤 Making PUT request to /admin/approve-therapist/${user.username}`);
           response = await api.put(`/api/admin/approve-therapist/${user.username}`);
-          console.log(`✅ Approve response:`, response);
           break;
         case 'suspend':
-          console.log(`📤 Making PUT request to /admin/users/${user.username}/suspend`);
           response = await api.put(`/api/admin/users/${user.username}/suspend`);
-          console.log(`✅ Suspend response:`, response);
           break;
         case 'activate':
-          console.log(`📤 Making PUT request to /admin/users/${user.username}/activate`);
           response = await api.put(`/api/admin/users/${user.username}/activate`);
-          console.log(`✅ Activate response:`, response);
           break;
         default:
-          console.warn(`⚠️ Unknown action: ${action}`);
           break;
       }
-      
-      console.log(`🔄 Refreshing user list and pending counts`);
       await fetchUsers();
       await fetchPendingCounts();
-      console.log(`✅ Action ${action} completed successfully`);
     } catch (error) {
-      console.error(`❌ Error performing ${action}:`, error);
-      console.error(`❌ Error details:`, {
-        message: error.message,
-        stack: error.stack,
-        response: error.response
-      });
-      setError(`Failed to ${action} user: ${error.message}`);
+      setActionError(prev => ({ ...prev, [user.username]: `Failed to ${action} user: ${error.message}` }));
     } finally {
       setActionLoading(null);
     }
@@ -588,6 +574,9 @@ export default function AdminUserList() {
                               </button>
                             )}
                           </div>
+                          {actionError[user.username] && (
+                            <div className="text-red-500 text-xs mt-1" aria-live="polite" role="alert">{actionError[user.username]}</div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -755,6 +744,9 @@ export default function AdminUserList() {
                               </button>
                             )}
                           </div>
+                          {actionError[user.username] && (
+                            <div className="text-red-500 text-xs mt-1" aria-live="polite" role="alert">{actionError[user.username]}</div>
+                          )}
                         </td>
                       </tr>
                     ))}

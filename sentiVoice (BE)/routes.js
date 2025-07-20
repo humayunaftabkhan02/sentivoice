@@ -20,7 +20,7 @@ const SystemSettings = require('./models/systemSettingsModel'); // Fixed import
 
 // Import middleware
 const { authenticate, authorize, checkMaintenanceMode } = require('./middleware/auth');
-const { validate, sanitizeEmail, sanitizeUsername, sanitizePassword, validateRole, sanitizeText, validateObjectId, validateBodyObjectId, body, param } = require('./middleware/validation');
+const { validate, sanitizeEmail, sanitizeUsername, sanitizePassword, validateRole, validateProfileUpdate, sanitizeText, validateObjectId, validateBodyObjectId, body, param } = require('./middleware/validation');
 const uploadProfilePicture = require('./middleware/uploadProfilePicture');
 
 const router = express.Router();
@@ -190,6 +190,10 @@ router.post('/predict', authenticate, upload.single('audio'), async (req, res) =
 
 // Public routes (no authentication required)
 const uploadAttachment = require('./middleware/uploadAttachment');
+
+// Check username availability
+router.get('/check-username', userController.checkUsernameAvailability);
+
 router.post('/signup', [
   uploadAttachment.single('cvDocument'),
   sanitizeEmail('email'),
@@ -289,7 +293,7 @@ router.get('/therapist/:therapistUsername/patients', authenticate, authorize('th
 router.put('/therapist/manage-patient/:patientUsername', authenticate, authorize('therapist', 'admin'), therapistController.updatePatientInfo);
 
 router.get('/user-info/:username', authenticate, userController.getUserInfo);
-router.put('/update-profile/:username', authenticate, uploadProfilePicture, userController.updateProfile);
+router.put('/update-profile/:username', authenticate, uploadProfilePicture, validateProfileUpdate, userController.updateProfile);
 router.get('/therapists', authenticate, userController.getAllTherapists);
 
 

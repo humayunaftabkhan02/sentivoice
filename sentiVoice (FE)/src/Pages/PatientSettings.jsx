@@ -16,7 +16,9 @@ import {
   FaEdit,
   FaPlus,
   FaMinus,
-  FaTrash
+  FaTrash,
+  FaExclamationCircle,
+  FaCheckCircle
 } from "react-icons/fa";
 import NotificationBell from "../Components/NotificationBell/NotificationBell.jsx";
 import { useNavigate } from 'react-router-dom';
@@ -40,6 +42,11 @@ const PatientSettings = () => {
   const [activeTab, setActiveTab] = useState("personal");
   const successTimeoutRef = useRef(null);
   
+  // Validation states
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
+  const [isFormValid, setIsFormValid] = useState(false);
+  
   const [formData, setFormData] = useState({
     // Personal Information
     firstName: "",
@@ -47,7 +54,6 @@ const PatientSettings = () => {
     dateOfBirth: "",
     gender: "",
     contact: "",
-    email: "",
     address: "",
     emergencyContact: {
       name: "",
@@ -83,9 +89,177 @@ const PatientSettings = () => {
 
   const navigate = useNavigate();
 
-  // Must contain at least one letter and only letters/spaces
+  // Validation functions
   const isValidName = (value) => /^[A-Za-z]+(?:\s*[A-Za-z]+)*$/.test(value.trim());
+  
+  const validateEmail = (email) => {
+    if (!email) return null;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const allowedDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 'live.com'];
+    const disposableDomains = ['mailinator.com', 'tempmail.com', '10minutemail.com', 'guerrillamail.com'];
+    
+    if (!emailRegex.test(email)) return "Invalid email format";
+    if (!allowedDomains.some(domain => email.toLowerCase().endsWith(domain))) {
+      return "Email domain is not supported";
+    }
+    if (disposableDomains.some(domain => email.toLowerCase().endsWith(domain))) {
+      return "Temporary email addresses are not allowed";
+    }
+    return null;
+  };
+  
+  const validateDateOfBirth = (date) => {
+    if (!date) return null;
+    
+    const today = new Date();
+    const birthDate = new Date(date);
+    const age = today.getFullYear() - birthDate.getFullYear();
+    
+    if (birthDate > today) return "Date of birth cannot be in the future";
+    if (age < 1) return "Age must be at least 1 year";
+    if (age > 120) return "Age cannot exceed 120 years";
+    
+    return null;
+  };
+  
+  const validateHeight = (height) => {
+    if (!height) return null;
+    const num = parseFloat(height);
+    if (isNaN(num)) return "Height must be a number";
+    if (num < 50 || num > 250) return "Height must be between 50-250 cm";
+    return null;
+  };
+  
+  const validateWeight = (weight) => {
+    if (!weight) return null;
+    const num = parseFloat(weight);
+    if (isNaN(num)) return "Weight must be a number";
+    if (num < 20 || num > 300) return "Weight must be between 20-300 kg";
+    return null;
+  };
+  
+  const validateEmergencyContactName = (name) => {
+    if (!name) return null;
+    if (!isValidName(name)) return "Name can contain letters and spaces only";
+    if (name.length < 2) return "Name must be at least 2 characters";
+    if (name.length > 50) return "Name must be less than 50 characters";
+    return null;
+  };
+  
+  const validateEmergencyContactPhone = (phone) => {
+    if (!phone) return null;
+    const phoneObj = parsePhoneNumberFromString(phone);
+    if (!phoneObj || !phoneObj.isValid()) return "Please enter a valid phone number";
+    return null;
+  };
+  
+  const validateImageUpload = (file) => {
+    if (!file) return null;
+    
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    
+    if (!allowedTypes.includes(file.type)) {
+      return "Only JPEG, JPG, and PNG files are allowed";
+    }
+    
+    if (file.size > maxSize) {
+      return "File size must be less than 5MB";
+    }
+    
+    return null;
+  };
+  
+  const validateMedicalItem = (item, type) => {
+    if (!item) return null;
+    if (item.length < 2) return `${type} must be at least 2 characters`;
+    if (item.length > 100) return `${type} must be less than 100 characters`;
+    return null;
+  };
+  
+  const validateGender = (gender) => {
+    if (!gender) return null;
+    const validGenders = ['Male', 'Female'];
+    if (!validGenders.includes(gender)) {
+      return "Gender must be either Male or Female";
+    }
+    return null;
+  };
+  
+  // Helper function for field styling
+  const getFieldStyle = (name) => {
+    if (touched[name] && errors[name]) {
+      return "border-red-500 focus:ring-red-500 focus:border-red-500";
+    }
+    if (touched[name] && !errors[name] && formData[name]) {
+      return "border-green-500 focus:ring-green-500 focus:border-green-500";
+    }
+    return "border-gray-300 focus:ring-blue-500 focus:border-blue-500";
+  };
+  
+  const getFieldIcon = (name) => {
+    if (touched[name] && errors[name]) {
+      return <FaExclamationCircle className="text-red-500" />;
+    }
+    if (touched[name] && !errors[name] && formData[name]) {
+      return <FaCheckCircle className="text-green-500" />;
+    }
+    return null;
+  };
 
+  // Validation helper functions
+  const validateField = (name, value) => {
+    switch (name) {
+      case 'firstName':
+      case 'lastName':
+        if (!value.trim()) return "This field is required";
+        if (!isValidName(value)) return "Name can contain letters and spaces only";
+        if (value.length < 2) return "Name must be at least 2 characters";
+        if (value.length > 50) return "Name must be less than 50 characters";
+        return null;
+      case 'dateOfBirth':
+        return validateDateOfBirth(value);
+      case 'height':
+        return validateHeight(value);
+      case 'weight':
+        return validateWeight(value);
+      case 'gender':
+        return validateGender(value);
+      default:
+        return null;
+    }
+  };
+  
+  const validateForm = () => {
+    const newErrors = {};
+    
+    // Validate required fields
+    if (!formData.firstName.trim()) newErrors.firstName = "First name is required";
+    if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
+    
+    // Validate other fields
+    Object.keys(formData).forEach(key => {
+      if (key !== 'emergencyContact' && key !== 'allergies' && key !== 'currentMedications' && key !== 'medicalConditions' && key !== 'profilePicture') {
+        const error = validateField(key, formData[key]);
+        if (error) newErrors[key] = error;
+      }
+    });
+    
+    // Validate emergency contact
+    if (formData.emergencyContact.name) {
+      const nameError = validateEmergencyContactName(formData.emergencyContact.name);
+      if (nameError) newErrors.emergencyContactName = nameError;
+    }
+    if (formData.emergencyContact.phone) {
+      const phoneError = validateEmergencyContactPhone(formData.emergencyContact.phone);
+      if (phoneError) newErrors.emergencyContactPhone = phoneError;
+    }
+    
+    setErrors(newErrors);
+    setIsFormValid(Object.keys(newErrors).length === 0);
+    return Object.keys(newErrors).length === 0;
+  };
+  
   // Clear success message when switching tabs
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
@@ -112,6 +286,11 @@ const PatientSettings = () => {
       }
     };
   }, []);
+  
+  // Validate form whenever formData changes
+  useEffect(() => {
+    validateForm();
+  }, [formData]);
 
   useEffect(() => {
     const storedUsername = localStorage.getItem("username");
@@ -134,7 +313,6 @@ const PatientSettings = () => {
             dateOfBirth: userInfo.dateOfBirth || "",
             gender: userInfo.gender || "",
             contact: userInfo.contact || "",
-            email: userInfo.email || data.user?.email || "",
             address: userInfo.address || "",
             emergencyContact: userInfo.emergencyContact || {
               name: "",
@@ -204,6 +382,26 @@ const PatientSettings = () => {
       ...prev,
       [name]: value
     }));
+    
+    // Real-time validation
+    if (touched[name]) {
+      const error = validateField(name, value);
+      setErrors(prev => ({
+        ...prev,
+        [name]: error
+      }));
+    }
+  };
+  
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    setTouched(prev => ({ ...prev, [name]: true }));
+    
+    const error = validateField(name, value);
+    setErrors(prev => ({
+      ...prev,
+      [name]: error
+    }));
   };
 
   const handleEmergencyContactChange = (field, value) => {
@@ -214,11 +412,52 @@ const PatientSettings = () => {
         [field]: value
       }
     }));
+    
+    // Real-time validation for emergency contact
+    if (touched[`emergencyContact${field.charAt(0).toUpperCase() + field.slice(1)}`]) {
+      let error = null;
+      if (field === 'name') {
+        error = validateEmergencyContactName(value);
+      } else if (field === 'phone') {
+        error = validateEmergencyContactPhone(value);
+      }
+      
+      setErrors(prev => ({
+        ...prev,
+        [`emergencyContact${field.charAt(0).toUpperCase() + field.slice(1)}`]: error
+      }));
+    }
+  };
+  
+  const handleEmergencyContactBlur = (field, value) => {
+    setTouched(prev => ({ 
+      ...prev, 
+      [`emergencyContact${field.charAt(0).toUpperCase() + field.slice(1)}`]: true 
+    }));
+    
+    let error = null;
+    if (field === 'name') {
+      error = validateEmergencyContactName(value);
+    } else if (field === 'phone') {
+      error = validateEmergencyContactPhone(value);
+    }
+    
+    setErrors(prev => ({
+      ...prev,
+      [`emergencyContact${field.charAt(0).toUpperCase() + field.slice(1)}`]: error
+    }));
   };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Validate file upload
+      const fileError = validateImageUpload(file);
+      if (fileError) {
+        setError(fileError);
+        return;
+      }
+      
       const reader = new FileReader();
       reader.onloadend = () => {
         setProfileImagePreview(reader.result);
@@ -230,6 +469,12 @@ const PatientSettings = () => {
 
   const addAllergy = () => {
     if (newAllergy.trim() && !formData.allergies.includes(newAllergy.trim())) {
+      const error = validateMedicalItem(newAllergy.trim(), "Allergy");
+      if (error) {
+        setError(error);
+        return;
+      }
+      
       setFormData(prev => ({
         ...prev,
         allergies: [...prev.allergies, newAllergy.trim()]
@@ -247,6 +492,12 @@ const PatientSettings = () => {
 
   const addMedication = () => {
     if (newMedication.trim() && !formData.currentMedications.includes(newMedication.trim())) {
+      const error = validateMedicalItem(newMedication.trim(), "Medication");
+      if (error) {
+        setError(error);
+        return;
+      }
+      
       setFormData(prev => ({
         ...prev,
         currentMedications: [...prev.currentMedications, newMedication.trim()]
@@ -264,6 +515,12 @@ const PatientSettings = () => {
 
   const addCondition = () => {
     if (newCondition.trim() && !formData.medicalConditions.includes(newCondition.trim())) {
+      const error = validateMedicalItem(newCondition.trim(), "Medical condition");
+      if (error) {
+        setError(error);
+        return;
+      }
+      
       setFormData(prev => ({
         ...prev,
         medicalConditions: [...prev.medicalConditions, newCondition.trim()]
@@ -291,22 +548,9 @@ const PatientSettings = () => {
       successTimeoutRef.current = null;
     }
 
-    // Validation
-    if (!formData.firstName.trim() || !formData.lastName.trim()) {
-      setError("First and Last Name cannot be empty.");
-      setSaving(false);
-     return;
-    }
-    
-    if (!isValidName(formData.firstName) || !isValidName(formData.lastName)) {
-      setError("Names can contain letters and spaces only.");
-      setSaving(false);
-     return;
-    }
-
-    const phoneObj = parsePhoneNumberFromString(formData.contact || "");
-    if (formData.contact && (!phoneObj || !phoneObj.isValid())) {
-      setError("Please enter a valid phone number.");
+    // Comprehensive form validation
+    if (!validateForm()) {
+      setError("Please fix the validation errors before submitting.");
       setSaving(false);
       return;
     }
@@ -477,59 +721,113 @@ const PatientSettings = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         First Name *
                       </label>
-          <input
-            type="text"
-            name="firstName"
-            value={formData.firstName}
-            onChange={handleChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
-                        required
-          />
+                      <div className="relative">
+                        <input
+                          type="text"
+                          name="firstName"
+                          value={formData.firstName}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-sm sm:text-base pr-10 ${getFieldStyle('firstName')}`}
+                          required
+                          aria-describedby={errors.firstName ? "firstName-error" : undefined}
+                        />
+                        {getFieldIcon('firstName') && (
+                          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            {getFieldIcon('firstName')}
+                          </div>
+                        )}
+                      </div>
+                      {errors.firstName && (
+                        <p id="firstName-error" className="mt-1 text-sm text-red-600" role="alert">
+                          {errors.firstName}
+                        </p>
+                      )}
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Last Name *
                       </label>
-          <input
-            type="text"
-            name="lastName"
-            value={formData.lastName}
-            onChange={handleChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
-                        required
-                      />
+                      <div className="relative">
+                        <input
+                          type="text"
+                          name="lastName"
+                          value={formData.lastName}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-sm sm:text-base pr-10 ${getFieldStyle('lastName')}`}
+                          required
+                          aria-describedby={errors.lastName ? "lastName-error" : undefined}
+                        />
+                        {getFieldIcon('lastName') && (
+                          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            {getFieldIcon('lastName')}
+                          </div>
+                        )}
+                      </div>
+                      {errors.lastName && (
+                        <p id="lastName-error" className="mt-1 text-sm text-red-600" role="alert">
+                          {errors.lastName}
+                        </p>
+                      )}
                     </div>
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Date of Birth
                       </label>
-                      <input
-                        type="date"
-                        name="dateOfBirth"
-                        value={formData.dateOfBirth}
-            onChange={handleChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
-                      />
+                      <div className="relative">
+                        <input
+                          type="date"
+                          name="dateOfBirth"
+                          value={formData.dateOfBirth}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-sm sm:text-base pr-10 ${getFieldStyle('dateOfBirth')}`}
+                          aria-describedby={errors.dateOfBirth ? "dateOfBirth-error" : undefined}
+                        />
+                        {getFieldIcon('dateOfBirth') && (
+                          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            {getFieldIcon('dateOfBirth')}
+                          </div>
+                        )}
+                      </div>
+                      {errors.dateOfBirth && (
+                        <p id="dateOfBirth-error" className="mt-1 text-sm text-red-600" role="alert">
+                          {errors.dateOfBirth}
+                        </p>
+                      )}
                     </div>
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Gender
                       </label>
-          <select
-            name="gender"
-            value={formData.gender}
-            onChange={handleChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
-          >
-            <option value="">Select Gender</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                        <option value="Prefer not to say">Prefer not to say</option>
-          </select>
+                      <div className="relative">
+                        <select
+                          name="gender"
+                          value={formData.gender}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-sm sm:text-base pr-10 ${getFieldStyle('gender')}`}
+                          aria-describedby={errors.gender ? "gender-error" : undefined}
+                        >
+                          <option value="">Select Gender</option>
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                        </select>
+                        {getFieldIcon('gender') && (
+                          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            {getFieldIcon('gender')}
+                          </div>
+                        )}
+                      </div>
+                      {errors.gender && (
+                        <p id="gender-error" className="mt-1 text-sm text-red-600" role="alert">
+                          {errors.gender}
+                        </p>
+                      )}
                     </div>
                     
                     <div>
@@ -564,18 +862,6 @@ const PatientSettings = () => {
                       />
                     </div>
                     
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Email Address
-                      </label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
-                      />
-                    </div>
                   </div>
                   
                   <div>
@@ -624,28 +910,56 @@ const PatientSettings = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Height (cm)
                       </label>
-                      <input
-                        type="number"
-                        name="height"
-                        value={formData.height}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
-                        placeholder="170"
-                      />
+                      <div className="relative">
+                        <input
+                          type="number"
+                          name="height"
+                          value={formData.height}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-sm sm:text-base pr-10 ${getFieldStyle('height')}`}
+                          placeholder="170"
+                          aria-describedby={errors.height ? "height-error" : undefined}
+                        />
+                        {getFieldIcon('height') && (
+                          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            {getFieldIcon('height')}
+                          </div>
+                        )}
+                      </div>
+                      {errors.height && (
+                        <p id="height-error" className="mt-1 text-sm text-red-600" role="alert">
+                          {errors.height}
+                        </p>
+                      )}
                     </div>
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Weight (kg)
                       </label>
-                      <input
-                        type="number"
-                        name="weight"
-                        value={formData.weight}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
-                        placeholder="70"
-                      />
+                      <div className="relative">
+                        <input
+                          type="number"
+                          name="weight"
+                          value={formData.weight}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-sm sm:text-base pr-10 ${getFieldStyle('weight')}`}
+                          placeholder="70"
+                          aria-describedby={errors.weight ? "weight-error" : undefined}
+                        />
+                        {getFieldIcon('weight') && (
+                          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            {getFieldIcon('weight')}
+                          </div>
+                        )}
+                      </div>
+                      {errors.weight && (
+                        <p id="weight-error" className="mt-1 text-sm text-red-600" role="alert">
+                          {errors.weight}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -810,12 +1124,26 @@ const PatientSettings = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Emergency Contact Name
                       </label>
-                      <input
-                        type="text"
-                        value={formData.emergencyContact.name}
-                        onChange={(e) => handleEmergencyContactChange("name", e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
-                      />
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={formData.emergencyContact.name}
+                          onChange={(e) => handleEmergencyContactChange("name", e.target.value)}
+                          onBlur={(e) => handleEmergencyContactBlur("name", e.target.value)}
+                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent text-sm sm:text-base pr-10 ${getFieldStyle('emergencyContactName')}`}
+                          aria-describedby={errors.emergencyContactName ? "emergencyContactName-error" : undefined}
+                        />
+                        {getFieldIcon('emergencyContactName') && (
+                          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            {getFieldIcon('emergencyContactName')}
+                          </div>
+                        )}
+                      </div>
+                      {errors.emergencyContactName && (
+                        <p id="emergencyContactName-error" className="mt-1 text-sm text-red-600" role="alert">
+                          {errors.emergencyContactName}
+                        </p>
+                      )}
                     </div>
                     
                     <div>
@@ -842,31 +1170,46 @@ const PatientSettings = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Emergency Contact Phone
                     </label>
-                    <PhoneInput
-                      country={phoneCountry}
-                      value={formData.emergencyContact.phone}
-                      onChange={(val, data) => {
-                        handleEmergencyContactChange("phone", `+${val}`);
-                      }}
-                      enableSearch
-                      disableSearchIcon
-                      placeholder="Emergency contact phone"
-            inputStyle={{
-                        width: "100%",
-                        height: "44px",
-                        border: "1px solid #d1d5db",
-                        borderRadius: "6px",
-                        paddingLeft: "60px",
-              background: "#fff",
-              fontSize: "14px"
-            }}
-            buttonStyle={{
-              border: "1px solid #d1d5db",
-              borderRight: "none",
-              background: "#fff",
-                        borderRadius: "6px 0 0 6px"
-                      }}
-                    />
+                    <div className="relative">
+                      <PhoneInput
+                        country={phoneCountry}
+                        value={formData.emergencyContact.phone}
+                        onChange={(val, data) => {
+                          handleEmergencyContactChange("phone", `+${val}`);
+                        }}
+                        onBlur={() => handleEmergencyContactBlur("phone", formData.emergencyContact.phone)}
+                        enableSearch
+                        disableSearchIcon
+                        placeholder="Emergency contact phone"
+                        inputStyle={{
+                          width: "100%",
+                          height: "44px",
+                          border: touched.emergencyContactPhone && errors.emergencyContactPhone ? "1px solid #ef4444" : 
+                                  touched.emergencyContactPhone && !errors.emergencyContactPhone && formData.emergencyContact.phone ? "1px solid #10b981" : "1px solid #d1d5db",
+                          borderRadius: "6px",
+                          paddingLeft: "60px",
+                          paddingRight: "40px",
+                          background: "#fff",
+                          fontSize: "14px"
+                        }}
+                        buttonStyle={{
+                          border: "1px solid #d1d5db",
+                          borderRight: "none",
+                          background: "#fff",
+                          borderRadius: "6px 0 0 6px"
+                        }}
+                      />
+                      {getFieldIcon('emergencyContactPhone') && (
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                          {getFieldIcon('emergencyContactPhone')}
+                        </div>
+                      )}
+                    </div>
+                    {errors.emergencyContactPhone && (
+                      <p id="emergencyContactPhone-error" className="mt-1 text-sm text-red-600" role="alert">
+                        {errors.emergencyContactPhone}
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
@@ -987,7 +1330,7 @@ const PatientSettings = () => {
             </button>
           <button
             type="submit"
-              disabled={saving}
+              disabled={saving || !isFormValid}
               className="px-4 sm:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 text-sm sm:text-base"
             >
               {saving ? (

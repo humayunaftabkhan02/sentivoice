@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaEnvelope, FaArrowLeft } from 'react-icons/fa';
+import { FaEnvelope, FaArrowLeft, FaExclamationCircle, FaCheckCircle } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import logo from '../../assets/logo.png';
 import emotions from '../../assets/emotiondetect.png';
@@ -10,20 +10,94 @@ const ResendVerification = () => {
   const [message, setMessage] = useState('');
   const [msgType, setMsgType] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
 
+  // Email domain restrictions (same as other pages)
+  const allowedEmailDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 'live.com'];
+  const disposableDomains = ['mailinator.com', 'tempmail.com', '10minutemail.com', 'guerrillamail.com'];
+
+  /* ─── validation functions ─────────────────────────────────────── */
+  const validateEmail = (email) => {
+    const trimmedEmail = email.trim();
+    
+    if (!trimmedEmail) {
+      return 'Email is required';
+    }
+    
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      return 'Invalid email format';
+    }
+    
+    const domain = trimmedEmail.split('@')[1];
+    if (!allowedEmailDomains.includes(domain)) {
+      return 'Email domain is not supported';
+    }
+    
+    if (disposableDomains.includes(domain)) {
+      return 'Temporary email addresses are not allowed';
+    }
+    
+    return null;
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    const emailError = validateEmail(email);
+    if (emailError) newErrors.email = emailError;
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  /* ─── input handlers ──────────────────────────────────────────── */
+  const handleEmailChange = (e) => {
+    const value = e.target.value;
+    setEmail(value);
+    
+    // Real-time validation
+    if (touched.email) {
+      const error = validateEmail(value);
+      setErrors(prev => ({
+        ...prev,
+        email: error
+      }));
+    }
+  };
+
+  const handleBlur = (field) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    
+    // Validate on blur
+    if (field === 'email') {
+      const error = validateEmail(email);
+      setErrors(prev => ({ ...prev, email: error }));
+    }
+  };
+
+  /* ─── submit handler ──────────────────────────────────────────── */
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate form before submission
+    if (!validateForm()) {
+      return;
+    }
+    
     setIsLoading(true);
     setMessage('');
+    setErrors({});
 
     try {
-      const response = await api.post('/api/resend-verification', { email });
+      const response = await api.post('/api/resend-verification', { email: email.trim() });
 
       // The API utility already parses the JSON response
       if (response && response.message) {
         setMessage('Verification email sent! Please check your inbox.');
         setMsgType('success');
         setEmail(''); // Clear email on success
+        setTouched({}); // Reset touched state
       } else {
         setMessage('Failed to send verification email.');
         setMsgType('error');
@@ -99,30 +173,53 @@ const ResendVerification = () => {
             <form className="space-y-6" onSubmit={handleSubmit}>
               {/* email */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
+                <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="email">
+                  <span className="flex items-center">
+                    Email Address <span className="text-red-500 ml-1">*</span>
+                  </span>
                 </label>
                 <div className="relative">
                   <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
                   <input
                     type="email"
+                    id="email"
                     required
-                    className="w-full pl-12 pr-4 py-4 border border-gray-300 rounded-xl bg-gray-50
+                    className={`w-full pl-12 pr-10 py-4 border rounded-xl bg-gray-50
                                focus:outline-none focus:ring-2 focus:ring-[#1B6675] focus:border-transparent
                                transition duration-200 text-gray-900 placeholder-gray-500
-                               disabled:opacity-50 disabled:cursor-not-allowed"
+                               ${errors.email 
+                                 ? 'border-red-300 focus:ring-red-500' 
+                                 : touched.email && !errors.email 
+                                   ? 'border-green-300 focus:ring-green-500' 
+                                   : 'border-gray-300'
+                               }
+                               disabled:opacity-50 disabled:cursor-not-allowed`}
                     placeholder="Enter your email address"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={handleEmailChange}
+                    onBlur={() => handleBlur('email')}
                     disabled={isLoading}
+                    aria-describedby={errors.email ? "email-error" : undefined}
                   />
+                  {touched.email && !errors.email && email && (
+                    <FaCheckCircle className="absolute right-4 top-1/2 -translate-y-1/2 text-green-500" />
+                  )}
+                  {errors.email && (
+                    <FaExclamationCircle className="absolute right-4 top-1/2 -translate-y-1/2 text-red-500" />
+                  )}
                 </div>
+                {errors.email && (
+                  <p id="email-error" className="mt-1 text-sm text-red-600 flex items-center">
+                    <FaExclamationCircle className="mr-1 text-xs" />
+                    {errors.email}
+                  </p>
+                )}
               </div>
 
               {/* submit */}
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || (email.trim() === '' || errors.email)}
                 className="w-full bg-[#1B6675] text-white py-4 rounded-xl font-semibold text-base
                            hover:bg-[#0f4a5a] focus:outline-none focus:ring-2 focus:ring-[#1B6675] focus:ring-offset-2
                            transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed

@@ -5,6 +5,42 @@ const emailService = require('../services/emailService');
 const { generateToken } = require('../middleware/auth');
 
 /* ──────────────────────────────────────────────────────────
+   CHECK USERNAME AVAILABILITY
+─────────────────────────────────────────────────────────── */
+exports.checkUsernameAvailability = async (req, res) => {
+  try {
+    const { username } = req.query;
+    
+    if (!username) {
+      return res.status(400).json({ error: 'Username parameter is required' });
+    }
+    
+    // Validate username format
+    const usernameRegex = /^[a-zA-Z0-9_-]+$/;
+    if (!usernameRegex.test(username)) {
+      return res.status(400).json({ error: 'Invalid username format' });
+    }
+    
+    // Check if username length is valid
+    if (username.length < 3 || username.length > 30) {
+      return res.status(400).json({ error: 'Username must be 3-30 characters long' });
+    }
+    
+    // Check if username already exists
+    const existingUser = await User.findOne({ username: username.trim() });
+    
+    return res.json({
+      available: !existingUser,
+      username: username.trim()
+    });
+    
+  } catch (err) {
+    console.error('Error checking username availability:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+/* ──────────────────────────────────────────────────────────
    SIGN-UP
 ─────────────────────────────────────────────────────────── */
 exports.signup = async (req, res) => {
@@ -14,18 +50,41 @@ exports.signup = async (req, res) => {
     /* 1️⃣  normalise role once … */
     const cleanRole = String(role || '').trim().toLowerCase();   // ‹— extra safety
 
-    /* 2️⃣  duplicate-e-mail guard */
+    // Additional validation for email format (backup to middleware)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+
+    // Additional domain validation (backup to middleware)
+    const allowedDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 'live.com', 'sentivoice.com'];
+    const disposableDomains = ['mailinator.com', 'tempmail.com', '10minutemail.com', 'guerrillamail.com'];
+    
+    const domain = email.split('@')[1];
+    if (!allowedDomains.includes(domain)) {
+      return res.status(400).json({ error: 'Email domain is not supported' });
+    }
+    
+    if (disposableDomains.includes(domain)) {
+      return res.status(400).json({ error: 'Temporary email addresses are not allowed' });
+    }
+
+    /* 2️⃣  duplicate username guard */
+    if (await User.findOne({ username }))
+      return res.status(409).json({ error: 'Username already in use' });
+
+    /* 3️⃣  duplicate-e-mail guard */
     if (await User.findOne({ email }))
       return res.status(409).json({ error: 'Email already in use' });
 
-    /* 3️⃣  hash password */
+    /* 4️⃣  hash password */
     const hashed = await bcrypt.hash(password, 10);
 
-    /* 4️⃣  generate verification token */
+    /* 5️⃣  generate verification token */
     const verificationToken = emailService.generateVerificationToken();
     const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
-    /* 5️⃣  create user with verification fields
+    /* 6️⃣  create user with verification fields
            ────────────────────────────────────────
            • every therapist gets isTherapistApproved:false
            • other roles omit the flag (so schema default applies) */
@@ -50,7 +109,7 @@ exports.signup = async (req, res) => {
 
     await newUser.save();
 
-    /* 6️⃣  send verification email */
+    /* 7️⃣  send verification email */
     const emailSent = await emailService.sendVerificationEmail(
       email, 
       verificationToken, 
@@ -71,6 +130,29 @@ exports.signup = async (req, res) => {
 
   } catch (err) {
     console.error('Error signing up user:', err);
+    
+    // Handle specific MongoDB duplicate key errors
+    if (err.code === 11000) {
+      const field = Object.keys(err.keyPattern)[0];
+      if (field === 'username') {
+        return res.status(409).json({ error: 'Username already in use' });
+      } else if (field === 'email') {
+        return res.status(409).json({ error: 'Email already in use' });
+      }
+    }
+    
+    // Handle validation errors
+    if (err.name === 'ValidationError') {
+      const errors = Object.keys(err.errors).map(key => ({
+        field: key,
+        message: err.errors[key].message
+      }));
+      return res.status(400).json({ 
+        error: 'Validation failed',
+        details: errors
+      });
+    }
+    
     return res.status(500).json({ error: 'Error signing up user' });
   }
 };
@@ -81,6 +163,25 @@ exports.signup = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    // Additional validation for email format (backup to middleware)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+
+    // Additional domain validation (backup to middleware)
+    const allowedDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 'live.com', 'sentivoice.com'];
+    const disposableDomains = ['mailinator.com', 'tempmail.com', '10minutemail.com', 'guerrillamail.com'];
+    
+    const domain = email.split('@')[1];
+    if (!allowedDomains.includes(domain)) {
+      return res.status(400).json({ error: 'Email domain is not supported' });
+    }
+    
+    if (disposableDomains.includes(domain)) {
+      return res.status(400).json({ error: 'Temporary email addresses are not allowed' });
+    }
 
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
@@ -213,6 +314,25 @@ exports.resendVerification = async (req, res) => {
       return res.status(400).json({ error: 'Email is required' });
     }
 
+    // Additional validation for email format (backup to middleware)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+
+    // Additional domain validation (backup to middleware)
+    const allowedDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 'live.com', 'sentivoice.com'];
+    const disposableDomains = ['mailinator.com', 'tempmail.com', '10minutemail.com', 'guerrillamail.com'];
+    
+    const domain = email.split('@')[1];
+    if (!allowedDomains.includes(domain)) {
+      return res.status(400).json({ error: 'Email domain is not supported' });
+    }
+    
+    if (disposableDomains.includes(domain)) {
+      return res.status(400).json({ error: 'Temporary email addresses are not allowed' });
+    }
+
     // Find user by email
     const user = await User.findOne({ email: email.toLowerCase() });
 
@@ -265,6 +385,25 @@ exports.forgotPassword = async (req, res) => {
 
     if (!email) {
       return res.status(400).json({ error: 'Email is required' });
+    }
+
+    // Additional validation for email format (backup to middleware)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+
+    // Additional domain validation (backup to middleware)
+    const allowedDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 'live.com', 'sentivoice.com'];
+    const disposableDomains = ['mailinator.com', 'tempmail.com', '10minutemail.com', 'guerrillamail.com'];
+    
+    const domain = email.split('@')[1];
+    if (!allowedDomains.includes(domain)) {
+      return res.status(400).json({ error: 'Email domain is not supported' });
+    }
+    
+    if (disposableDomains.includes(domain)) {
+      return res.status(400).json({ error: 'Temporary email addresses are not allowed' });
     }
 
     // Find user by email
@@ -322,6 +461,59 @@ exports.resetPassword = async (req, res) => {
       return res.status(400).json({ error: 'Token, email, and new password are required' });
     }
 
+    // Additional validation for email format (backup to middleware)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+
+    // Additional domain validation (backup to middleware)
+    const allowedDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 'live.com', 'sentivoice.com'];
+    const disposableDomains = ['mailinator.com', 'tempmail.com', '10minutemail.com', 'guerrillamail.com'];
+    
+    const domain = email.split('@')[1];
+    if (!allowedDomains.includes(domain)) {
+      return res.status(400).json({ error: 'Email domain is not supported' });
+    }
+    
+    if (disposableDomains.includes(domain)) {
+      return res.status(400).json({ error: 'Temporary email addresses are not allowed' });
+    }
+
+    // Token validation
+    if (typeof token !== 'string' || token.length < 10 || token.length > 100) {
+      return res.status(400).json({ error: 'Invalid token format' });
+    }
+
+    // Password validation (backup to middleware)
+    if (typeof newPassword !== 'string') {
+      return res.status(400).json({ error: 'Password must be a string' });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters' });
+    }
+
+    if (newPassword.length > 50) {
+      return res.status(400).json({ error: 'Password must be less than 50 characters' });
+    }
+
+    if (!/(?=.*[a-z])/.test(newPassword)) {
+      return res.status(400).json({ error: 'Password must include lowercase letter' });
+    }
+
+    if (!/(?=.*[A-Z])/.test(newPassword)) {
+      return res.status(400).json({ error: 'Password must include uppercase letter' });
+    }
+
+    if (!/(?=.*\d)/.test(newPassword)) {
+      return res.status(400).json({ error: 'Password must include number' });
+    }
+
+    if (!/(?=.*[@$!%*?&])/.test(newPassword)) {
+      return res.status(400).json({ error: 'Password must include symbol (@$!%*?&)' });
+    }
+
     // Find user by email and token
     const user = await User.findOne({
       email: email.toLowerCase(),
@@ -330,8 +522,21 @@ exports.resetPassword = async (req, res) => {
     });
 
     if (!user) {
+      // Check if token exists but is expired
+      const expiredUser = await User.findOne({
+        email: email.toLowerCase(),
+        passwordResetToken: token,
+        passwordResetExpires: { $lte: new Date() }
+      });
+
+      if (expiredUser) {
+        return res.status(400).json({ 
+          error: 'Reset token has expired. Please request a new password reset.' 
+        });
+      }
+
       return res.status(400).json({ 
-        error: 'Invalid or expired reset token' 
+        error: 'Invalid reset token' 
       });
     }
 

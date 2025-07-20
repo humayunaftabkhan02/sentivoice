@@ -47,6 +47,8 @@ export default function PaymentApproval() {
     processedToday: 0,
     pendingPayments: 0
   });
+  const [actionError, setActionError] = useState({});
+  const [downloadError, setDownloadError] = useState({});
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -104,6 +106,11 @@ export default function PaymentApproval() {
     const navigate = useNavigate();
   
   const handleStatusChange = async (payment, status) => {
+    setActionError({});
+    let confirmMsg = '';
+    if (status === 'Approved') confirmMsg = `Are you sure you want to approve this payment?`;
+    if (status === 'Declined') confirmMsg = `Are you sure you want to decline this payment?`;
+    if (confirmMsg && !window.confirm(confirmMsg)) return;
     try {
       setProcessing(payment._id);
       await api.put(`/api/admin/payments/${payment._id}/status`, { status });
@@ -116,9 +123,40 @@ export default function PaymentApproval() {
         setProcessing(null);
       }, 1000);
       } catch (err) {
-        setError("Failed to update payment status");
-      setProcessing(null);
+        setActionError(prev => ({ ...prev, [payment._id]: `Failed to update payment status: ${err.message || 'Unknown error'}` }));
+        setProcessing(null);
       console.error("Payment status update error:", err);
+    }
+  };
+
+  const handleDownload = async (payment) => {
+    setDownloadError({});
+    try {
+      const token = localStorage.getItem('token');
+      const headers = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const response = await fetch(`${apiOrigin}/api/payments/download/${payment._id}`, {
+        method: 'GET',
+        headers
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = payment.receiptFileName || 'payment-receipt.pdf';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      setDownloadError(prev => ({ ...prev, [payment._id]: 'Error downloading receipt: ' + err.message }));
+      console.error("Download error:", err);
     }
   };
 
@@ -507,7 +545,9 @@ export default function PaymentApproval() {
                               )}
                               <span>{processing === payment._id ? 'Processing...' : 'Approve'}</span>
                             </button>
-                            
+                            {actionError[payment._id] && (
+                              <div className="text-red-500 text-xs mt-1" aria-live="polite" role="alert">{actionError[payment._id]}</div>
+                            )}
                             <button
                               onClick={() => handleStatusChange(payment, "Declined")}
                               disabled={processing === payment._id}
@@ -524,6 +564,9 @@ export default function PaymentApproval() {
                               )}
                               <span>{processing === payment._id ? 'Processing...' : 'Decline'}</span>
                             </button>
+                            {actionError[payment._id] && (
+                              <div className="text-red-500 text-xs mt-1" aria-live="polite" role="alert">{actionError[payment._id]}</div>
+                            )}
                           </div>
                         </div>
                       </div>

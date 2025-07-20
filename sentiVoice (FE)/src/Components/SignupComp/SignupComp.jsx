@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaUserMd, FaUserInjured } from 'react-icons/fa'
+import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaUserMd, FaUserInjured, FaArrowLeft, FaExclamationCircle, FaCheckCircle } from 'react-icons/fa'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import logo from '../../assets/logo.png'
 import signupImage from '../../assets/signupImg.png'
@@ -16,6 +16,7 @@ const SignupComp = () => {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [role, setRole] = useState('')
     const [errors, setErrors] = useState({})
+    const [touched, setTouched] = useState({})
     const [message, setMessage] = useState('')
     const [messageType, setMessageType] = useState('')
     const [isLoading, setIsLoading] = useState(false)
@@ -35,94 +36,217 @@ const SignupComp = () => {
     const allowedEmailDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 'live.com']
     const disposableDomains = ['mailinator.com', 'tempmail.com', '10minutemail.com', 'guerrillamail.com']
 
-    const validate = () => {
-        const newErrors = {}
+    /* ─── validation functions ─────────────────────────────────────── */
+    const validateFirstName = (firstName) => {
+        const trimmed = firstName.trim();
+        if (!trimmed) return 'First name is required';
+        if (trimmed.length < 2) return 'First name must be at least 2 characters';
+        if (!/^[a-zA-Z\s]+$/.test(trimmed)) return 'First name can only contain letters and spaces';
+        return null;
+    };
 
-        const trimmedFirstName = firstName.trim()
-        const trimmedLastName = lastName.trim()
-        const trimmedUsername = username.trim()
-        const trimmedEmail = email.trim()
-        const trimmedPassword = password.trim()
-        const trimmedConfirm = confirmPassword.trim()
+    const validateLastName = (lastName) => {
+        const trimmed = lastName.trim();
+        if (!trimmed) return 'Last name is required';
+        if (trimmed.length < 2) return 'Last name must be at least 2 characters';
+        if (!/^[a-zA-Z\s]+$/.test(trimmed)) return 'Last name can only contain letters and spaces';
+        return null;
+    };
 
-        // First Name validation
-        if (!trimmedFirstName) {
-            newErrors.firstName = 'First name is required'
-        } else if (trimmedFirstName.length < 2) {
-            newErrors.firstName = 'First name must be at least 2 characters'
-        } else if (!/^[a-zA-Z\s]+$/.test(trimmedFirstName)) {
-            newErrors.firstName = 'First name can only contain letters and spaces'
+    const validateUsername = (username) => {
+        const trimmed = username.trim();
+        if (!trimmed) return 'Username is required';
+        if (!/^[a-zA-Z0-9_]+$/.test(trimmed)) return 'Only letters, numbers, and underscores allowed';
+        if (trimmed.length < 4 || trimmed.length > 20) return 'Username must be 4–20 characters long';
+        return null;
+    };
+
+    const validateEmail = (email) => {
+        const trimmed = email.trim();
+        if (!trimmed) return 'Email is required';
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) return 'Invalid email format';
+        
+        const domain = trimmed.split('@')[1];
+        if (!allowedEmailDomains.includes(domain)) return 'Email domain is not supported';
+        if (disposableDomains.includes(domain)) return 'Temporary email addresses are not allowed';
+        
+        return null;
+    };
+
+    const validatePassword = (password) => {
+        if (!password) return 'Password is required';
+        if (password.length < 8) return 'Password must be at least 8 characters';
+        if (password.length > 50) return 'Password must be less than 50 characters';
+        if (!/(?=.*[a-z])/.test(password)) return 'Password must include lowercase letter';
+        if (!/(?=.*[A-Z])/.test(password)) return 'Password must include uppercase letter';
+        if (!/(?=.*\d)/.test(password)) return 'Password must include number';
+        if (!/(?=.*[@$!%*?&])/.test(password)) return 'Password must include symbol (@$!%*?&)';
+        return null;
+    };
+
+    const validateConfirmPassword = (confirmPassword, password) => {
+        if (!confirmPassword) return 'Confirm your password';
+        if (confirmPassword !== password) return 'Passwords do not match';
+        return null;
+    };
+
+    const validateRole = (role) => {
+        if (!role) return 'Please select your role';
+        if (!['patient', 'therapist'].includes(role)) return 'Invalid role selected';
+        return null;
+    };
+
+    const validateCvFile = (file, role) => {
+        if (role === 'therapist' && !file) return 'CV/Document is required for therapists';
+        if (file && file.size > 5 * 1024 * 1024) return 'File size must be less than 5MB';
+        return null;
+    };
+
+    const validateForm = () => {
+        const newErrors = {};
+        
+        newErrors.firstName = validateFirstName(firstName);
+        newErrors.lastName = validateLastName(lastName);
+        newErrors.username = validateUsername(username);
+        newErrors.email = validateEmail(email);
+        newErrors.password = validatePassword(password);
+        newErrors.confirmPassword = validateConfirmPassword(confirmPassword, password);
+        newErrors.role = validateRole(role);
+        newErrors.cvFile = validateCvFile(cvFile, role);
+        
+        // Remove null values
+        Object.keys(newErrors).forEach(key => {
+            if (newErrors[key] === null) delete newErrors[key];
+        });
+        
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    /* ─── input handlers ──────────────────────────────────────────── */
+    const handleFieldChange = (field, value) => {
+        // Update the field value
+        switch (field) {
+            case 'firstName':
+                setFirstName(value);
+                break;
+            case 'lastName':
+                setLastName(value);
+                break;
+            case 'username':
+                setUsername(value);
+                break;
+            case 'email':
+                setEmail(value);
+                break;
+            case 'password':
+                setPassword(value);
+                break;
+            case 'confirmPassword':
+                setConfirmPassword(value);
+                break;
+            default:
+                break;
         }
 
-        // Last Name validation
-        if (!trimmedLastName) {
-            newErrors.lastName = 'Last name is required'
-        } else if (trimmedLastName.length < 2) {
-            newErrors.lastName = 'Last name must be at least 2 characters'
-        } else if (!/^[a-zA-Z\s]+$/.test(trimmedLastName)) {
-            newErrors.lastName = 'Last name can only contain letters and spaces'
-        }
-
-        // Username validation
-        if (!trimmedUsername) {
-            newErrors.username = 'Username is required'
-        } else if (!/^[a-zA-Z0-9_]+$/.test(trimmedUsername)) {
-            newErrors.username = 'Only letters, numbers, and underscores allowed'
-        } else if (trimmedUsername.length < 4 || trimmedUsername.length > 20) {
-            newErrors.username = 'Username must be 4–20 characters long'
-        }
-
-        // Email validation
-        if (!trimmedEmail) {
-            newErrors.email = 'Email is required'
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-            newErrors.email = 'Invalid email format'
-        } else {
-            const domain = trimmedEmail.split('@')[1]
-            if (!allowedEmailDomains.includes(domain)) {
-                newErrors.email = 'Email domain is not supported'
-            } else if (disposableDomains.includes(domain)) {
-                newErrors.email = 'Temporary email addresses are not allowed'
+        // Real-time validation if field has been touched
+        if (touched[field]) {
+            let error = null;
+            switch (field) {
+                case 'firstName':
+                    error = validateFirstName(value);
+                    break;
+                case 'lastName':
+                    error = validateLastName(value);
+                    break;
+                case 'username':
+                    error = validateUsername(value);
+                    break;
+                case 'email':
+                    error = validateEmail(value);
+                    break;
+                case 'password':
+                    error = validatePassword(value);
+                    break;
+                case 'confirmPassword':
+                    error = validateConfirmPassword(value, password);
+                    break;
+                default:
+                    break;
             }
+            
+            setErrors(prev => ({
+                ...prev,
+                [field]: error
+            }));
         }
+    };
 
-        // Password validation
-        if (!trimmedPassword) {
-            newErrors.password = 'Password is required'
-        } else if (
-            !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}/.test(trimmedPassword)
-        ) {
-            newErrors.password = 'Password must be at least 8 characters, include uppercase, lowercase, number, and symbol'
+    const handleBlur = (field) => {
+        setTouched(prev => ({ ...prev, [field]: true }));
+        
+        // Validate on blur
+        let error = null;
+        switch (field) {
+            case 'firstName':
+                error = validateFirstName(firstName);
+                break;
+            case 'lastName':
+                error = validateLastName(lastName);
+                break;
+            case 'username':
+                error = validateUsername(username);
+                break;
+            case 'email':
+                error = validateEmail(email);
+                break;
+            case 'password':
+                error = validatePassword(password);
+                break;
+            case 'confirmPassword':
+                error = validateConfirmPassword(confirmPassword, password);
+                break;
+            default:
+                break;
         }
+        
+        setErrors(prev => ({ ...prev, [field]: error }));
+    };
 
-        // Confirm password
-        if (!trimmedConfirm) {
-            newErrors.confirmPassword = 'Confirm your password'
-        } else if (trimmedConfirm !== trimmedPassword) {
-            newErrors.confirmPassword = 'Passwords do not match'
+    const handleRoleChange = (newRole) => {
+        setRole(newRole);
+        
+        // Clear CV file error if switching to patient
+        if (newRole === 'patient') {
+            setErrors(prev => ({ ...prev, cvFile: null }));
         }
+        
+        // Validate role
+        const error = validateRole(newRole);
+        setErrors(prev => ({ ...prev, role: error }));
+    };
 
-        // Role validation
-        if (!role) {
-            newErrors.role = 'Please select your role'
-        } else if (!['patient', 'therapist'].includes(role)) {
-            newErrors.role = 'Invalid role selected'
-        }
-
-        return newErrors
-    }
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        setCvFile(file);
+        
+        // Validate file
+        const error = validateCvFile(file, role);
+        setErrors(prev => ({ ...prev, cvFile: error }));
+    };
 
     const handleSignup = async (e) => {
         e.preventDefault();
-        const validationErrors = validate();
-        if (role === 'therapist' && !cvFile) {
-            validationErrors.cvFile = 'CV/Document is required for therapists';
+        
+        // Validate form before submission
+        if (!validateForm()) {
+            return;
         }
-        setErrors(validationErrors);
-
-        if (Object.keys(validationErrors).length === 0) {
+        
             setIsLoading(true);
             setMessage('');
+        setErrors({});
+
             try {
                 const formData = new FormData();
                 formData.append('firstName', firstName.trim());
@@ -146,11 +270,38 @@ const SignupComp = () => {
                     setMessageType('error');
                 }
             } catch (err) {
-                setMessage('Error: ' + err.message);
+            // Handle specific error messages from server
+            let errorMessage = 'Error signing up user';
+            let fieldErrors = {};
+            
+            if (err.response && err.response.data) {
+                if (err.response.data.error) {
+                    errorMessage = err.response.data.error;
+                }
+                
+                // Handle field-specific errors from server
+                if (err.response.data.errors) {
+                    fieldErrors = err.response.data.errors;
+                }
+                
+                // Handle specific username/email already exists errors
+                if (err.response.data.message) {
+                    const message = err.response.data.message.toLowerCase();
+                    if (message.includes('username') && message.includes('already')) {
+                        fieldErrors.username = 'Username is already taken';
+                    } else if (message.includes('email') && message.includes('already')) {
+                        fieldErrors.email = 'Email is already registered';
+                    }
+                }
+            } else if (err.message) {
+                errorMessage = err.message;
+            }
+            
+            setMessage(errorMessage);
                 setMessageType('error');
+            setErrors(fieldErrors);
             } finally {
                 setIsLoading(false);
-            }
         }
     };
 
@@ -170,6 +321,17 @@ const SignupComp = () => {
                 <div className="w-full max-w-md">
                     {/* Signup Card */}
                     <div className="bg-white rounded-2xl shadow-2xl p-6 lg:p-8">
+                        {/* Back to Home Button */}
+                        <div className="mb-4">
+                            <Link 
+                                to="/" 
+                                className="inline-flex items-center text-[#1B6675] hover:text-[#0f4a5a] font-medium transition duration-200 group"
+                            >
+                                <FaArrowLeft className="mr-2 group-hover:-translate-x-1 transition-transform duration-200" />
+                                Back to Home
+                            </Link>
+                        </div>
+
                         {/* Logo and Header */}
                         <div className="text-center mb-6">
                             <img src={logo} alt="Logo" className="mx-auto w-16 h-16 mb-4" />
@@ -224,15 +386,35 @@ const SignupComp = () => {
                                         <FaUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
                                         <input
                                             type="text"
-                                            className="w-full pl-9 pr-3 py-3 border border-gray-300 rounded-lg bg-gray-50
+                                            className={`w-full pl-9 pr-10 py-3 border rounded-lg bg-gray-50
                                                        focus:outline-none focus:ring-2 focus:ring-[#1B6675] focus:border-transparent
-                                                       transition duration-200 text-gray-900 placeholder-gray-500 text-sm"
+                                                       transition duration-200 text-gray-900 placeholder-gray-500 text-sm
+                                                       ${errors.firstName 
+                                                         ? 'border-red-300 focus:ring-red-500' 
+                                                         : touched.firstName && !errors.firstName 
+                                                           ? 'border-green-300 focus:ring-green-500' 
+                                                           : 'border-gray-300'
+                                                       }`}
                                             placeholder="First name"
                                             value={firstName}
-                                            onChange={(e) => setFirstName(e.target.value)}
+                                            onChange={(e) => handleFieldChange('firstName', e.target.value)}
+                                            onBlur={() => handleBlur('firstName')}
+                                            disabled={isLoading}
+                                            aria-describedby={errors.firstName ? "firstName-error" : undefined}
                                         />
+                                        {touched.firstName && !errors.firstName && firstName && (
+                                            <FaCheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500 text-sm" />
+                                        )}
+                                        {errors.firstName && (
+                                            <FaExclamationCircle className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500 text-sm" />
+                                        )}
                                     </div>
-                                    {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>}
+                                    {errors.firstName && (
+                                        <p id="firstName-error" className="text-red-500 text-xs mt-1 flex items-center">
+                                            <FaExclamationCircle className="mr-1 text-xs" />
+                                            {errors.firstName}
+                                        </p>
+                                    )}
                                 </div>
 
                                 {/* Last Name */}
@@ -246,15 +428,35 @@ const SignupComp = () => {
                                         <FaUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
                                         <input
                                             type="text"
-                                            className="w-full pl-9 pr-3 py-3 border border-gray-300 rounded-lg bg-gray-50
+                                            className={`w-full pl-9 pr-10 py-3 border rounded-lg bg-gray-50
                                                        focus:outline-none focus:ring-2 focus:ring-[#1B6675] focus:border-transparent
-                                                       transition duration-200 text-gray-900 placeholder-gray-500 text-sm"
+                                                       transition duration-200 text-gray-900 placeholder-gray-500 text-sm
+                                                       ${errors.lastName 
+                                                         ? 'border-red-300 focus:ring-red-500' 
+                                                         : touched.lastName && !errors.lastName 
+                                                           ? 'border-green-300 focus:ring-green-500' 
+                                                           : 'border-gray-300'
+                                                       }`}
                                             placeholder="Last name"
                                             value={lastName}
-                                            onChange={(e) => setLastName(e.target.value)}
+                                            onChange={(e) => handleFieldChange('lastName', e.target.value)}
+                                            onBlur={() => handleBlur('lastName')}
+                                            disabled={isLoading}
+                                            aria-describedby={errors.lastName ? "lastName-error" : undefined}
                                         />
+                                        {touched.lastName && !errors.lastName && lastName && (
+                                            <FaCheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500 text-sm" />
+                                        )}
+                                        {errors.lastName && (
+                                            <FaExclamationCircle className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500 text-sm" />
+                                        )}
                                     </div>
-                                    {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>}
+                                    {errors.lastName && (
+                                        <p id="lastName-error" className="text-red-500 text-xs mt-1 flex items-center">
+                                            <FaExclamationCircle className="mr-1 text-xs" />
+                                            {errors.lastName}
+                                        </p>
+                                    )}
                                 </div>
                             </div>
 
@@ -269,15 +471,35 @@ const SignupComp = () => {
                                     <FaUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
                                     <input
                                         type="text"
-                                        className="w-full pl-9 pr-3 py-3 border border-gray-300 rounded-lg bg-gray-50
+                                        className={`w-full pl-9 pr-10 py-3 border rounded-lg bg-gray-50
                                                    focus:outline-none focus:ring-2 focus:ring-[#1B6675] focus:border-transparent
-                                                   transition duration-200 text-gray-900 placeholder-gray-500 text-sm"
+                                                   transition duration-200 text-gray-900 placeholder-gray-500 text-sm
+                                                   ${errors.username 
+                                                     ? 'border-red-300 focus:ring-red-500' 
+                                                     : touched.username && !errors.username 
+                                                       ? 'border-green-300 focus:ring-green-500' 
+                                                       : 'border-gray-300'
+                                                   }`}
                                         placeholder="Choose a username"
                                         value={username}
-                                        onChange={(e) => setUsername(e.target.value)}
+                                        onChange={(e) => handleFieldChange('username', e.target.value)}
+                                        onBlur={() => handleBlur('username')}
+                                        disabled={isLoading}
+                                        aria-describedby={errors.username ? "username-error" : undefined}
                                     />
+                                    {touched.username && !errors.username && username && (
+                                        <FaCheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500 text-sm" />
+                                    )}
+                                    {errors.username && (
+                                        <FaExclamationCircle className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500 text-sm" />
+                                    )}
                                 </div>
-                                {errors.username && <p className="text-red-500 text-xs mt-1">{errors.username}</p>}
+                                {errors.username && (
+                                    <p id="username-error" className="text-red-500 text-xs mt-1 flex items-center">
+                                        <FaExclamationCircle className="mr-1 text-xs" />
+                                        {errors.username}
+                                    </p>
+                                )}
                             </div>
 
                             {/* Email */}
@@ -291,15 +513,35 @@ const SignupComp = () => {
                                     <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                                     <input
                                         type="email"
-                                        className="w-full pl-12 pr-3 py-3 border border-gray-300 rounded-lg bg-gray-50
+                                        className={`w-full pl-12 pr-10 py-3 border rounded-lg bg-gray-50
                                                    focus:outline-none focus:ring-2 focus:ring-[#1B6675] focus:border-transparent
-                                                   transition duration-200 text-gray-900 placeholder-gray-500 text-sm"
+                                                   transition duration-200 text-gray-900 placeholder-gray-500 text-sm
+                                                   ${errors.email 
+                                                     ? 'border-red-300 focus:ring-red-500' 
+                                                     : touched.email && !errors.email 
+                                                       ? 'border-green-300 focus:ring-green-500' 
+                                                       : 'border-gray-300'
+                                                   }`}
                                         placeholder="Enter your email"
                                         value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
+                                        onChange={(e) => handleFieldChange('email', e.target.value)}
+                                        onBlur={() => handleBlur('email')}
+                                        disabled={isLoading}
+                                        aria-describedby={errors.email ? "email-error" : undefined}
                                     />
+                                    {touched.email && !errors.email && email && (
+                                        <FaCheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500 text-sm" />
+                                    )}
+                                    {errors.email && (
+                                        <FaExclamationCircle className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500 text-sm" />
+                                    )}
                                 </div>
-                                {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+                                {errors.email && (
+                                    <p id="email-error" className="text-red-500 text-xs mt-1 flex items-center">
+                                        <FaExclamationCircle className="mr-1 text-xs" />
+                                        {errors.email}
+                                    </p>
+                                )}
                             </div>
 
                             {/* Password */}
@@ -312,22 +554,37 @@ const SignupComp = () => {
                                 <div className="relative">
                                     <input
                                         type={showPassword ? "text" : "password"}
-                                        className="w-full pl-3 pr-10 py-3 border border-gray-300 rounded-lg bg-gray-50
+                                        className={`w-full pl-3 pr-10 py-3 border rounded-lg bg-gray-50
                                                    focus:outline-none focus:ring-2 focus:ring-[#1B6675] focus:border-transparent
-                                                   transition duration-200 text-gray-900 placeholder-gray-500 text-sm"
+                                                   transition duration-200 text-gray-900 placeholder-gray-500 text-sm
+                                                   ${errors.password 
+                                                     ? 'border-red-300 focus:ring-red-500' 
+                                                     : touched.password && !errors.password 
+                                                       ? 'border-green-300 focus:ring-green-500' 
+                                                       : 'border-gray-300'
+                                                   }`}
                                         placeholder="Create a password"
                                         value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
+                                        onChange={(e) => handleFieldChange('password', e.target.value)}
+                                        onBlur={() => handleBlur('password')}
+                                        disabled={isLoading}
+                                        aria-describedby={errors.password ? "password-error" : undefined}
                                     />
                                     <button
                                         type="button"
                                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                                         onClick={() => setShowPassword(!showPassword)}
+                                        disabled={isLoading}
                                     >
                                         {showPassword ? <FaEyeSlash /> : <FaEye />}
                                     </button>
                                 </div>
-                                {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
+                                {errors.password && (
+                                    <p id="password-error" className="text-red-500 text-xs mt-1 flex items-center">
+                                        <FaExclamationCircle className="mr-1 text-xs" />
+                                        {errors.password}
+                                    </p>
+                                )}
                             </div>
 
                             {/* Confirm Password */}
@@ -340,22 +597,37 @@ const SignupComp = () => {
                                 <div className="relative">
                                     <input
                                         type={showConfirmPassword ? "text" : "password"}
-                                        className="w-full pl-3 pr-10 py-3 border border-gray-300 rounded-lg bg-gray-50
+                                        className={`w-full pl-3 pr-10 py-3 border rounded-lg bg-gray-50
                                                    focus:outline-none focus:ring-2 focus:ring-[#1B6675] focus:border-transparent
-                                                   transition duration-200 text-gray-900 placeholder-gray-500 text-sm"
+                                                   transition duration-200 text-gray-900 placeholder-gray-500 text-sm
+                                                   ${errors.confirmPassword 
+                                                     ? 'border-red-300 focus:ring-red-500' 
+                                                     : touched.confirmPassword && !errors.confirmPassword 
+                                                       ? 'border-green-300 focus:ring-green-500' 
+                                                       : 'border-gray-300'
+                                                   }`}
                                         placeholder="Confirm your password"
                                         value={confirmPassword}
-                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        onChange={(e) => handleFieldChange('confirmPassword', e.target.value)}
+                                        onBlur={() => handleBlur('confirmPassword')}
+                                        disabled={isLoading}
+                                        aria-describedby={errors.confirmPassword ? "confirmPassword-error" : undefined}
                                     />
                                     <button
                                         type="button"
                                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        disabled={isLoading}
                                     >
                                         {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
                                     </button>
                                 </div>
-                                {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>}
+                                {errors.confirmPassword && (
+                                    <p id="confirmPassword-error" className="text-red-500 text-xs mt-1 flex items-center">
+                                        <FaExclamationCircle className="mr-1 text-xs" />
+                                        {errors.confirmPassword}
+                                    </p>
+                                )}
                             </div>
 
                             {/* Role Selection */}
@@ -368,12 +640,13 @@ const SignupComp = () => {
                                 <div className="grid grid-cols-2 gap-3">
                                     <button
                                         type="button"
-                                        onClick={() => setRole('patient')}
+                                        onClick={() => handleRoleChange('patient')}
                                         className={`p-4 rounded-lg border-2 transition-all duration-200 ${
                                             role === 'patient'
                                                 ? 'border-[#1B6675] bg-[#1B6675] text-white shadow-lg'
                                                 : 'border-gray-300 bg-gray-50 text-gray-700 hover:border-[#1B6675] hover:bg-[#1B6675] hover:text-white'
                                         }`}
+                                        disabled={isLoading}
                                     >
                                         <div className="flex flex-col items-center">
                                             <FaUserInjured className="text-xl mb-1" />
@@ -384,12 +657,13 @@ const SignupComp = () => {
 
                                     <button
                                         type="button"
-                                        onClick={() => setRole('therapist')}
+                                        onClick={() => handleRoleChange('therapist')}
                                         className={`p-4 rounded-lg border-2 transition-all duration-200 ${
                                             role === 'therapist'
                                                 ? 'border-[#1B6675] bg-[#1B6675] text-white shadow-lg'
                                                 : 'border-gray-300 bg-gray-50 text-gray-700 hover:border-[#1B6675] hover:bg-[#1B6675] hover:text-white'
                                         }`}
+                                        disabled={isLoading}
                                     >
                                         <div className="flex flex-col items-center">
                                             <FaUserMd className="text-xl mb-1" />
@@ -398,7 +672,12 @@ const SignupComp = () => {
                                         </div>
                                     </button>
                                 </div>
-                                {errors.role && <p className="text-red-500 text-xs mt-2">{errors.role}</p>}
+                                {errors.role && (
+                                    <p className="text-red-500 text-xs mt-2 flex items-center">
+                                        <FaExclamationCircle className="mr-1 text-xs" />
+                                        {errors.role}
+                                    </p>
+                                )}
                             </div>
 
                             {/* CV/Document Upload for Therapists */}
@@ -413,20 +692,26 @@ const SignupComp = () => {
                                         <input
                                             type="file"
                                             accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                                            onChange={e => setCvFile(e.target.files[0])}
+                                            onChange={handleFileChange}
                                             className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                                                 errors.cvFile
                                                     ? 'border-red-400 bg-red-50'
+                                                    : touched.cvFile && !errors.cvFile
+                                                      ? 'border-green-300 bg-green-50'
                                                     : 'border-gray-300 hover:border-blue-400 bg-white'
                                             }`}
-                                            required
+                                            disabled={isLoading}
+                                            aria-describedby={errors.cvFile ? "cvFile-error" : undefined}
                                         />
                                         {cvFile && (
                                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 truncate max-w-[60%]">{cvFile.name}</span>
                                         )}
                                     </div>
                                     {errors.cvFile && (
-                                        <p className="text-red-500 text-xs mt-1">{errors.cvFile}</p>
+                                        <p id="cvFile-error" className="text-red-500 text-xs mt-1 flex items-center">
+                                            <FaExclamationCircle className="mr-1 text-xs" />
+                                            {errors.cvFile}
+                                        </p>
                                     )}
                                 </div>
                             )}
@@ -434,7 +719,7 @@ const SignupComp = () => {
                             {/* Submit */}
                             <button
                                 type="submit"
-                                disabled={isLoading}
+                                disabled={isLoading || !firstName.trim() || !lastName.trim() || !username.trim() || !email.trim() || !password.trim() || !confirmPassword.trim() || !role || (role === 'therapist' && !cvFile)}
                                 className="w-full bg-[#1B6675] text-white py-3 rounded-lg font-semibold text-base
                                            hover:bg-[#0f4a5a] focus:outline-none focus:ring-2 focus:ring-[#1B6675] focus:ring-offset-2
                                            transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed

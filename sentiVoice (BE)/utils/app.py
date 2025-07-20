@@ -162,7 +162,6 @@ def predict_emotion(audio_path):
         print(f"Error in predict_emotion: {str(e)}")
         traceback.print_exc()
         raise
-
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("Usage: python app.py <audio_file_path>")
