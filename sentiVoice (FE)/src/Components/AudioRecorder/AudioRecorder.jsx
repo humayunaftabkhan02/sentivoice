@@ -109,7 +109,7 @@ async function analyzeAudioQuality(audioBlob) {
     const base64 = btoa(binary);
     
     // Send directly to Flask app for quality analysis
-    const flaskUrl = 'http://localhost:5000/api/predict';
+    const flaskUrl = 'https://sentivoice-flask-273777154059.us-central1.run.app/api/predict';
     console.log('🔍 Sending to Flask app:', flaskUrl);
     
     const response = await fetch(flaskUrl, {
