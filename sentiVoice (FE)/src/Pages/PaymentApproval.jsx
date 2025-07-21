@@ -711,15 +711,22 @@ export default function PaymentApproval() {
                     </div>
                     <div>
                       <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Receipt</label>
-                      <a
-                        href={`${apiOrigin}/${selectedPayment.receiptUrl.replace(/\\/g, "/")}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-700"
-                      >
-                        <FaDownload className="w-3 h-3 sm:w-4 sm:h-4" />
-                        <span className="text-sm sm:text-base">View Receipt</span>
-                      </a>
+                      {(() => {
+                        const safeUrl = selectedPayment.receiptUrl.startsWith('uploads/')
+                          ? `${apiOrigin}/${selectedPayment.receiptUrl.replace(/\\/g, "/")}`
+                          : `${apiOrigin}/uploads/${selectedPayment.receiptUrl.replace(/\\/g, "/")}`;
+                        return (
+                          <a
+                            href={safeUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-700"
+                          >
+                            <FaDownload className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <span className="text-sm sm:text-base">View Receipt</span>
+                          </a>
+                        );
+                      })()}
                     </div>
                   </div>
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end space-y-2 sm:space-y-0 sm:space-x-3 mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200">
