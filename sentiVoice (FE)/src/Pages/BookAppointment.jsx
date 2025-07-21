@@ -745,20 +745,16 @@ useEffect(() => {
                         }}
                         onBlur={handlePhoneBlur}
                         disabled={hasStoredPhone}
-                        inputClass={`w-full px-3 sm:px-4 py-2 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${
-                          hasStoredPhone
-                            ? 'bg-gray-50 border-gray-200 cursor-not-allowed'
-                            : errors.phone
-                            ? 'border-red-500'
-                            : 'border-gray-300 hover:border-blue-400'
-                        }`}
+                        inputClass="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition-all duration-200"
+                        inputStyle={{ height: '42px', fontSize: '14px', paddingLeft: '60px' }}
                         containerClass="w-full"
-                        buttonClass="border border-gray-300 rounded-l-lg bg-white w-[52px] flex items-center justify-center"
+                        buttonClass="border border-gray-300 rounded-l-lg bg-white h-[42px] w-[52px] flex items-center justify-center"
                         dropdownClass="border border-gray-300 rounded-lg shadow-lg"
                         enableSearch={true}
                         searchPlaceholder="Search country..."
                         placeholder="Enter your phone number"
                         buttonStyle={{
+                          height: '42px',
                           width: '52px',
                           border: '1px solid #d1d5db',
                           borderRight: 'none',
