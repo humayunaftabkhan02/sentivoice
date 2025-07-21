@@ -138,6 +138,14 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use((req, res, next) => {
+  console.log('--- Incoming Request ---');
+  console.log('Method:', req.method);
+  console.log('Path:', req.originalUrl);
+  console.log('Headers:', req.headers);
+  next();
+});
+
 // Routes
 app.get('/', mainController.home);
 app.get('/health', (req, res) => {

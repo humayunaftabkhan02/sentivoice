@@ -173,24 +173,57 @@ exports.listPending = async (_req, res) => {
 
 // GET  /api/admin/payment-history   – all Approved or Declined
 exports.listHistory = async (_req, res) => {
-  const payments = await Payment.find({
-    status: { $in: ["Pending", "Approved", "Declined", "Refund Pending", "Refunded"] }
-  })
-  .sort({ updatedAt: -1 })
-  .lean();
+  // Use aggregation to allow disk use for large sorts and join related data
+  const payments = await Payment.aggregate([
+    {
+      $match: {
+        status: { $in: ["Pending", "Approved", "Declined", "Refund Pending", "Refunded"] }
+      }
+    },
+    { $sort: { updatedAt: -1 } },
+    // Lookup patient info
+    {
+      $lookup: {
+        from: "users",
+        localField: "patientUsername",
+        foreignField: "username",
+        as: "patientInfo"
+      }
+    },
+    // Lookup therapist info
+    {
+      $lookup: {
+        from: "users",
+        localField: "bookingInfo.therapistUsername",
+        foreignField: "username",
+        as: "therapistInfo"
+      }
+    },
+    // Lookup appointment info
+    {
+      $lookup: {
+        from: "appointments",
+        localField: "appointmentId",
+        foreignField: "_id",
+        as: "appointmentInfo"
+      }
+    }
+  ]).option({ allowDiskUse: true });
 
-  // attach patient & therapist full names and booking status
+  // Attach patient & therapist full names and booking status
   for (let p of payments) {
-    const patient = await User.findOne({ username: p.patientUsername });
+    // Patient full name
+    const patient = p.patientInfo && p.patientInfo[0];
     p.patientFullName =
-      patient?.info?.firstName && patient?.info?.lastName
+      patient && patient.info && patient.info.firstName && patient.info.lastName
         ? `${patient.info.firstName} ${patient.info.lastName}`
         : p.patientUsername;
 
+    // Therapist full name
+    const th = p.therapistInfo && p.therapistInfo[0];
     const tUname = p.bookingInfo?.therapistUsername;
-    const th     = tUname ? await User.findOne({ username: tUname }) : null;
     p.therapistFullName =
-      th?.info?.firstName && th?.info?.lastName
+      th && th.info && th.info.firstName && th.info.lastName
         ? `Dr. ${th.info.firstName} ${th.info.lastName}`
         : `Dr. ${tUname || "N/A"}`;
 
@@ -198,12 +231,13 @@ exports.listHistory = async (_req, res) => {
     p.requestedAt = p.createdAt;
 
     // Add booking status if appointment exists
-    if (p.appointmentId) {
-      const appt = await Appointment.findById(p.appointmentId);
-      p.bookingStatus = appt ? appt.status : 'N/A';
-    } else {
-      p.bookingStatus = 'N/A';
-    }
+    const appt = p.appointmentInfo && p.appointmentInfo[0];
+    p.bookingStatus = appt ? appt.status : 'N/A';
+
+    // Remove the joined arrays to keep response clean
+    delete p.patientInfo;
+    delete p.therapistInfo;
+    delete p.appointmentInfo;
   }
 
   res.json(payments);
