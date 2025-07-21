@@ -55,14 +55,6 @@ export default function PaymentHistory() {
   });
   const [refundError, setRefundError] = useState({});
   const [downloadError, setDownloadError] = useState({});
-  const [stats, setStats] = useState({
-    total: 0,
-    approved: 0,
-    declined: 0,
-    refunded: 0,
-    totalAmount: 0,
-    approvedAmount: 0
-  });
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -71,23 +63,12 @@ export default function PaymentHistory() {
 
   const apiOrigin = import.meta.env.VITE_API_ORIGIN || import.meta.env.VITE_API_URL || "http://localhost:3000";
 
-    const fetchHistory = async (page = currentPage, limit = pageSize) => {
+    const fetchHistory = async () => {
       try {
         setLoading(true);
       setError(null);
-        // Build query params for backend
-        const params = new URLSearchParams({
-          page,
-          limit,
-          sortBy,
-          sortOrder,
-        });
-        if (searchTerm) params.append('search', searchTerm);
-        if (filterStatus && filterStatus !== 'all') params.append('status', filterStatus);
-        const data = await api.get(`/api/admin/payment-history?${params.toString()}`);
-      setPayments(Array.isArray(data.payments) ? data.payments : []);
-      setTotalPages(data.totalPages || 1);
-      setCurrentPage(data.page || 1);
+        const data = await api.get("/api/admin/payment-history");
+      setPayments(Array.isArray(data) ? data : []);
       } catch (err) {
       setError("Failed to fetch payment history");
         console.error("Failed to fetch payment history:", err);
@@ -118,15 +99,6 @@ export default function PaymentHistory() {
       });
     } catch (error) {
       console.error('Error fetching pending counts:', error);
-    }
-  };
-
-  const fetchStats = async () => {
-    try {
-      const data = await api.get("/api/admin/payment-stats");
-      setStats(data);
-    } catch (err) {
-      console.error("Failed to fetch payment stats:", err);
     }
   };
 
@@ -299,29 +271,82 @@ export default function PaymentHistory() {
     }
   };
 
-  // Remove all client-side filtering, searching, and sorting
-  // Remove: filteredPayments, sortedPayments, and related logic
-
-  // Update handlePageChange and handlePageSizeChange to fetch new data
-  const handlePageChange = (page) => {
-    fetchHistory(page, pageSize);
+  // Calculate statistics
+  const stats = {
+    total: payments.length,
+    approved: payments.filter(p => p.status === 'Approved').length,
+    declined: payments.filter(p => p.status === 'Declined').length,
+    refunded: payments.filter(p => p.status === 'Refunded').length,
+    totalAmount: payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0),
+    approvedAmount: payments
+      .filter(p => p.status === 'Approved')
+      .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
   };
 
-  const handlePageSizeChange = (newPageSize) => {
-    setPageSize(newPageSize);
-    fetchHistory(1, newPageSize); // Reset to first page
-  };
+  // Filter and search payments
+  const filteredPayments = payments.filter(payment => {
+    const matchesSearch = 
+      payment.patientFullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.therapistFullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.referenceNo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.method?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesFilter = filterStatus === "all" || payment.status === filterStatus;
+    
+    return matchesSearch && matchesFilter;
+  });
 
-  // Fetch new data when search, filter, sort, or page size changes
+  // Sort payments
+  const sortedPayments = [...filteredPayments].sort((a, b) => {
+    let aValue, bValue;
+    
+    switch (sortBy) {
+      case 'date':
+        aValue = new Date(a.bookingInfo?.date || 0);
+        bValue = new Date(b.bookingInfo?.date || 0);
+        break;
+      case 'request':
+        aValue = new Date(a.requestedAt || a.createdAt || 0);
+        bValue = new Date(b.requestedAt || b.createdAt || 0);
+        break;
+      case 'amount':
+        aValue = parseFloat(a.amount) || 0;
+        bValue = parseFloat(b.amount) || 0;
+        break;
+      case 'patient':
+        aValue = a.patientFullName?.toLowerCase() || '';
+        bValue = b.patientFullName?.toLowerCase() || '';
+        break;
+      case 'therapist':
+        aValue = a.therapistFullName?.toLowerCase() || '';
+        bValue = b.therapistFullName?.toLowerCase() || '';
+        break;
+      default:
+        aValue = new Date(a.bookingInfo?.date || 0);
+        bValue = new Date(b.bookingInfo?.date || 0);
+    }
+    
+    if (sortOrder === 'asc') {
+      return aValue > bValue ? 1 : -1;
+    } else {
+      return aValue < bValue ? 1 : -1;
+    }
+  });
+
+  // Pagination logic
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedPayments = sortedPayments.slice(startIndex, endIndex);
+
+  // Reset to first page when search term or filter changes
   useEffect(() => {
-    fetchHistory(1, pageSize);
-  }, [searchTerm, filterStatus, sortBy, sortOrder, pageSize]);
+    setCurrentPage(1);
+  }, [searchTerm, filterStatus]);
 
   // Update total pages when sorted payments change
-  // Remove this effect that references sortedPayments
-  // useEffect(() => {
-  //   setTotalPages(Math.ceil(sortedPayments.length / pageSize)); // This line is no longer needed
-  // }, [sortedPayments, pageSize]);
+  useEffect(() => {
+    setTotalPages(Math.ceil(sortedPayments.length / pageSize));
+  }, [sortedPayments, pageSize]);
 
   const handleSort = (field) => {
     if (sortBy === field) {
@@ -337,10 +362,18 @@ export default function PaymentHistory() {
     return sortOrder === 'asc' ? <FaSortUp className="text-blue-600" /> : <FaSortDown className="text-blue-600" />;
   };
 
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handlePageSizeChange = (newPageSize) => {
+    setPageSize(newPageSize);
+    setCurrentPage(1); // Reset to first page
+  };
+
   useEffect(() => {
     fetchHistory();
     fetchPendingCounts();
-    fetchStats();
   }, []);
 
   return (
@@ -481,7 +514,7 @@ export default function PaymentHistory() {
           <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between space-y-4 lg:space-y-0">
               <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
-                Payment Records ({payments.length})
+                Payment Records ({sortedPayments.length})
               </h2>
               
               <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
@@ -531,7 +564,7 @@ export default function PaymentHistory() {
                   <p className="text-gray-600">Loading payment history...</p>
                 </div>
               </div>
-            ) : payments.length === 0 ? (
+            ) : sortedPayments.length === 0 ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FaHistory className="text-3xl text-gray-400" />
@@ -561,7 +594,7 @@ export default function PaymentHistory() {
               <>
                 {/* Mobile Payment Cards */}
                 <div className="lg:hidden space-y-4">
-                  {payments.map((payment) => {
+                  {paginatedPayments.map((payment) => {
                     const safeUrl = `${apiOrigin}/${payment.receiptUrl.replace(/\\/g, "/")}`;
                     return (
                       <div key={payment._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
@@ -718,7 +751,7 @@ export default function PaymentHistory() {
                       <div className="col-span-2 text-center">Actions</div>
                     </div>
 
-                    {payments.map((payment) => {
+                    {paginatedPayments.map((payment) => {
                       const safeUrl = `${apiOrigin}/${payment.receiptUrl.replace(/\\/g, "/")}`;
                       return (
                         <div key={payment._id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
@@ -834,7 +867,7 @@ export default function PaymentHistory() {
                   <div className="mt-8 flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
                     <div className="flex items-center space-x-4">
                       <span className="text-sm text-gray-700">
-                        Showing {currentPage * pageSize - pageSize + 1} to {Math.min(currentPage * pageSize, payments.length)} of {payments.length} payments
+                        Showing {startIndex + 1} to {Math.min(endIndex, sortedPayments.length)} of {sortedPayments.length} payments
                       </span>
                       <select
                         value={pageSize}

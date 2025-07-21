@@ -111,23 +111,33 @@ exports.createPayment = async (req, res) => {
 // ─── ADMIN SIDE ──────────────────────────────────────────────────────────────
 
 // GET /api/admin/payment-stats - Get payment statistics
-exports.getPaymentStats = async (req, res) => {
+exports.getPaymentStats = async (_req, res) => {
   try {
-    const match = { status: { $in: ["Pending", "Approved", "Declined", "Refund Pending", "Refunded"] } };
-    const payments = await Payment.find(match).lean();
-
-    const stats = {
-      total: payments.length,
-      approved: payments.filter(p => p.status === 'Approved').length,
-      declined: payments.filter(p => p.status === 'Declined').length,
-      refunded: payments.filter(p => p.status === 'Refunded').length,
-      totalAmount: payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0),
-      approvedAmount: payments.filter(p => p.status === 'Approved').reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
-    };
-
-    res.json(stats);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch payment stats', details: err.message });
+    // Get total submissions (all payments)
+    const totalSubmissions = await Payment.countDocuments();
+    
+    // Get processed today (approved or declined payments created today)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const processedToday = await Payment.countDocuments({
+      status: { $in: ["Approved", "Declined"] },
+      updatedAt: { $gte: today, $lt: tomorrow }
+    });
+    
+    // Get pending payments count
+    const pendingPayments = await Payment.countDocuments({ status: "Pending" });
+    
+    res.json({
+      totalSubmissions,
+      processedToday,
+      pendingPayments
+    });
+  } catch (error) {
+    console.error('Error fetching payment stats:', error);
+    res.status(500).json({ error: "Failed to fetch payment statistics" });
   }
 };
 
@@ -162,98 +172,41 @@ exports.listPending = async (_req, res) => {
 };
 
 // GET  /api/admin/payment-history   – all Approved or Declined
-exports.listHistory = async (req, res) => {
-  try {
-    console.log('Fetching payment history...');
-    // Pagination parameters
-    const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 50;
-    const skip = (page - 1) * limit;
+exports.listHistory = async (_req, res) => {
+  const payments = await Payment.find({
+    status: { $in: ["Pending", "Approved", "Declined", "Refund Pending", "Refunded"] }
+  })
+  .sort({ updatedAt: -1 })
+  .lean();
 
-    // Sorting
-    const sortBy = req.query.sortBy || 'updatedAt';
-    const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
-    const sort = {};
-    sort[sortBy] = sortOrder;
+  // attach patient & therapist full names and booking status
+  for (let p of payments) {
+    const patient = await User.findOne({ username: p.patientUsername });
+    p.patientFullName =
+      patient?.info?.firstName && patient?.info?.lastName
+        ? `${patient.info.firstName} ${patient.info.lastName}`
+        : p.patientUsername;
 
-    // Filtering
-    const status = req.query.status;
-    let statusFilter = { $in: ["Pending", "Approved", "Declined", "Refund Pending", "Refunded"] };
-    if (status && status !== 'all') {
-      statusFilter = status;
+    const tUname = p.bookingInfo?.therapistUsername;
+    const th     = tUname ? await User.findOne({ username: tUname }) : null;
+    p.therapistFullName =
+      th?.info?.firstName && th?.info?.lastName
+        ? `Dr. ${th.info.firstName} ${th.info.lastName}`
+        : `Dr. ${tUname || "N/A"}`;
+
+    // Ensure createdAt is present (it should be by default, but make explicit)
+    p.requestedAt = p.createdAt;
+
+    // Add booking status if appointment exists
+    if (p.appointmentId) {
+      const appt = await Appointment.findById(p.appointmentId);
+      p.bookingStatus = appt ? appt.status : 'N/A';
+    } else {
+      p.bookingStatus = 'N/A';
     }
-
-    // Searching
-    const search = req.query.search || '';
-    const searchRegex = new RegExp(search, 'i');
-    const searchFilter = search
-      ? {
-          $or: [
-            { patientUsername: searchRegex },
-            { referenceNo: searchRegex },
-            { method: searchRegex },
-            { 'bookingInfo.therapistUsername': searchRegex }
-          ]
-        }
-      : {};
-
-    // Build query
-    const query = {
-      status: statusFilter,
-      ...searchFilter
-    };
-
-    // Get total count for pagination
-    const total = await Payment.countDocuments(query);
-
-    // Paginated, sorted, filtered, searched query
-    const payments = await Payment.find(query)
-      .sort(sort)
-      .skip(skip)
-      .limit(limit)
-      .allowDiskUse(true)
-      .lean();
-
-    // attach patient & therapist full names and booking status
-    for (let p of payments) {
-      try {
-        const patient = await User.findOne({ username: p.patientUsername });
-        p.patientFullName =
-          patient?.info?.firstName && patient?.info?.lastName
-            ? `${patient.info.firstName} ${patient.info.lastName}`
-            : p.patientUsername;
-
-        const tUname = p.bookingInfo?.therapistUsername;
-        const th     = tUname ? await User.findOne({ username: tUname }) : null;
-        p.therapistFullName =
-          th?.info?.firstName && th?.info?.lastName
-            ? `Dr. ${th.info.firstName} ${th.info.lastName}`
-            : `Dr. ${tUname || "N/A"}`;
-
-        p.requestedAt = p.createdAt;
-
-        if (p.appointmentId) {
-          const appt = await Appointment.findById(p.appointmentId);
-          p.bookingStatus = appt ? appt.status : 'N/A';
-        } else {
-          p.bookingStatus = 'N/A';
-        }
-      } catch (innerErr) {
-        console.error('Error processing payment record:', innerErr);
-      }
-    }
-
-    res.json({
-      payments,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit)
-    });
-  } catch (err) {
-    console.error('Error in listHistory:', err);
-    res.status(500).json({ error: 'Failed to fetch payment history', details: err.message });
   }
+
+  res.json(payments);
 };
 
 // GET /api/admin/refund-requests - List all payments with status 'Refund Pending'
