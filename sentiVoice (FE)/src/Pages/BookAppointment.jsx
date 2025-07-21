@@ -1157,9 +1157,30 @@ useEffect(() => {
                       )}
                       
                       {slipFile && !slipFileSizeError && (
-                        <div className="mt-2 text-xs sm:text-sm text-green-600 flex items-center">
-                          <FaCheck className="mr-1" />
-                          File selected: {slipFile.name}
+                        <div className="mt-4 flex flex-col items-center">
+                          <div className="relative inline-block mb-2">
+                            <img
+                              src={URL.createObjectURL(slipFile)}
+                              alt="Payment Receipt"
+                              className="max-w-[150px] sm:max-w-[200px] rounded-lg border border-gray-300 shadow-lg"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSlipFile(null);
+                                const fileInput = document.getElementById('file-upload');
+                                if (fileInput) fileInput.value = '';
+                              }}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
+                              title="Remove file"
+                            >
+                              <FaTimes className="text-xs" />
+                            </button>
+                          </div>
+                          <div className="flex items-center text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold shadow-sm">
+                            <FaCheck className="mr-2 text-green-600" />
+                            Upload completed successfully: <span className="ml-1 font-normal text-green-800">{slipFile.name}</span>
+                          </div>
                         </div>
                       )}
                     </div>
