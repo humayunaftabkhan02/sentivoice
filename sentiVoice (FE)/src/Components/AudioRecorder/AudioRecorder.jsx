@@ -282,7 +282,7 @@ export default function AudioRecorderComponent({
             <span className="text-sm font-semibold text-blue-800">Recording Requirement</span>
           </div>
           <p className="text-sm text-blue-700 text-center">
-            Please record for <strong>at least 10 seconds</strong> and <strong>under 2 minutes</strong> for optimal analysis
+            Please record for <strong>at least 10 seconds</strong> and <strong>under 2 minutes</strong> for optimal analysis. Click the save icon once you are done.
           </p>
         </div>
       </div>
