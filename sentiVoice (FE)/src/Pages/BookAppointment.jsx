@@ -713,12 +713,12 @@ useEffect(() => {
                         Phone Number <span className="text-red-500" aria-hidden="true">*</span>
                       </label>
                       <PhoneInput
-                        country={typeof phoneCountry === 'string' ? phoneCountry : DEFAULT_COUNTRY}
+                        country={DEFAULT_COUNTRY}
                         value={phone}
                         onChange={(phoneNumber, country) => {
                           if (!hasStoredPhone) {
                             setPhone(phoneNumber);
-                            // Defensive: country can be string or object depending on lib version
+                            // Only store the country code string for validation
                             if (typeof country === 'string') {
                               setPhoneCountry(country);
                             } else if (country && typeof country.countryCode === 'string') {
@@ -729,19 +729,28 @@ useEffect(() => {
                               setPhoneCountry(DEFAULT_COUNTRY);
                             }
                             // Validate phone number
-                            const validation = validatePhoneNumber(phoneNumber, typeof country === 'string' ? country : (country && country.countryCode) ? country.countryCode : DEFAULT_COUNTRY);
-                            setErrors((prev) => ({ 
-                              ...prev, 
-                              phone: validation.error 
+                            const validation = validatePhoneNumber(
+                              phoneNumber,
+                              typeof country === 'string'
+                                ? country
+                                : (country && country.countryCode)
+                                ? country.countryCode
+                                : DEFAULT_COUNTRY
+                            );
+                            setErrors((prev) => ({
+                              ...prev,
+                              phone: validation.error,
                             }));
                           }
                         }}
                         onBlur={handlePhoneBlur}
                         disabled={hasStoredPhone}
                         inputClass={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${
-                          hasStoredPhone 
-                            ? 'bg-gray-50 border-gray-200 cursor-not-allowed' 
-                            : errors.phone ? 'border-red-500' : 'border-gray-300 hover:border-blue-400'
+                          hasStoredPhone
+                            ? 'bg-gray-50 border-gray-200 cursor-not-allowed'
+                            : errors.phone
+                            ? 'border-red-500'
+                            : 'border-gray-300 hover:border-blue-400'
                         }`}
                         containerClass="w-full"
                         buttonClass="border border-gray-300 rounded-l-lg bg-white w-[52px] flex items-center justify-center"
