@@ -75,7 +75,16 @@ export default function PaymentHistory() {
       try {
         setLoading(true);
       setError(null);
-        const data = await api.get(`/api/admin/payment-history?page=${page}&limit=${limit}`);
+        // Build query params for backend
+        const params = new URLSearchParams({
+          page,
+          limit,
+          sortBy,
+          sortOrder,
+        });
+        if (searchTerm) params.append('search', searchTerm);
+        if (filterStatus && filterStatus !== 'all') params.append('status', filterStatus);
+        const data = await api.get(`/api/admin/payment-history?${params.toString()}`);
       setPayments(Array.isArray(data.payments) ? data.payments : []);
       setTotalPages(data.totalPages || 1);
       setCurrentPage(data.page || 1);
@@ -290,60 +299,8 @@ export default function PaymentHistory() {
     }
   };
 
-  // Filter and search payments
-  const filteredPayments = payments.filter(payment => {
-    const matchesSearch = 
-      payment.patientFullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      payment.therapistFullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      payment.referenceNo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      payment.method?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesFilter = filterStatus === "all" || payment.status === filterStatus;
-    
-    return matchesSearch && matchesFilter;
-  });
-
-  // Sort payments
-  const sortedPayments = [...filteredPayments].sort((a, b) => {
-    let aValue, bValue;
-    
-    switch (sortBy) {
-      case 'date':
-        aValue = new Date(a.bookingInfo?.date || 0);
-        bValue = new Date(b.bookingInfo?.date || 0);
-        break;
-      case 'request':
-        aValue = new Date(a.requestedAt || a.createdAt || 0);
-        bValue = new Date(b.requestedAt || b.createdAt || 0);
-        break;
-      case 'amount':
-        aValue = parseFloat(a.amount) || 0;
-        bValue = parseFloat(b.amount) || 0;
-        break;
-      case 'patient':
-        aValue = a.patientFullName?.toLowerCase() || '';
-        bValue = b.patientFullName?.toLowerCase() || '';
-        break;
-      case 'therapist':
-        aValue = a.therapistFullName?.toLowerCase() || '';
-        bValue = b.therapistFullName?.toLowerCase() || '';
-        break;
-      default:
-        aValue = new Date(a.bookingInfo?.date || 0);
-        bValue = new Date(b.bookingInfo?.date || 0);
-    }
-    
-    if (sortOrder === 'asc') {
-      return aValue > bValue ? 1 : -1;
-    } else {
-      return aValue < bValue ? 1 : -1;
-    }
-  });
-
-  // Remove client-side slicing and use server-side pagination
-  // Remove: const startIndex = (currentPage - 1) * pageSize;
-  // Remove: const endIndex = startIndex + pageSize;
-  // Remove: const paginatedPayments = sortedPayments.slice(startIndex, endIndex);
+  // Remove all client-side filtering, searching, and sorting
+  // Remove: filteredPayments, sortedPayments, and related logic
 
   // Update handlePageChange and handlePageSizeChange to fetch new data
   const handlePageChange = (page) => {
@@ -355,10 +312,10 @@ export default function PaymentHistory() {
     fetchHistory(1, newPageSize); // Reset to first page
   };
 
-  // Reset to first page when search term or filter changes
+  // Fetch new data when search, filter, sort, or page size changes
   useEffect(() => {
-    fetchHistory();
-  }, [searchTerm, filterStatus, pageSize]);
+    fetchHistory(1, pageSize);
+  }, [searchTerm, filterStatus, sortBy, sortOrder, pageSize]);
 
   // Update total pages when sorted payments change
   useEffect(() => {

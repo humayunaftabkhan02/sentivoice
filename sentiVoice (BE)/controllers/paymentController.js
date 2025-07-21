@@ -170,19 +170,49 @@ exports.listHistory = async (req, res) => {
     const limit = parseInt(req.query.limit, 10) || 50;
     const skip = (page - 1) * limit;
 
-    // Get total count for pagination
-    const total = await Payment.countDocuments({
-      status: { $in: ["Pending", "Approved", "Declined", "Refund Pending", "Refunded"] }
-    });
+    // Sorting
+    const sortBy = req.query.sortBy || 'updatedAt';
+    const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
+    const sort = {};
+    sort[sortBy] = sortOrder;
 
-    // Paginated query
-    const payments = await Payment.find({
-      status: { $in: ["Pending", "Approved", "Declined", "Refund Pending", "Refunded"] }
-    })
-    .sort({ updatedAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean();
+    // Filtering
+    const status = req.query.status;
+    let statusFilter = { $in: ["Pending", "Approved", "Declined", "Refund Pending", "Refunded"] };
+    if (status && status !== 'all') {
+      statusFilter = status;
+    }
+
+    // Searching
+    const search = req.query.search || '';
+    const searchRegex = new RegExp(search, 'i');
+    const searchFilter = search
+      ? {
+          $or: [
+            { patientUsername: searchRegex },
+            { referenceNo: searchRegex },
+            { method: searchRegex },
+            { 'bookingInfo.therapistUsername': searchRegex }
+          ]
+        }
+      : {};
+
+    // Build query
+    const query = {
+      status: statusFilter,
+      ...searchFilter
+    };
+
+    // Get total count for pagination
+    const total = await Payment.countDocuments(query);
+
+    // Paginated, sorted, filtered, searched query
+    const payments = await Payment.find(query)
+      .sort(sort)
+      .skip(skip)
+      .limit(limit)
+      .allowDiskUse(true)
+      .lean();
 
     // attach patient & therapist full names and booking status
     for (let p of payments) {
@@ -200,10 +230,8 @@ exports.listHistory = async (req, res) => {
             ? `Dr. ${th.info.firstName} ${th.info.lastName}`
             : `Dr. ${tUname || "N/A"}`;
 
-        // Ensure createdAt is present (it should be by default, but make explicit)
         p.requestedAt = p.createdAt;
 
-        // Add booking status if appointment exists
         if (p.appointmentId) {
           const appt = await Appointment.findById(p.appointmentId);
           p.bookingStatus = appt ? appt.status : 'N/A';
