@@ -177,6 +177,7 @@ exports.listHistory = async (_req, res) => {
     status: { $in: ["Pending", "Approved", "Declined", "Refund Pending", "Refunded"] }
   })
   .sort({ updatedAt: -1 })
+  .select('-voiceRecording.audioData') // Exclude large audio data
   .lean();
 
   // attach patient & therapist full names and booking status
