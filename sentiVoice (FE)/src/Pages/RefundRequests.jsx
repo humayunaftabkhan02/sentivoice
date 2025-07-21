@@ -278,7 +278,7 @@ export default function RefundRequests() {
                   <div className="col-span-2 text-center">Actions</div>
                 </div>
                 {refunds.map((payment) => {
-                  const safeUrl = `${apiOrigin}/${payment.receiptUrl.replace(/\\/g, "/")}`;
+                  const safeUrl = `${apiOrigin}/uploads/${payment.receiptUrl.replace(/\\/g, "/")}`;
                   return (
                     <div key={payment._id} className="border border-gray-200 rounded-lg p-4 sm:p-6 hover:shadow-md transition-shadow">
                       {/* Mobile Layout */}

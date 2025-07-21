@@ -595,7 +595,7 @@ export default function PaymentHistory() {
                 {/* Mobile Payment Cards */}
                 <div className="lg:hidden space-y-4">
                   {paginatedPayments.map((payment) => {
-                    const safeUrl = `${apiOrigin}/${payment.receiptUrl.replace(/\\/g, "/")}`;
+                    const safeUrl = payment.receiptUrl.startsWith('uploads/') ? `${apiOrigin}/${payment.receiptUrl.replace(/\\/g, "/")}` : `${apiOrigin}/uploads/${payment.receiptUrl.replace(/\\/g, "/")}`;
                     return (
                       <div key={payment._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                         <div className="flex items-start space-x-3 mb-3">
@@ -752,7 +752,7 @@ export default function PaymentHistory() {
                     </div>
 
                     {paginatedPayments.map((payment) => {
-                      const safeUrl = `${apiOrigin}/${payment.receiptUrl.replace(/\\/g, "/")}`;
+                      const safeUrl = payment.receiptUrl.startsWith('uploads/') ? `${apiOrigin}/${payment.receiptUrl.replace(/\\/g, "/")}` : `${apiOrigin}/uploads/${payment.receiptUrl.replace(/\\/g, "/")}`;
                       return (
                         <div key={payment._id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
                           <div className="grid grid-cols-14 gap-4 items-center">

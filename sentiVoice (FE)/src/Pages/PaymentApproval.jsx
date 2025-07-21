@@ -458,7 +458,7 @@ export default function PaymentApproval() {
               <>
           <div className="space-y-4">
                   {paginatedPayments.map((payment) => {
-                    const safeUrl = `${apiOrigin}/${payment.receiptUrl.replace(/\\/g, "/")}`;
+                    const safeUrl = payment.receiptUrl.startsWith('uploads/') ? `${apiOrigin}/${payment.receiptUrl.replace(/\\/g, "/")}` : `${apiOrigin}/uploads/${payment.receiptUrl.replace(/\\/g, "/")}`;
                     return (
                       <div key={payment._id} className="border border-gray-200 rounded-lg p-4 sm:p-6 hover:shadow-md transition-shadow">
                         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-4 sm:space-y-0">
