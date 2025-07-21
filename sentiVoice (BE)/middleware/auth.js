@@ -43,6 +43,8 @@ const verifyToken = (token) => {
 
 // Authentication middleware
 const authenticate = async (req, res, next) => {
+  // Allow preflight requests to pass through
+  if (req.method === 'OPTIONS') return next();
   try {
     console.log('🔐 Authenticating request:', {
       method: req.method,
@@ -122,6 +124,8 @@ const authenticate = async (req, res, next) => {
 // Role-based authorization
 const authorize = (...roles) => {
   return (req, res, next) => {
+    // Allow preflight requests to pass through
+    if (req.method === 'OPTIONS') return next();
     if (!req.user) {
       return res.status(401).json({ error: 'Authentication required' });
     }

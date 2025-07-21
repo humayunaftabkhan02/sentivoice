@@ -173,40 +173,51 @@ exports.listPending = async (_req, res) => {
 
 // GET  /api/admin/payment-history   – all Approved or Declined
 exports.listHistory = async (_req, res) => {
-  const payments = await Payment.find({
-    status: { $in: ["Pending", "Approved", "Declined", "Refund Pending", "Refunded"] }
-  })
-  .sort({ updatedAt: -1 })
-  .lean();
+  try {
+    console.log('Fetching payment history...');
+    const payments = await Payment.find({
+      status: { $in: ["Pending", "Approved", "Declined", "Refund Pending", "Refunded"] }
+    })
+    .sort({ updatedAt: -1 })
+    .lean()
+    .allowDiskUse(true); // Allow disk use for large sorts
 
-  // attach patient & therapist full names and booking status
-  for (let p of payments) {
-    const patient = await User.findOne({ username: p.patientUsername });
-    p.patientFullName =
-      patient?.info?.firstName && patient?.info?.lastName
-        ? `${patient.info.firstName} ${patient.info.lastName}`
-        : p.patientUsername;
+    // attach patient & therapist full names and booking status
+    for (let p of payments) {
+      try {
+        const patient = await User.findOne({ username: p.patientUsername });
+        p.patientFullName =
+          patient?.info?.firstName && patient?.info?.lastName
+            ? `${patient.info.firstName} ${patient.info.lastName}`
+            : p.patientUsername;
 
-    const tUname = p.bookingInfo?.therapistUsername;
-    const th     = tUname ? await User.findOne({ username: tUname }) : null;
-    p.therapistFullName =
-      th?.info?.firstName && th?.info?.lastName
-        ? `Dr. ${th.info.firstName} ${th.info.lastName}`
-        : `Dr. ${tUname || "N/A"}`;
+        const tUname = p.bookingInfo?.therapistUsername;
+        const th     = tUname ? await User.findOne({ username: tUname }) : null;
+        p.therapistFullName =
+          th?.info?.firstName && th?.info?.lastName
+            ? `Dr. ${th.info.firstName} ${th.info.lastName}`
+            : `Dr. ${tUname || "N/A"}`;
 
-    // Ensure createdAt is present (it should be by default, but make explicit)
-    p.requestedAt = p.createdAt;
+        // Ensure createdAt is present (it should be by default, but make explicit)
+        p.requestedAt = p.createdAt;
 
-    // Add booking status if appointment exists
-    if (p.appointmentId) {
-      const appt = await Appointment.findById(p.appointmentId);
-      p.bookingStatus = appt ? appt.status : 'N/A';
-    } else {
-      p.bookingStatus = 'N/A';
+        // Add booking status if appointment exists
+        if (p.appointmentId) {
+          const appt = await Appointment.findById(p.appointmentId);
+          p.bookingStatus = appt ? appt.status : 'N/A';
+        } else {
+          p.bookingStatus = 'N/A';
+        }
+      } catch (innerErr) {
+        console.error('Error processing payment record:', innerErr);
+      }
     }
-  }
 
-  res.json(payments);
+    res.json(payments);
+  } catch (err) {
+    console.error('Error in listHistory:', err);
+    res.status(500).json({ error: 'Failed to fetch payment history', details: err.message });
+  }
 };
 
 // GET /api/admin/refund-requests - List all payments with status 'Refund Pending'
