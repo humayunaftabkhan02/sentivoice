@@ -179,8 +179,8 @@ exports.listHistory = async (_req, res) => {
       status: { $in: ["Pending", "Approved", "Declined", "Refund Pending", "Refunded"] }
     })
     .sort({ updatedAt: -1 })
-    .lean()
-    .allowDiskUse(true); // Allow disk use for large sorts
+    .allowDiskUse(true) // Allow disk use for large sorts
+    .lean();
 
     // attach patient & therapist full names and booking status
     for (let p of payments) {
