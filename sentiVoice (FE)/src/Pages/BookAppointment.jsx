@@ -713,15 +713,14 @@ useEffect(() => {
                         Phone Number <span className="text-red-500" aria-hidden="true">*</span>
                       </label>
                       <PhoneInput
-                        country={phoneCountry}
-                        value={phone}
+                        country={phoneCountry || DEFAULT_COUNTRY}
+                        value={typeof phone === 'string' ? phone : (phone ? String(phone) : '')}
                         onChange={(phoneNumber, country) => {
                           if (!hasStoredPhone) {
-                            console.log('🔍 PhoneInput onChange:', { phoneNumber, country });
-                            setPhone(phoneNumber);
-                            setPhoneCountry(country); // Update country state
+                            // Defensive: ensure phoneNumber is a string
+                            setPhone(typeof phoneNumber === 'string' ? phoneNumber : (phoneNumber ? String(phoneNumber) : ''));
+                            setPhoneCountry(country);
                             const validation = validatePhoneNumber(phoneNumber, country);
-                            console.log('🔍 Real-time validation:', validation);
                             setErrors((prev) => ({ 
                               ...prev, 
                               phone: validation.error 

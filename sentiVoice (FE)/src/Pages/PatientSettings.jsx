@@ -563,10 +563,10 @@ const PatientSettings = () => {
                       </label>
                   <div className="relative">
           <PhoneInput
-            country={DEFAULT_COUNTRY}
-            value={formData.contact}
+            country={phoneCountry || DEFAULT_COUNTRY}
+            value={typeof formData.contact === 'string' ? formData.contact : (formData.contact ? String(formData.contact) : '')}
             onChange={(phone, country) => {
-              setFormData(prev => ({ ...prev, contact: phone }));
+              setFormData(prev => ({ ...prev, contact: typeof phone === 'string' ? phone : (phone ? String(phone) : '') }));
               setPhoneCountry(country);
               
               // Mark field as touched when user starts typing
