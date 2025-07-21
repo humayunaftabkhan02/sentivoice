@@ -111,33 +111,23 @@ exports.createPayment = async (req, res) => {
 // ─── ADMIN SIDE ──────────────────────────────────────────────────────────────
 
 // GET /api/admin/payment-stats - Get payment statistics
-exports.getPaymentStats = async (_req, res) => {
+exports.getPaymentStats = async (req, res) => {
   try {
-    // Get total submissions (all payments)
-    const totalSubmissions = await Payment.countDocuments();
-    
-    // Get processed today (approved or declined payments created today)
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    const processedToday = await Payment.countDocuments({
-      status: { $in: ["Approved", "Declined"] },
-      updatedAt: { $gte: today, $lt: tomorrow }
-    });
-    
-    // Get pending payments count
-    const pendingPayments = await Payment.countDocuments({ status: "Pending" });
-    
-    res.json({
-      totalSubmissions,
-      processedToday,
-      pendingPayments
-    });
-  } catch (error) {
-    console.error('Error fetching payment stats:', error);
-    res.status(500).json({ error: "Failed to fetch payment statistics" });
+    const match = { status: { $in: ["Pending", "Approved", "Declined", "Refund Pending", "Refunded"] } };
+    const payments = await Payment.find(match).lean();
+
+    const stats = {
+      total: payments.length,
+      approved: payments.filter(p => p.status === 'Approved').length,
+      declined: payments.filter(p => p.status === 'Declined').length,
+      refunded: payments.filter(p => p.status === 'Refunded').length,
+      totalAmount: payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0),
+      approvedAmount: payments.filter(p => p.status === 'Approved').reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
+    };
+
+    res.json(stats);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch payment stats', details: err.message });
   }
 };
 

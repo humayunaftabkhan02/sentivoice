@@ -55,6 +55,14 @@ export default function PaymentHistory() {
   });
   const [refundError, setRefundError] = useState({});
   const [downloadError, setDownloadError] = useState({});
+  const [stats, setStats] = useState({
+    total: 0,
+    approved: 0,
+    declined: 0,
+    refunded: 0,
+    totalAmount: 0,
+    approvedAmount: 0
+  });
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -101,6 +109,15 @@ export default function PaymentHistory() {
       });
     } catch (error) {
       console.error('Error fetching pending counts:', error);
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      const data = await api.get("/api/admin/payment-stats");
+      setStats(data);
+    } catch (err) {
+      console.error("Failed to fetch payment stats:", err);
     }
   };
 
@@ -273,18 +290,6 @@ export default function PaymentHistory() {
     }
   };
 
-  // Calculate statistics
-  const stats = {
-    total: payments.length,
-    approved: payments.filter(p => p.status === 'Approved').length,
-    declined: payments.filter(p => p.status === 'Declined').length,
-    refunded: payments.filter(p => p.status === 'Refunded').length,
-    totalAmount: payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0),
-    approvedAmount: payments
-      .filter(p => p.status === 'Approved')
-      .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0)
-  };
-
   // Filter and search payments
   const filteredPayments = payments.filter(payment => {
     const matchesSearch = 
@@ -377,6 +382,7 @@ export default function PaymentHistory() {
   useEffect(() => {
     fetchHistory();
     fetchPendingCounts();
+    fetchStats();
   }, []);
 
   return (
