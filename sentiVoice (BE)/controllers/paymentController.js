@@ -143,7 +143,9 @@ exports.getPaymentStats = async (_req, res) => {
 
 // GET /api/admin/pending-payments
 exports.listPending = async (_req, res) => {
-  const pending = await Payment.find({ status: "Pending" }).lean();
+  const pending = await Payment.find({ status: "Pending" })
+    .select('-voiceRecording.audioData') // Exclude large audio data
+    .lean();
 
   for (let p of pending) {
     /* ---------- patient ---------- */
@@ -212,7 +214,10 @@ exports.listHistory = async (_req, res) => {
 
 // GET /api/admin/refund-requests - List all payments with status 'Refund Pending'
 exports.listRefundRequests = async (_req, res) => {
-  const refunds = await Payment.find({ status: 'Refund Pending' }).sort({ updatedAt: -1 }).lean();
+  const refunds = await Payment.find({ status: 'Refund Pending' })
+    .sort({ updatedAt: -1 })
+    .select('-voiceRecording.audioData') // Exclude large audio data
+    .lean();
 
   for (let p of refunds) {
     const patient = await User.findOne({ username: p.patientUsername });

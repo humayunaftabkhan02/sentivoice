@@ -541,6 +541,15 @@ useEffect(() => {
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorModalMessage, setErrorModalMessage] = useState('');
 
+  // Add loading states for each step
+  const [isStep1Loading, setIsStep1Loading] = useState(false);
+  const [isStep2Loading, setIsStep2Loading] = useState(false);
+  const [isStep3Loading, setIsStep3Loading] = useState(false);
+
+  // In the BookAppointment component state:
+  // Add a new error state for slip file size
+  const [slipFileSizeError, setSlipFileSizeError] = useState("");
+
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <PatientSidebar current="appointments" />
@@ -930,62 +939,71 @@ useEffect(() => {
                     <button
                       type="button"
                       onClick={async () => {
-          let newErrors = {};
-          // Step-by-step validation for step 1 only
-          if (!fullName || !isValidFullName(fullName)) {
-            if (!fullName) newErrors.fullName = 'Full name is required.';
-            else if (!isValidName(fullName)) newErrors.fullName = 'Only letters and spaces are allowed.';
-            else if (fullName.length < MIN_NAME_LENGTH) newErrors.fullName = `Full name must be at least ${MIN_NAME_LENGTH} characters.`;
-            else if (fullName.length > MAX_NAME_LENGTH) newErrors.fullName = `Full name must be at most ${MAX_NAME_LENGTH} characters.`;
+                        if (isStep1Loading) return;
+                        setIsStep1Loading(true);
+                        let newErrors = {};
+                        // Step-by-step validation for step 1 only
+                        if (!fullName || !isValidFullName(fullName)) {
+                          if (!fullName) newErrors.fullName = 'Full name is required.';
+                          else if (!isValidName(fullName)) newErrors.fullName = 'Only letters and spaces are allowed.';
+                          else if (fullName.length < MIN_NAME_LENGTH) newErrors.fullName = `Full name must be at least ${MIN_NAME_LENGTH} characters.`;
+                          else if (fullName.length > MAX_NAME_LENGTH) newErrors.fullName = `Full name must be at most ${MAX_NAME_LENGTH} characters.`;
                         }
-          if (!phone) newErrors.phone = 'Phone number is required.';
-          else if (!hasStoredPhone) {
-            console.log('🔍 Step 1 validation - Phone:', phone, 'Country:', phoneCountry);
-            const validation = validatePhoneNumber(phone, phoneCountry);
-            console.log('🔍 Phone validation result:', validation);
-            if (!validation.isValid) {
-              newErrors.phone = validation.error;
-            }
-          }
-          if (!therapistUsername) newErrors.therapist = 'Please select a therapist.';
-          if (!sessionType) newErrors.sessionType = 'Please select a session type.';
-          if (!date) newErrors.date = 'Date is required.';
-          else {
-            // [NEW] Custom past date validation
-            const today = new Date();
-            const selected = new Date(date);
-            today.setHours(0,0,0,0);
-            selected.setHours(0,0,0,0);
-            if (selected < today) {
-              newErrors.date = 'You cannot book for a past date.';
+                        if (!phone) newErrors.phone = 'Phone number is required.';
+                        else if (!hasStoredPhone) {
+                          const validation = validatePhoneNumber(phone, phoneCountry);
+                          if (!validation.isValid) {
+                            newErrors.phone = validation.error;
+                          }
                         }
-          }
-          if (!time) newErrors.time = 'Please select a time.';
-
-          // [NEW] Overlapping appointment check
-          if (date && time) {
-            const appts = await fetchPatientAppointmentsForDate(date);
-            setPatientAppointments(appts);
-            const overlap = appts.some(a => isTimeOverlap(a.time, time));
-            if (overlap) {
-              newErrors.time = 'You already have another appointment at this time.';
-            }
-          }
-
-          setErrors(newErrors);
-          if (Object.keys(newErrors).length > 0) return;
+                        if (!therapistUsername) newErrors.therapist = 'Please select a therapist.';
+                        if (!sessionType) newErrors.sessionType = 'Please select a session type.';
+                        if (!date) newErrors.date = 'Date is required.';
+                        else {
+                          const today = new Date();
+                          const selected = new Date(date);
+                          today.setHours(0,0,0,0);
+                          selected.setHours(0,0,0,0);
+                          if (selected < today) {
+                            newErrors.date = 'You cannot book for a past date.';
+                          }
+                        }
+                        if (!time) newErrors.time = 'Please select a time.';
+                        // Overlapping appointment check
+                        if (date && time) {
+                          const appts = await fetchPatientAppointmentsForDate(date);
+                          setPatientAppointments(appts);
+                          const overlap = appts.some(a => isTimeOverlap(a.time, time));
+                          if (overlap) {
+                            newErrors.time = 'You already have another appointment at this time.';
+                          }
+                        }
+                        setErrors(newErrors);
+                        if (Object.keys(newErrors).length > 0) { setIsStep1Loading(false); return; }
                         const hasDuplicate = await checkDuplicateBooking(username, therapistUsername);
                         if (hasDuplicate) {
-            setErrors((prev) => ({ ...prev, therapist: 'You already have a pending or accepted appointment with this therapist.' }));
+                          setErrors((prev) => ({ ...prev, therapist: 'You already have a pending or accepted appointment with this therapist.' }));
+                          setIsStep1Loading(false);
                           return;
                         }
                         nextStep();
+                        setIsStep1Loading(false);
                       }}
-                      className="flex items-center px-6 sm:px-8 py-2 sm:py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl text-sm sm:text-base"
+                      disabled={isStep1Loading}
+                      className="flex items-center px-6 sm:px-8 py-2 sm:py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl text-sm sm:text-base disabled:opacity-60 disabled:cursor-not-allowed"
         aria-label="Continue to Payment"
                     >
-                      Continue to Payment
-                      <FaArrowRight className="ml-2" />
+                      {isStep1Loading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Checking...
+                        </>
+                      ) : (
+                        <>
+                          Continue to Payment
+                          <FaArrowRight className="ml-2" />
+                        </>
+                      )}
                     </button>
                   </div>
               </div>
@@ -1104,15 +1122,17 @@ useEffect(() => {
                           onChange={(e) => {
                             const file = e.target.files[0];
                             if (file) {
+                              if (file.size > 1 * 1024 * 1024) { // 1 MB limit
+                                setSlipFile(null);
+                                setUploadProgress(0);
+                                setSlipFileSizeError("File size must be less than 1 MB. Please choose a smaller image.");
+                                const fileInput = document.getElementById('file-upload');
+                                if (fileInput) fileInput.value = '';
+                                return;
+                              }
                               setSlipFile(file);
                               setUploadProgress(30);
-                              setTimeout(() => setUploadProgress(70), 300);
-                              setTimeout(() => setUploadProgress(100), 600);
-                              setErrors((prev) => ({ ...prev, slipFile: undefined }));
-                            } else {
-                              setSlipFile(null);
-                              setUploadProgress(0);
-                              setErrors((prev) => ({ ...prev, slipFile: 'Payment screenshot is required.' }));
+                              setSlipFileSizeError("");
                             }
                           }}
                           className="hidden"
@@ -1193,6 +1213,14 @@ useEffect(() => {
                     </div>
                   )}
 
+                  {/* Show error message below the upload area */}
+                  {slipFileSizeError && (
+                    <div className="mt-2 text-xs sm:text-sm text-red-500 flex items-center" role="alert">
+                      <FaExclamationTriangle className="mr-1" />
+                      {slipFileSizeError}
+                    </div>
+                  )}
+
                   {/* Action Buttons */}
                   <div className="flex flex-col sm:flex-row justify-between pt-4 sm:pt-6 space-y-3 sm:space-y-0">
                     <button
@@ -1206,7 +1234,9 @@ useEffect(() => {
                     
                     <button
                       type="button"
-                      onClick={() => {
+                      onClick={async () => {
+                        if (isStep2Loading) return;
+                        setIsStep2Loading(true);
                         // Step-by-step validation for step 2 only
                         let newErrors = {};
                         if (!paymentMethod) newErrors.paymentMethod = 'Please select a payment method.';
@@ -1214,17 +1244,23 @@ useEffect(() => {
                         else if (referenceNo.length < 6) newErrors.referenceNo = 'Reference number must be at least 6 characters.';
                         if (!slipFile) newErrors.slipFile = 'Payment screenshot is required.';
                         setErrors(newErrors);
-                        if (Object.keys(newErrors).length > 0) return;
+                        if (Object.keys(newErrors).length > 0) { setIsStep2Loading(false); return; }
                         nextStep();
+                        setIsStep2Loading(false);
                       }}
-                      disabled={!step2Valid}
+                      disabled={!step2Valid || isStep2Loading}
                       className={`flex items-center justify-center px-6 sm:px-8 py-2 sm:py-3 font-semibold rounded-lg transition-all duration-200 text-sm sm:text-base ${
-                        step2Valid 
-                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl' 
+                        step2Valid && !isStep2Loading
+                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl'
                           : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       }`}
                     >
-                      {step2Valid ? (
+                      {isStep2Loading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Checking...
+                        </>
+                      ) : step2Valid ? (
                         <>
                           Continue to Emotion Assessment
                           <FaArrowRight className="ml-2" />
@@ -1399,24 +1435,33 @@ useEffect(() => {
                     
                     <button
                       type="button"
-                      onClick={() => {
+                      onClick={async () => {
+                        if (isStep3Loading) return;
+                        setIsStep3Loading(true);
                         // Step-by-step validation for step 3 only
                         if (!recordingSaved) {
                           setErrors((prev) => ({ ...prev, voiceRecording: 'Voice recording is required to continue.' }));
+                          setIsStep3Loading(false);
                           return;
                         }
                         setErrors((prev) => ({ ...prev, voiceRecording: undefined }));
                         nextStep();
+                        setIsStep3Loading(false);
                       }}
-                      disabled={!step3Valid}
+                      disabled={!step3Valid || isStep3Loading}
                       className={`flex items-center justify-center px-6 sm:px-8 py-2 sm:py-3 font-semibold rounded-lg transition-all duration-200 text-sm sm:text-base ${
-                        step3Valid 
-                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl' 
+                        step3Valid && !isStep3Loading
+                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl'
                           : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       }`}
                       aria-label="Continue to Review"
                     >
-                      {step3Valid ? (
+                      {isStep3Loading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Checking...
+                        </>
+                      ) : step3Valid ? (
                         <>
                           Continue to Review
                           <FaArrowRight className="ml-2" />

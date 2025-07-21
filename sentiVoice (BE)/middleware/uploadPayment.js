@@ -17,7 +17,7 @@ const storage = multer.diskStorage({
 const upload = multer({ 
   storage,
   limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB limit (increased for audio files)
+    fileSize: 1 * 1024 * 1024, // 1MB limit for payment slip
     files: 1,
     fieldSize: 20 * 1024 * 1024, // 20MB limit for field values (for base64 audio data)
     fieldNameSize: 100, // 100 bytes for field names
