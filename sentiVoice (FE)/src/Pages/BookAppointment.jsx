@@ -745,7 +745,7 @@ useEffect(() => {
                         }}
                         onBlur={handlePhoneBlur}
                         disabled={hasStoredPhone}
-                        inputClass={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${
+                        inputClass={`w-full px-3 sm:px-4 py-2 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${
                           hasStoredPhone
                             ? 'bg-gray-50 border-gray-200 cursor-not-allowed'
                             : errors.phone
@@ -760,13 +760,10 @@ useEffect(() => {
                         placeholder="Enter your phone number"
                         buttonStyle={{
                           width: '52px',
-                          height: '44px',
-                          minHeight: '44px',
-                          maxHeight: '44px',
                           border: '1px solid #d1d5db',
                           borderRight: 'none',
                           borderRadius: '8px 0 0 8px',
-                          backgroundColor: '#ffffff'
+                          backgroundColor: '#ffffff',
                         }}
                         aria-required="true"
                         aria-invalid={!!errors.phone}
