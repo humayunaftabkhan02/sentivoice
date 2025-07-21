@@ -318,9 +318,10 @@ export default function PaymentHistory() {
   }, [searchTerm, filterStatus, sortBy, sortOrder, pageSize]);
 
   // Update total pages when sorted payments change
-  useEffect(() => {
-    // setTotalPages(Math.ceil(sortedPayments.length / pageSize)); // This line is no longer needed
-  }, [sortedPayments, pageSize]);
+  // Remove this effect that references sortedPayments
+  // useEffect(() => {
+  //   setTotalPages(Math.ceil(sortedPayments.length / pageSize)); // This line is no longer needed
+  // }, [sortedPayments, pageSize]);
 
   const handleSort = (field) => {
     if (sortBy === field) {
