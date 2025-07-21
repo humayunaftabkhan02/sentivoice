@@ -62,7 +62,7 @@ const ReportsFromTherapist = ({ username }) => {
       ) : !reports.length ? (
         <div className="flex flex-col items-center justify-center py-8">
           <FaInbox className="text-4xl text-blue-200 mb-2" />
-          <div className="text-gray-500 text-center">No reports have been sent to you yet.<br/>When your therapist sends you a report, it will appear here.<br/><a href="/contact" className="text-blue-500 underline hover:text-emerald-500 transition">Contact support</a></div>
+          <div className="text-gray-500 text-center">No reports have been sent to you yet.<br/>When your therapist sends you a report, it will appear here.</div>
         </div>
       ) : (
         <>
