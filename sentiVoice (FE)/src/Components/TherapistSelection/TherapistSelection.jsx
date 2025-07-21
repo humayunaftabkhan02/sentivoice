@@ -406,30 +406,30 @@ const TherapistSelection = ({
                       {/* Experience and Education */}
                       <div className="space-y-2">
                         {therapist.info?.experience && (
-                          <div className="flex items-center text-sm text-gray-600">
-                            <FaStar className="mr-2 text-yellow-500" />
-                            <span><strong>Experience:</strong> {therapist.info.experience} years</span>
+                          <div className="flex items-start min-w-0 text-sm text-gray-600">
+                            <FaStar className="mr-2 mt-0.5 flex-shrink-0 text-yellow-500" />
+                            <span className="break-words truncate" title={therapist.info.experience}><strong>Experience:</strong> {therapist.info.experience} years</span>
                           </div>
                         )}
                         {therapist.info?.education && (
-                          <div className="flex items-center text-sm text-gray-600">
-                            <FaGraduationCap className="mr-2 text-blue-500" />
-                            <span><strong>Education:</strong> {therapist.info.education}</span>
+                          <div className="flex items-start min-w-0 text-sm text-gray-600">
+                            <FaGraduationCap className="mr-2 mt-0.5 flex-shrink-0 text-blue-500" />
+                            <span className="break-words truncate" title={therapist.info.education}><strong>Education:</strong> {therapist.info.education}</span>
                           </div>
                         )}
                         {therapist.info?.certifications && (
-                          <div className="flex items-center text-sm text-gray-600">
-                            <FaCertificate className="mr-2 text-green-500" />
-                            <span><strong>Certifications:</strong> {therapist.info.certifications}</span>
+                          <div className="flex items-start min-w-0 text-sm text-gray-600">
+                            <FaCertificate className="mr-2 mt-0.5 flex-shrink-0 text-green-500" />
+                            <span className="break-words truncate" title={therapist.info.certifications}><strong>Certifications:</strong> {therapist.info.certifications}</span>
                           </div>
                         )}
                       </div>
 
                       {/* Languages */}
                       {therapist.info?.languages && (
-                        <div className="flex items-center text-sm text-gray-600">
-                          <FaLanguage className="mr-2 text-purple-500" />
-                          <span><strong>Languages:</strong> {therapist.info.languages}</span>
+                        <div className="flex items-start min-w-0 text-sm text-gray-600">
+                          <FaLanguage className="mr-2 mt-0.5 flex-shrink-0 text-purple-500" />
+                          <span className="break-words truncate" title={therapist.info.languages}><strong>Languages:</strong> {therapist.info.languages}</span>
                         </div>
                       )}
 

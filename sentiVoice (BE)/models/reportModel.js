@@ -39,6 +39,14 @@ const reportSchema = new mongoose.Schema({
         type: String,
         enum: ['draft', 'submitted', 'reviewed'],
         default: 'draft'
+    },
+    sentToPatient: {
+        type: Boolean,
+        default: false
+    },
+    sentToPatientAt: {
+        type: Date,
+        default: null
     }
 });
 

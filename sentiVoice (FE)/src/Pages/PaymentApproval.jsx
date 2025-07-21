@@ -473,12 +473,6 @@ export default function PaymentApproval() {
                                 </h3>
                                 <p className="text-xs sm:text-sm text-gray-500">Reference: {payment.referenceNo}</p>
                               </div>
-                              <div className="flex items-center space-x-2">
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                                  <FaClock className="w-3 h-3 mr-1" />
-                                  Pending
-                                </span>
-                              </div>
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
@@ -510,63 +504,55 @@ export default function PaymentApproval() {
                             </div>
                           </div>
 
-                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
-                            <a
-                              href={safeUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center justify-center space-x-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                            >
-                              <FaEye className="w-3 h-3 sm:w-4 sm:h-4" />
-                              <span>View Receipt</span>
-                            </a>
-                            
-                            <button
-                              onClick={() => handleViewDetails(payment)}
-                              className="flex items-center justify-center space-x-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors"
-                            >
-                              <FaEye className="w-3 h-3 sm:w-4 sm:h-4" />
-                              <span>Details</span>
-                            </button>
-                            
-                            <button
-                              onClick={() => handleStatusChange(payment, "Approved")}
-                              disabled={processing === payment._id}
-                              className={`flex items-center justify-center space-x-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white rounded-lg transition-colors ${
-                                processing === payment._id
-                                  ? 'bg-gray-400 cursor-not-allowed'
-                                  : 'bg-green-600 hover:bg-green-700'
-                              }`}
-                            >
-                              {processing === payment._id ? (
-                                <FaSpinner className="animate-spin w-3 h-3 sm:w-4 sm:h-4" />
-                              ) : (
-                                <FaCheck className="w-3 h-3 sm:w-4 sm:h-4" />
-                              )}
-                              <span>{processing === payment._id ? 'Processing...' : 'Approve'}</span>
-                            </button>
-                            {actionError[payment._id] && (
-                              <div className="text-red-500 text-xs mt-1" aria-live="polite" role="alert">{actionError[payment._id]}</div>
-                            )}
-                            <button
-                              onClick={() => handleStatusChange(payment, "Declined")}
-                              disabled={processing === payment._id}
-                              className={`flex items-center justify-center space-x-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white rounded-lg transition-colors ${
-                                processing === payment._id
-                                  ? 'bg-gray-400 cursor-not-allowed'
-                                  : 'bg-red-600 hover:bg-red-700'
-                              }`}
-                            >
-                              {processing === payment._id ? (
-                                <FaSpinner className="animate-spin w-3 h-3 sm:w-4 sm:h-4" />
-                              ) : (
-                                <FaTimes className="w-3 h-3 sm:w-4 sm:h-4" />
-                              )}
-                              <span>{processing === payment._id ? 'Processing...' : 'Decline'}</span>
-                            </button>
-                            {actionError[payment._id] && (
-                              <div className="text-red-500 text-xs mt-1" aria-live="polite" role="alert">{actionError[payment._id]}</div>
-                            )}
+                          {/* Replace the action area in each payment card with a modern, spaced layout */}
+                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 mt-4 sm:mt-0 sm:ml-6 w-full sm:w-auto">
+                            <div className="flex flex-row sm:flex-col gap-2 sm:gap-3 items-center sm:items-start">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 mb-0 sm:mb-2">
+                                <FaClock className="w-3 h-3 mr-1" /> Pending
+                              </span>
+                              <a
+                                href={safeUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center justify-center space-x-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors w-full sm:w-auto"
+                              >
+                                <FaEye className="w-3 h-3 sm:w-4 sm:h-4" />
+                                <span>View Receipt</span>
+                              </a>
+                              <button
+                                onClick={() => handleViewDetails(payment)}
+                                className="flex items-center justify-center space-x-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors w-full sm:w-auto"
+                              >
+                                <FaEye className="w-3 h-3 sm:w-4 sm:h-4" />
+                                <span>Details</span>
+                              </button>
+                            </div>
+                            <div className="flex flex-row gap-2 sm:flex-col sm:gap-3 items-center sm:items-end border-t sm:border-t-0 sm:border-l border-gray-200 pt-2 sm:pt-0 sm:pl-3 mt-2 sm:mt-0">
+                              <button
+                                onClick={() => handleStatusChange(payment, "Approved")}
+                                disabled={processing === payment._id}
+                                className={`flex items-center justify-center space-x-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white rounded-lg transition-colors w-full sm:w-auto ${processing === payment._id ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
+                              >
+                                {processing === payment._id ? (
+                                  <FaSpinner className="animate-spin w-3 h-3 sm:w-4 sm:h-4" />
+                                ) : (
+                                  <FaCheck className="w-3 h-3 sm:w-4 sm:h-4" />
+                                )}
+                                <span>{processing === payment._id ? 'Processing...' : 'Approve'}</span>
+                              </button>
+                              <button
+                                onClick={() => handleStatusChange(payment, "Declined")}
+                                disabled={processing === payment._id}
+                                className={`flex items-center justify-center space-x-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white rounded-lg transition-colors w-full sm:w-auto ${processing === payment._id ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}`}
+                              >
+                                {processing === payment._id ? (
+                                  <FaSpinner className="animate-spin w-3 h-3 sm:w-4 sm:h-4" />
+                                ) : (
+                                  <FaTimes className="w-3 h-3 sm:w-4 sm:h-4" />
+                                )}
+                                <span>{processing === payment._id ? 'Processing...' : 'Decline'}</span>
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>

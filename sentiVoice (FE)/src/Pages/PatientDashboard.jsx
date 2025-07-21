@@ -26,7 +26,10 @@ import {
   FaEye,
   FaHistory,
   FaChevronLeft,
-  FaChevronRight
+  FaChevronRight,
+  FaQuoteLeft,
+  FaCheck,
+  FaExclamationTriangle as FaExclamationTriangleIcon
 } from 'react-icons/fa';
 import logo from '../assets/logo.png'
 import LogoutIcon from '../Components/LogOutIcon/LogOutIcon.jsx';
@@ -41,6 +44,7 @@ import { api } from "../utils/api";
 import PatientSidebar from "../Components/PatientSidebar/PatientSidebar.jsx";
 import { useSessionCheck } from "../utils/useSessionCheck.js";
 import UserTopBar from '../Components/UserTopBar';
+import ReportsFromTherapist from "../Components/ReportsFromTherapist/ReportsFromTherapist.jsx";
 
 const P_Dashboard = () => {
   // Add session check hook
@@ -60,6 +64,10 @@ const P_Dashboard = () => {
   const [selectedTherapistFullName, setSelectedTherapistFullName] = useState("");
   const [appointmentHistory, setAppointmentHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [cancelError, setCancelError] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState('success'); // 'success' or 'error'
+  const [modalMessage, setModalMessage] = useState('');
 
   const emotionEmojiMap = {
     Happy: "😊",
@@ -205,14 +213,27 @@ const P_Dashboard = () => {
   const cancelAppointment = async (appointmentId, reason) => {
     try {
       await api.put(`/api/appointments/${appointmentId}/cancel`, { reason });
-      alert("Appointment canceled.");
+      setModalType('success');
+      setModalMessage('Appointment canceled.');
+      setShowModal(true);
       fetchAppointments(username);
+      setShowCancelModal(false);
+      setCancelAppId(null);
+      setCancelError("");
     } catch (err) {
       console.error("Failed to cancel appointment:", err);
-      alert("Failed to cancel.");
+      // Try to extract backend error message
+      let msg = "Failed to cancel.";
+      if (err && err.response && err.response.data && err.response.data.error) {
+        msg = err.response.data.error;
+      } else if (err && err.message) {
+        msg = err.message;
+      }
+      setCancelError(msg);
+      setModalType('error');
+      setModalMessage(msg);
+      setShowModal(true);
     }
-    setShowCancelModal(false);
-    setCancelAppId(null);
   };  
 
   // Reschedule Appointment
@@ -228,11 +249,15 @@ const P_Dashboard = () => {
         reason,
         reschedulerRole: "patient",
       });
-      alert("Appointment rescheduled!");
+      setModalType('success');
+      setModalMessage('Appointment rescheduled!');
+      setShowModal(true);
       fetchAppointments(username);
     } catch (err) {
       console.error("Failed to reschedule appointment:", err);
-      alert("Reschedule failed.");
+      setModalType('error');
+      setModalMessage('Reschedule failed.');
+      setShowModal(true);
     }
     setReschedulingApp(null);
   };
@@ -241,11 +266,15 @@ const P_Dashboard = () => {
   const acceptAppointment = async (appointmentId) => {
     try {
       await api.put(`/api/appointments/${appointmentId}/accept`);
-      alert("Appointment accepted.");
+      setModalType('success');
+      setModalMessage('Appointment accepted.');
+      setShowModal(true);
       fetchAppointments(username);
     } catch (err) {
       console.error("Failed to accept appointment:", err);
-      alert("Failed to accept appointment.");
+      setModalType('error');
+      setModalMessage('Failed to accept appointment.');
+      setShowModal(true);
     }
   };
 
@@ -253,11 +282,15 @@ const P_Dashboard = () => {
   const rejectAppointment = async (appointmentId) => {
     try {
       await api.put(`/api/appointments/${appointmentId}/reject`, { reason: "Rejected by patient" });
-      alert("Appointment rejected.");
+      setModalType('success');
+      setModalMessage('Appointment rejected.');
+      setShowModal(true);
       fetchAppointments(username);
     } catch (err) {
       console.error("Failed to reject appointment:", err);
-      alert("Failed to reject appointment.");
+      setModalType('error');
+      setModalMessage('Failed to reject appointment.');
+      setShowModal(true);
     }
   };
 
@@ -354,11 +387,48 @@ const P_Dashboard = () => {
           </div>
         </div>
 
+        {/* Quick Actions Card (moved to top) */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+          <h2 className="text-xl font-bold text-gray-800 flex items-center mb-4">
+            <FaHandHoldingHeart className="mr-2 text-orange-600" />
+            Quick Actions
+          </h2>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => navigate("/book-appointment")}
+              className="flex items-center justify-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-lg transition-colors"
+            >
+              <FaPlus className="text-sm" />
+              <span className="text-sm font-medium">Book Session</span>
+            </button>
+            <button
+              onClick={() => navigate("/pa-appointment-history")}
+              className="flex items-center justify-center space-x-2 bg-green-500 hover:bg-green-600 text-white p-3 rounded-lg transition-colors"
+            >
+              <FaHistory className="text-sm" />
+              <span className="text-sm font-medium">View History</span>
+            </button>
+            <button
+              onClick={() => navigate("/pa-messaging")}
+              className="flex items-center justify-center space-x-2 bg-purple-500 hover:bg-purple-600 text-white p-3 rounded-lg transition-colors"
+            >
+              <FaEnvelope className="text-sm" />
+              <span className="text-sm font-medium">Messages</span>
+            </button>
+            <button
+              onClick={() => navigate("/pa-settings")}
+              className="flex items-center justify-center space-x-2 bg-gray-500 hover:bg-gray-600 text-white p-3 rounded-lg transition-colors"
+            >
+              <FaUser className="text-sm" />
+              <span className="text-sm font-medium">Settings</span>
+            </button>
+          </div>
+        </div>
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-6">
           {/* Left Column */}
           <div className="space-y-6 sm:space-y-8">
-            {/* Session Summary Card */}
+            {/* Last Session Summary Card */}
             <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg sm:text-xl font-bold text-gray-800 flex items-center">
@@ -380,15 +450,26 @@ const P_Dashboard = () => {
                         </span>
                       </p>
                       <p className="text-xs sm:text-sm text-gray-600">
-                        Recorded on {formatDate(lastSessionDate)}
+                        Detected on {formatDate(user.info.pastSessionSummary.timestamp)}
                       </p>
                     </div>
                   </div>
                   
                   {user.info.pastSessionSummary.note && (
-                    <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
-                      <p className="text-xs sm:text-sm font-medium text-gray-700 mb-2">Therapist's Note:</p>
-                      <p className="text-xs sm:text-sm text-gray-800 break-words">{user.info.pastSessionSummary.note}</p>
+                    <div className="relative bg-blue-50 border-l-4 border-blue-400 rounded-lg p-4 mb-2 shadow-sm">
+                      <div className="flex items-center mb-2">
+                        <FaQuoteLeft className="text-blue-400 mr-2 text-lg" />
+                        <span className="font-semibold text-blue-700 text-xs sm:text-sm">Therapist's Note</span>
+                      </div>
+                      <p className="text-base sm:text-lg text-gray-800 italic pl-2">{user.info.pastSessionSummary.note}</p>
+                    </div>
+                  )}
+
+                  {/* Diagnosis badge (modern style) */}
+                  {user.info.diagnosis && (
+                    <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs sm:text-sm font-semibold mt-2">
+                      <FaNotesMedical className="mr-1 text-blue-500" />
+                      Diagnosis: <span className="ml-1">{user.info.diagnosis}</span>
                     </div>
                   )}
                 </div>
@@ -598,78 +679,72 @@ const P_Dashboard = () => {
               )}
             </div>
 
-            {/* Quick Actions Card */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h2 className="text-xl font-bold text-gray-800 flex items-center mb-4">
-                <FaHandHoldingHeart className="mr-2 text-orange-600" />
-                Quick Actions
-              </h2>
-              
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => navigate("/book-appointment")}
-                  className="flex items-center justify-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-lg transition-colors"
-                >
-                  <FaPlus className="text-sm" />
-                  <span className="text-sm font-medium">Book Session</span>
-                </button>
-                
-                <button
-                  onClick={() => navigate("/pa-appointment-history")}
-                  className="flex items-center justify-center space-x-2 bg-green-500 hover:bg-green-600 text-white p-3 rounded-lg transition-colors"
-                >
-                  <FaHistory className="text-sm" />
-                  <span className="text-sm font-medium">View History</span>
-                </button>
-                
-                <button
-                  onClick={() => navigate("/pa-messaging")}
-                  className="flex items-center justify-center space-x-2 bg-purple-500 hover:bg-purple-600 text-white p-3 rounded-lg transition-colors"
-                >
-                  <FaEnvelope className="text-sm" />
-                  <span className="text-sm font-medium">Messages</span>
-                </button>
-                
-                <button
-                  onClick={() => navigate("/pa-settings")}
-                  className="flex items-center justify-center space-x-2 bg-gray-500 hover:bg-gray-600 text-white p-3 rounded-lg transition-colors"
-                >
-                  <FaUser className="text-sm" />
-                  <span className="text-sm font-medium">Settings</span>
-                </button>
+            {/* Reports Sent by Therapist */}
+            <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+              <div className="flex items-center mb-4">
+                <FaEnvelope className="text-green-500 mr-2 text-lg sm:text-xl" />
+                <h2 className="text-lg sm:text-xl font-bold text-gray-800">Reports from Your Therapist</h2>
               </div>
+              <ReportsFromTherapist username={username} />
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Modals */}
-      {reschedulingApp && (
-        <RescheduleModal
-          appointment={reschedulingApp}
-          onClose={() => setReschedulingApp(null)}
-          onConfirm={handleConfirmReschedule}
-          userRole="patient"
-        />
-      )}
-      
-      {showCancelModal && (
-        <CancelModal
-          onClose={() => setShowCancelModal(false)}
-          onConfirm={(reason) => cancelAppointment(cancelAppId, reason)}
-          userRole="patient"
-        />
-      )}
-      
-      {showSendReportModal && (
-        <SendReportModal
-          patientUsername={username}
-          therapistUsername={selectedTherapist}
-          therapistFullName={selectedTherapistFullName}
-          onClose={() => setShowSendReportModal(false)}
-          onSend={handleConfirmSendReport}
-        />
-      )}
+        {/* Modals */}
+        {reschedulingApp && (
+          <RescheduleModal
+            appointment={reschedulingApp}
+            onClose={() => setReschedulingApp(null)}
+            onConfirm={handleConfirmReschedule}
+            userRole="patient"
+          />
+        )}
+        
+        {showCancelModal && (
+          <CancelModal
+            onClose={() => {
+              setShowCancelModal(false);
+              setCancelError("");
+            }}
+            onConfirm={(reason) => cancelAppointment(cancelAppId, reason)}
+            userRole="patient"
+            errorMessage={cancelError}
+          />
+        )}
+        
+        {showSendReportModal && (
+          <SendReportModal
+            patientUsername={username}
+            therapistUsername={selectedTherapist}
+            therapistFullName={selectedTherapistFullName}
+            onClose={() => setShowSendReportModal(false)}
+            onSend={handleConfirmSendReport}
+          />
+        )}
+
+        {/* Success/Error Modal */}
+        {showModal && (
+          <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}>
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 border border-gray-100 relative animate-fade-in flex flex-col items-center text-center">
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 shadow-lg ${modalType === 'success' ? 'bg-gradient-to-br from-green-400 to-emerald-500' : 'bg-gradient-to-br from-red-400 to-rose-500'}`}> 
+                {modalType === 'success' ? (
+                  <FaCheck className="text-white text-3xl" />
+                ) : (
+                  <FaExclamationTriangleIcon className="text-white text-3xl" />
+                )}
+              </div>
+              <h2 className={`text-2xl font-bold mb-2 ${modalType === 'success' ? 'text-green-700' : 'text-red-700'}`}>{modalType === 'success' ? 'Success' : 'Error'}</h2>
+              <p className="text-gray-700 mb-6">{modalMessage}</p>
+              <button
+                className={`bg-gradient-to-r ${modalType === 'success' ? 'from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700' : 'from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700'} text-white font-semibold px-6 py-3 rounded-lg shadow-lg transition-all duration-200 text-base`}
+                onClick={() => setShowModal(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

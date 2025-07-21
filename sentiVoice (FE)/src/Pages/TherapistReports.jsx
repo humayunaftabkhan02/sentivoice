@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FaUser, FaFileAlt, FaDownload, FaCalendarAlt, FaClock, FaFilter, FaSearch, FaChevronLeft, FaChevronRight, FaTimes } from "react-icons/fa";
+import { FaUser, FaFileAlt, FaDownload, FaCalendarAlt, FaClock, FaFilter, FaSearch, FaChevronLeft, FaChevronRight, FaTimes, FaEnvelope, FaCheck, FaExclamationTriangle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import TherapistSidebar from "../Components/TherapistSidebar/TherapistSidebar.jsx";
 import NotificationBell from '../Components/NotificationBell/NotificationBell.jsx';
@@ -282,6 +282,9 @@ const TherapistReports = () => {
     }
   };
 
+  const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
+
   return (
     <div className="flex min-h-screen overflow-x-hidden">
       <TherapistSidebar current="reports" />
@@ -534,6 +537,29 @@ const TherapistReports = () => {
                           <FaDownload className="mr-1.5 sm:mr-2" />
                           Download PDF
                         </button>
+                        {/* Send to Patient button */}
+                        {!report.sentToPatient && (
+                          <button
+                            onClick={async () => {
+                              try {
+                                await api.put(`/api/reports/${report._id}/send-to-patient`);
+                                fetchReports(username); // Refresh reports
+                              } catch (err) {
+                                setModalMessage('Failed to send report to patient.');
+                                setShowModal(true);
+                              }
+                            }}
+                            className="flex items-center justify-center bg-green-500 hover:bg-green-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors whitespace-nowrap text-sm sm:text-base w-full sm:w-auto mt-2"
+                          >
+                            <FaEnvelope className="mr-1.5 sm:mr-2" />
+                            Send to Patient
+                          </button>
+                        )}
+                        {report.sentToPatient && (
+                          <span className="inline-flex items-center px-2 py-1 rounded bg-green-50 text-green-700 text-xs font-semibold mt-2">
+                            <FaCheck className="mr-1" /> Sent to Patient
+                          </span>
+                        )}
                         {downloadError[report._id] && (
                           <div className="text-red-500 text-xs mt-1" aria-live="polite" role="alert">{downloadError[report._id]}</div>
                         )}
@@ -595,6 +621,25 @@ const TherapistReports = () => {
           )}
         </div>
       </div>
+
+      {/* Error Modal */}
+      {showModal && (
+        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 border border-gray-100 relative animate-fade-in flex flex-col items-center text-center">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-red-400 to-rose-500 flex items-center justify-center mb-4 shadow-lg">
+              <FaExclamationTriangle className="text-white text-3xl" />
+            </div>
+            <h2 className="text-2xl font-bold mb-2 text-red-700">Error</h2>
+            <p className="text-gray-700 mb-6">{modalMessage}</p>
+            <button
+              className={`bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-semibold px-6 py-3 rounded-lg shadow-lg transition-all duration-200 text-base`}
+              onClick={() => setShowModal(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

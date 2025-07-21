@@ -16,7 +16,8 @@ import {
   FaCreditCard,
   FaMicrophone,
   FaUpload,
-  FaTimes
+  FaTimes,
+  FaExclamationTriangle
 } from 'react-icons/fa';
 import logo from '../assets/logo.png';
 import LogoutIcon from '../Components/LogOutIcon/LogOutIcon';
@@ -30,6 +31,8 @@ import { api } from "../utils/api";
 import PatientSidebar from '../Components/PatientSidebar/PatientSidebar.jsx';
 import TherapistSelection from '../Components/TherapistSelection/TherapistSelection.jsx';
 import UserTopBar from '../Components/UserTopBar';
+import PhoneInput from "react-phone-input-2";
+import { validatePhoneNumber, DEFAULT_COUNTRY } from "../utils/phoneValidation";
 
 const checkDuplicateBooking = async (patientUsername, therapistUsername) => {
   try {
@@ -94,6 +97,7 @@ const BookAppointment = () => {
   const [hasStoredFullName, setHasStoredFullName] = useState(false);
   const [phone, setPhone] = useState("");
   const [hasStoredPhone, setHasStoredPhone] = useState(false);
+  const [phoneCountry, setPhoneCountry] = useState(DEFAULT_COUNTRY);
   const [therapistList, setTherapistList] = useState([]);  
   const [availableSlots, setAvailableSlots] = useState([]);
   const [selectedDay, setSelectedDay] = useState("");
@@ -120,6 +124,9 @@ const BookAppointment = () => {
   // Audio quality modal state
   const [showAudioQualityModal, setShowAudioQualityModal] = useState(false);
   const [audioQualityError, setAudioQualityError] = useState(null);
+
+  // Loading state for submission
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Validation
   const paymentOK = paymentMethod !== "" && referenceNo.trim().length >= 6 && slipFile !== null;
@@ -301,7 +308,9 @@ useEffect(() => {
 
   // Final submission - process everything at once
   const submitBooking = async () => {
-    if (!canSubmit) return;
+    if (!canSubmit || isSubmitting) return;
+    
+    setIsSubmitting(true);
 
     try {
       // Convert voice recording to base64 if available
@@ -382,38 +391,29 @@ useEffect(() => {
       const paymentResponse = await api.post("/api/payments", fd);
       console.log('Payment response:', paymentResponse);
 
-      // Success - show comprehensive message
+      // Success - show comprehensive message in modal
       const therapistName = therapistList.find(t => t.username === therapistUsername)?.info?.firstName && 
         therapistList.find(t => t.username === therapistUsername)?.info?.lastName
         ? `Dr. ${therapistList.find(t => t.username === therapistUsername).info.firstName} ${therapistList.find(t => t.username === therapistUsername).info.lastName}`
         : `Dr. ${therapistUsername}`;
-
-      const voiceText = voiceRecording ? '\n• Voice recording saved for analysis' : '\n• No voice recording provided';
-      
-      alert(
-        `✅ Booking submitted successfully!\n\n` +
-        `📅 Appointment Details:\n` +
-        `• Date: ${date} at ${time}\n` +
-        `• Therapist: ${therapistName}\n` +
-        `• Session Type: ${sessionType}\n\n` +
-        `💰 Payment Status:\n` +
-        `• Payment uploaded and sent for admin approval\n` +
-        `• You'll be notified once payment is verified\n\n` +
-        `🎤 Voice Analysis:\n` +
-        `${voiceText}\n` +
-        `• Voice analysis will be processed after admin approval\n` +
-        `• Report will be sent to therapist automatically\n\n` +
-        `📋 Next Steps:\n` +
-        `• Admin will review your payment\n` +
-        `• Therapist will be notified once payment is approved\n` +
-        `• Voice analysis report will be sent to therapist after admin approval\n` +
-        `• You'll receive confirmation when everything is ready`
-      );
-
-      navigate("/patient-dashboard");
+      const voiceText = voiceRecording ? 'Voice recording saved for analysis' : 'No voice recording provided';
+      setSuccessDetails({
+        date,
+        time,
+        therapistName,
+        sessionType,
+        paymentMethod,
+        referenceNo,
+        amount: paymentAccounts[paymentMethod]?.amount || 'N/A',
+        voiceText
+      });
+      setShowSuccessModal(true);
     } catch (err) {
       console.error("Booking submission failed:", err);
-      alert("❌ Booking submission failed. Please try again.");
+      setErrorModalMessage('Booking submission failed. Please try again.');
+      setShowErrorModal(true);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -430,12 +430,14 @@ useEffect(() => {
     threeMonthsLater.setMonth(today.getMonth() + 3);
   
     if (selected < new Date().setHours(0,0,0,0)) {
-      alert("❌ You cannot book for a past date.");
+      setErrorModalMessage('You cannot book for a past date.');
+      setShowErrorModal(true);
       return false;
     }
   
     if (selected > threeMonthsLater) {
-      alert("❌ You can only book within 3 months from today.");
+      setErrorModalMessage('You can only book within 3 months from today.');
+      setShowErrorModal(true);
       return false;
     }
   
@@ -513,14 +515,9 @@ useEffect(() => {
   };
 
   const handlePhoneBlur = () => {
-    if (!hasStoredPhone) {
-      if (!phone) {
-        setErrors((prev) => ({ ...prev, phone: 'Phone number is required.' }));
-      } else if (!/^((\+92)|(0))3[0-9]{9}$/.test(phone)) {
-        setErrors((prev) => ({ ...prev, phone: 'Invalid phone number. Use 03XXXXXXXXX or +923XXXXXXXXX format.' }));
-      } else {
-        setErrors((prev) => ({ ...prev, phone: undefined }));
-      }
+    if (!hasStoredPhone && phone) {
+      const validation = validatePhoneNumber(phone, phoneCountry);
+      setErrors((prev) => ({ ...prev, phone: validation.error }));
     }
   };
 
@@ -537,6 +534,12 @@ useEffect(() => {
   };
 
   const [patientAppointments, setPatientAppointments] = useState([]);
+
+  // Add a new state for the success modal
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successDetails, setSuccessDetails] = useState(null);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorModalMessage, setErrorModalMessage] = useState('');
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -633,6 +636,16 @@ useEffect(() => {
           </div>
         </div>
 
+        {/* 48-hour Cancellation Policy Notice */}
+        <div className="max-w-4xl mx-auto mb-4">
+          <div className="flex items-center space-x-3 bg-amber-50 border border-amber-200 rounded-lg p-3 shadow-sm">
+            <FaExclamationTriangle className="text-amber-400 text-lg flex-shrink-0" />
+            <div className="flex-1 text-sm text-amber-900 font-medium">
+              <span className="font-semibold">Note:</span> Appointments can only be cancelled with at least 48 hours notice. Please keep this in mind before confirming your appointment.
+            </div>
+          </div>
+        </div>
+
         {/* Main Booking Form */}
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl overflow-hidden">
@@ -695,35 +708,62 @@ useEffect(() => {
                       )}
                     </div>
                     <div>
-        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2" htmlFor="phone">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2" htmlFor="phone">
                         <FaPhone className="inline mr-2 text-blue-600" />
-          Phone Number <span className="text-red-500" aria-hidden="true">*</span>
+                        Phone Number <span className="text-red-500" aria-hidden="true">*</span>
                       </label>
-                      <input
-          id="phone"
-                        type="text"
-                        placeholder="03XXXXXXXXX or +923XXXXXXXXX"
-                        className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${
-                          hasStoredPhone 
-                            ? 'bg-gray-50 border-gray-200 cursor-not-allowed' 
-              : errors.phone ? 'border-red-500' : 'border-gray-300 hover:border-blue-400'
-                        }`}
+                      <PhoneInput
+                        country={phoneCountry}
                         value={phone}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          if (!hasStoredPhone && /^(\+)?[0-9]*$/.test(val)) {
-                            setPhone(val);
-              setErrors((prev) => ({ ...prev, phone: undefined }));
+                        onChange={(phoneNumber, country) => {
+                          if (!hasStoredPhone) {
+                            console.log('🔍 PhoneInput onChange:', { phoneNumber, country });
+                            setPhone(phoneNumber);
+                            setPhoneCountry(country); // Update country state
+                            const validation = validatePhoneNumber(phoneNumber, country);
+                            console.log('🔍 Real-time validation:', validation);
+                            setErrors((prev) => ({ 
+                              ...prev, 
+                              phone: validation.error 
+                            }));
                           }
                         }}
-          onBlur={handlePhoneBlur}
-                        readOnly={hasStoredPhone}
-          aria-required="true"
-          aria-invalid={!!errors.phone}
-          aria-describedby={errors.phone ? 'phone-error' : undefined}
+                        onBlur={handlePhoneBlur}
+                        disabled={hasStoredPhone}
+                        className="w-full"
+                        inputClass={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${
+                          hasStoredPhone 
+                            ? 'bg-gray-50 border-gray-200 cursor-not-allowed' 
+                            : errors.phone ? 'border-red-500' : 'border-gray-300 hover:border-blue-400'
+                        }`}
+                        inputStyle={{
+                          paddingLeft: '60px',
+                          height: '44px',
+                          minHeight: '44px',
+                          maxHeight: '44px'
+                        }}
+                        containerClass="w-full"
+                        buttonClass="border border-gray-300 rounded-l-lg bg-white w-[52px] flex items-center justify-center"
+                        dropdownClass="border border-gray-300 rounded-lg shadow-lg"
+                        enableSearch={true}
+                        searchPlaceholder="Search country..."
+                        placeholder="Enter your phone number"
+                        buttonStyle={{
+                          width: '52px',
+                          height: '44px',
+                          minHeight: '44px',
+                          maxHeight: '44px',
+                          border: '1px solid #d1d5db',
+                          borderRight: 'none',
+                          borderRadius: '8px 0 0 8px',
+                          backgroundColor: '#ffffff'
+                        }}
+                        aria-required="true"
+                        aria-invalid={!!errors.phone}
+                        aria-describedby={errors.phone ? 'phone-error' : undefined}
                       />
-        {!hasStoredPhone && errors.phone && (
-          <p id="phone-error" className="text-red-500 text-xs sm:text-sm mt-1" role="alert">{errors.phone}</p>
+                      {!hasStoredPhone && errors.phone && (
+                        <p id="phone-error" className="text-red-500 text-xs sm:text-sm mt-1" role="alert">{errors.phone}</p>
                       )}
                     </div>
                   </div>
@@ -895,9 +935,14 @@ useEffect(() => {
             else if (fullName.length < MIN_NAME_LENGTH) newErrors.fullName = `Full name must be at least ${MIN_NAME_LENGTH} characters.`;
             else if (fullName.length > MAX_NAME_LENGTH) newErrors.fullName = `Full name must be at most ${MAX_NAME_LENGTH} characters.`;
                         }
-          if (!phone || !/^((\+92)|(0))3[0-9]{9}$/.test(phone)) {
-            if (!phone) newErrors.phone = 'Phone number is required.';
-            else newErrors.phone = 'Invalid phone number. Use 03XXXXXXXXX or +923XXXXXXXXX format.';
+          if (!phone) newErrors.phone = 'Phone number is required.';
+          else if (!hasStoredPhone) {
+            console.log('🔍 Step 1 validation - Phone:', phone, 'Country:', phoneCountry);
+            const validation = validatePhoneNumber(phone, phoneCountry);
+            console.log('🔍 Phone validation result:', validation);
+            if (!validation.isValid) {
+              newErrors.phone = validation.error;
+            }
           }
           if (!therapistUsername) newErrors.therapist = 'Please select a therapist.';
           if (!sessionType) newErrors.sessionType = 'Please select a session type.';
@@ -1446,14 +1491,19 @@ useEffect(() => {
                     <button
                       type="button"
                       onClick={submitBooking}
-                      disabled={!canSubmit}
+                      disabled={!canSubmit || isSubmitting}
                       className={`flex items-center justify-center px-6 sm:px-8 py-2 sm:py-3 font-semibold rounded-lg transition-all duration-200 text-sm sm:text-base ${
-                        canSubmit 
+                        canSubmit && !isSubmitting
                           ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 shadow-lg hover:shadow-xl' 
                           : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       }`}
                     >
-                      {canSubmit ? (
+                      {isSubmitting ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Submitting...
+                        </>
+                      ) : canSubmit ? (
                         <>
                           Submit Booking
                           <FaCheck className="ml-2" />
@@ -1478,6 +1528,59 @@ useEffect(() => {
         qualityAnalysis={audioQualityError?.quality_analysis}
         errorType={audioQualityError?.error_type}
       />
+
+      {/* Success Modal */}
+      {showSuccessModal && successDetails && (
+        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 border border-gray-100 relative animate-fade-in">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center mb-4 shadow-lg">
+                <FaCheck className="text-white text-3xl" />
+              </div>
+              <h2 className="text-2xl font-bold text-green-700 mb-2">Booking Request Submitted!</h2>
+              <p className="text-gray-700 mb-4">Your appointment request has been submitted successfully. Here are your booking details:</p>
+              <div className="w-full text-left space-y-2 mb-4">
+                <div><span className="font-semibold text-gray-800">Date:</span> {successDetails.date}</div>
+                <div><span className="font-semibold text-gray-800">Time:</span> {successDetails.time}</div>
+                <div><span className="font-semibold text-gray-800">Therapist:</span> {successDetails.therapistName}</div>
+                <div><span className="font-semibold text-gray-800">Session Type:</span> {successDetails.sessionType}</div>
+                <div><span className="font-semibold text-gray-800">Payment Method:</span> {successDetails.paymentMethod}</div>
+                <div><span className="font-semibold text-gray-800">Reference No:</span> {successDetails.referenceNo}</div>
+                <div><span className="font-semibold text-gray-800">Amount:</span> {successDetails.amount}</div>
+                <div><span className="font-semibold text-gray-800">Voice Analysis:</span> {successDetails.voiceText}</div>
+              </div>
+              <p className="text-gray-600 text-sm mb-6">You'll be notified once your payment is approved and your therapist receives your voice analysis report.</p>
+              <button
+                className="bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold px-6 py-3 rounded-lg shadow-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 text-base"
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  navigate("/patient-dashboard");
+                }}
+              >
+                Go to Dashboard
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Error Modal */}
+      {showErrorModal && (
+        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 border border-gray-100 relative animate-fade-in flex flex-col items-center text-center">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-red-400 to-rose-500 flex items-center justify-center mb-4 shadow-lg">
+              <FaExclamationTriangle className="text-white text-3xl" />
+            </div>
+            <h2 className="text-2xl font-bold mb-2 text-red-700">Error</h2>
+            <p className="text-gray-700 mb-6">{errorModalMessage}</p>
+            <button
+              className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-semibold px-6 py-3 rounded-lg shadow-lg transition-all duration-200 text-base"
+              onClick={() => setShowErrorModal(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

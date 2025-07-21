@@ -438,6 +438,12 @@ router.get('/reports/therapist/:therapistUsername', [
   validate
 ], reportController.getTherapistReports);
 
+router.get('/reports/patient/:patientUsername', [
+  authenticate,
+  authorize('patient', 'admin'),
+  validate,
+], reportController.getPatientReports);
+
 router.post('/reports/send', [
   authenticate,
   sanitizeText('patientUsername', 50),
@@ -653,6 +659,13 @@ router.use((req, res, next) => {
   }
   checkMaintenanceMode(req, res, next);
 });
+
+router.put('/reports/:reportId/send-to-patient', [
+  authenticate,
+  authorize('therapist', 'admin'),
+  validateObjectId('reportId'),
+  validate
+], reportController.sendReportToPatient);
 
 
 module.exports = router;

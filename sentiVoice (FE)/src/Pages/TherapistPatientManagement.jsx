@@ -228,13 +228,19 @@ const TherapistPatientManagement = () => {
     setNoteError(validateNote(e.target.value));
   };
 
+  const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState('success'); // 'success' or 'error'
+  const [modalMessage, setModalMessage] = useState('');
+
   const updateSessionNote = async (appointmentId, note) => {
     setActionError("");
     setNoteError(validateNote(note));
     if (validateNote(note)) return;
     try {
       await api.put(`/api/appointments/${appointmentId}/session-note`, { note });
-      alert("Session note saved.");
+      setModalType('success');
+      setModalMessage('Session note saved.');
+      setShowModal(true);
       setAppointmentHistory((prev) =>
         prev.map((a) =>
           a._id === appointmentId
@@ -249,7 +255,9 @@ const TherapistPatientManagement = () => {
     } catch (err) {
       setActionError('Failed to save note: ' + (err.message || 'Unknown error'));
       console.error("Failed to save note:", err);
-      alert("Failed to save note.");
+      setModalType('error');
+      setModalMessage('Failed to save note.');
+      setShowModal(true);
     }
   };
   
@@ -257,12 +265,16 @@ const TherapistPatientManagement = () => {
     setActionError("");
     try {
       await api.delete(`/api/appointments/${appointmentId}/session-note/${noteIndex}`);
-      alert("Note deleted successfully.");
+      setModalType('success');
+      setModalMessage('Note deleted successfully.');
+      setShowModal(true);
       handleViewAppointmentHistory(selectedPatient, currentPage);
     } catch (err) {
       setActionError('Failed to delete note: ' + (err.message || 'Unknown error'));
       console.error("Error deleting note:", err);
-      alert("Failed to delete note.");
+      setModalType('error');
+      setModalMessage('Failed to delete note.');
+      setShowModal(true);
     }
   };
 
@@ -314,7 +326,9 @@ const TherapistPatientManagement = () => {
       setHistoryModalOpen(true);
     } catch (err) {
       console.error("Error fetching history:", err);
-      alert("Failed to fetch appointment history.");
+      setModalType('error');
+      setModalMessage('Failed to fetch appointment history.');
+      setShowModal(true);
     }
   };
 
@@ -340,7 +354,9 @@ const TherapistPatientManagement = () => {
         therapyPlan: updatedTherapyPlan 
       });
       
-      alert("Patient info updated.");
+      setModalType('success');
+      setModalMessage('Patient info updated.');
+      setShowModal(true);
       
       // Update the local state with the new patient data from the backend
       setPatients((prev) =>
@@ -363,7 +379,9 @@ const TherapistPatientManagement = () => {
       setManageProfileModalOpen(false);
     } catch (err) {
       console.error("Error updating patient info:", err);
-      alert("Failed to update patient info");
+      setModalType('error');
+      setModalMessage('Failed to update patient info');
+      setShowModal(true);
     }
   };
 
@@ -386,7 +404,9 @@ const TherapistPatientManagement = () => {
     } catch (err) {
       setActionError('Failed to export report: ' + (err.message || 'Unknown error'));
       console.error('Error generating report:', err);
-      alert('Failed to generate report. Please try again.');
+      setModalType('error');
+      setModalMessage('Failed to generate report. Please try again.');
+      setShowModal(true);
     }
   };
 
@@ -1160,6 +1180,29 @@ const TherapistPatientManagement = () => {
                   })}
                   placeholder="Enter patient diagnosis..."
                 />
+                {/* Modern Toggle for Diagnosis Visibility */}
+                <div className="flex items-center mt-3">
+                  <span className="text-xs sm:text-sm text-gray-600 mr-3">Show diagnosis to patient</span>
+                  <button
+                    type="button"
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${managePatient.info?.showDiagnosisToPatient !== false ? 'bg-blue-600' : 'bg-gray-300'}`}
+                    onClick={async () => {
+                      const newValue = !(managePatient.info?.showDiagnosisToPatient !== false);
+                      setManagePatient((prev) => ({
+                        ...prev,
+                        info: { ...prev.info, showDiagnosisToPatient: newValue }
+                      }));
+                      await api.put(`/api/therapist/manage-patient/${managePatient.username}`, {
+                        showDiagnosisToPatient: newValue
+                      });
+                    }}
+                    aria-pressed={managePatient.info?.showDiagnosisToPatient !== false}
+                  >
+                    <span
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${managePatient.info?.showDiagnosisToPatient !== false ? 'translate-x-5' : 'translate-x-0'}`}
+                    />
+                  </button>
+                </div>
               </div>
 
               {/* Primary Emotion */}
@@ -1308,6 +1351,29 @@ const TherapistPatientManagement = () => {
           </div>
         )}
       </Modal>
+
+      {/* Success/Error Modal */}
+      {showModal && (
+        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 border border-gray-100 relative animate-fade-in flex flex-col items-center text-center">
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 shadow-lg ${modalType === 'success' ? 'bg-gradient-to-br from-green-400 to-emerald-500' : 'bg-gradient-to-br from-red-400 to-rose-500'}`}> 
+              {modalType === 'success' ? (
+                <FaCheck className="text-white text-3xl" />
+              ) : (
+                <FaExclamationTriangle className="text-white text-3xl" />
+              )}
+            </div>
+            <h2 className={`text-2xl font-bold mb-2 ${modalType === 'success' ? 'text-green-700' : 'text-red-700'}`}>{modalType === 'success' ? 'Success' : 'Error'}</h2>
+            <p className="text-gray-700 mb-6">{modalMessage}</p>
+            <button
+              className={`bg-gradient-to-r ${modalType === 'success' ? 'from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700' : 'from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700'} text-white font-semibold px-6 py-3 rounded-lg shadow-lg transition-all duration-200 text-base`}
+              onClick={() => setShowModal(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

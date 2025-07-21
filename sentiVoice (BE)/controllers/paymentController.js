@@ -367,8 +367,26 @@ exports.updateStatus = async (req, res) => {
           payment.voiceRecording.emotionResult = emotion;
           await payment.save();
 
-          // Send report to therapist
+          // Update patient's primary emotion and timestamp in user profile
           const patient = await User.findOne({ username: payment.patientUsername });
+          if (patient) {
+            patient.info.pastSessionSummary = {
+              emotion: emotion,
+              note: patient.info.pastSessionSummary?.note || '',
+              timestamp: new Date()
+            };
+            await patient.save();
+            console.log(`✅ Updated patient ${payment.patientUsername} emotion to: ${emotion}`);
+            
+            // Notify patient about emotion update
+            await Notification.create({
+              recipientUsername: payment.patientUsername,
+              message: `Your voice analysis is complete! Your primary emotion has been updated to: ${emotion}. You can view this in your dashboard.`,
+              paymentId: payment._id,
+            });
+          }
+
+          // Send report to therapist
           const patientName = patient?.info?.firstName && patient?.info?.lastName
             ? `${patient.info.firstName} ${patient.info.lastName}`
             : payment.patientUsername;

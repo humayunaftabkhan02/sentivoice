@@ -332,16 +332,6 @@ export default function RefundRequests() {
                         {refundError[payment._id] && (
                           <div className="text-red-500 text-xs mt-1" aria-live="polite" role="alert">{refundError[payment._id]}</div>
                         )}
-                        <button
-                          onClick={() => handleDownload(payment)}
-                          className="flex items-center justify-center space-x-1 px-3 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                        >
-                          <FaHistory className="w-3 h-3 sm:w-4 sm:h-4" />
-                          <span>Download Receipt</span>
-                        </button>
-                        {downloadError[payment._id] && (
-                          <div className="text-red-500 text-xs mt-1" aria-live="polite" role="alert">{downloadError[payment._id]}</div>
-                        )}
                       </div>
                       
                       {/* Desktop Layout */}
@@ -396,16 +386,6 @@ export default function RefundRequests() {
                         </div>
                         {refundError[payment._id] && (
                           <div className="text-red-500 text-xs mt-1" aria-live="polite" role="alert">{refundError[payment._id]}</div>
-                        )}
-                        <button
-                          onClick={() => handleDownload(payment)}
-                          className="flex items-center space-x-1 px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                        >
-                          <FaHistory className="w-3 h-3" />
-                          <span>Download Receipt</span>
-                        </button>
-                        {downloadError[payment._id] && (
-                          <div className="text-red-500 text-xs mt-1" aria-live="polite" role="alert">{downloadError[payment._id]}</div>
                         )}
                       </div>
                     </div>

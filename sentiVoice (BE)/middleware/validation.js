@@ -1,6 +1,119 @@
 const { body, param, validationResult } = require('express-validator');
 
+// Helper function to validate phone numbers using libphonenumber-js
+const validatePhoneNumber = (phone, countryCode) => {
+  if (!phone || phone.trim() === '') {
+    return { isValid: false, error: "Phone number is required" };
+  }
 
+  try {
+    // Add + prefix if not present
+    const phoneWithPlus = phone.startsWith('+') ? phone : `+${phone}`;
+    
+    // Parse the phone number with the country code
+    const phoneNumber = require('libphonenumber-js').parsePhoneNumberFromString(phoneWithPlus, countryCode);
+    
+    if (!phoneNumber) {
+      return { isValid: false, error: "Invalid phone number format" };
+    }
+
+    // Check if the number is valid for the specific country
+    if (!phoneNumber.isValid()) {
+      return { isValid: false, error: "Phone number is not valid for the selected country" };
+    }
+
+    // Get the formatted international number
+    const formattedNumber = phoneNumber.format('E.164'); // +1234567890 format
+
+    // Additional validation for specific countries with known length requirements
+    const nationalNumber = phoneNumber.nationalNumber;
+    const cleanNumber = nationalNumber.replace(/\D/g, '');
+    
+    // Country-specific length validation
+    const countryLengths = {
+      'US': 10,
+      'CA': 10,
+      'GB': [10, 11],
+      'NO': 8,
+      'PK': 10,
+      'AU': 9,
+      'DE': [10, 11, 12],
+      'FR': 10,
+      'IN': 10,
+      'BR': [10, 11],
+      'IT': [9, 10],
+      'ES': 9,
+      'NL': 9,
+      'SE': 9,
+      'DK': 8,
+      'FI': 9,
+      'CH': 9,
+      'AT': [10, 11, 12, 13],
+      'BE': 9,
+      'IE': 9,
+      'NZ': 9,
+      'ZA': 9,
+      'MX': 10,
+      'AR': 10,
+      'CL': 9,
+      'CO': 10,
+      'PE': 9,
+      'VE': 10,
+      'EG': 10,
+      'SA': 9,
+      'AE': 9,
+      'QA': 8,
+      'KW': 8,
+      'BH': 8,
+      'OM': 8,
+      'JO': 9,
+      'LB': 8,
+      'SY': 9,
+      'IQ': 10,
+      'IR': 10,
+      'TR': 10,
+      'IL': 9,
+      'TH': 9,
+      'VN': 10,
+      'MY': 9,
+      'SG': 8,
+      'PH': 10,
+      'ID': 9,
+      'JP': 10,
+      'KR': 10,
+      'CN': 11,
+      'TW': 9,
+      'HK': 8,
+      'MO': 8
+    };
+
+    const expectedLength = countryLengths[countryCode?.toUpperCase()];
+    if (expectedLength && countryCode) {
+      const countryCodeStr = String(countryCode).toUpperCase();
+      if (Array.isArray(expectedLength)) {
+        if (!expectedLength.includes(cleanNumber.length)) {
+          return { 
+            isValid: false, 
+            error: `Phone number must be ${expectedLength.join(' or ')} digits for ${countryCodeStr}` 
+          };
+        }
+      } else {
+        if (cleanNumber.length !== expectedLength) {
+          return { 
+            isValid: false, 
+            error: `Phone number must be exactly ${expectedLength} digits for ${countryCodeStr}` 
+          };
+        }
+      }
+    }
+
+    return { isValid: true, error: null, formattedNumber: formattedNumber };
+
+  } catch (error) {
+    console.error('Phone validation error:', error);
+    return { isValid: false, error: "Invalid phone number format" };
+  }
+};
 
 // Validation middleware
 const validate = (req, res, next) => {
@@ -82,25 +195,6 @@ const validateProfileUpdate = [
     .matches(/^[A-Za-z]+(?:\s*[A-Za-z]+)*$/)
     .withMessage('Last name can contain letters and spaces only'),
   
-  body('email')
-    .optional()
-    .trim()
-    .toLowerCase()
-    .isEmail()
-    .withMessage('Invalid email format')
-    .custom((value) => {
-      const allowedDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 'live.com', 'sentivoice.com'];
-      const disposableDomains = ['mailinator.com', 'tempmail.com', '10minutemail.com', 'guerrillamail.com'];
-      console.log('validateProfileUpdate email:', value, 'allowed:', allowedDomains);
-      if (!allowedDomains.some(domain => value.endsWith(domain))) {
-        throw new Error('Email domain is not supported');
-      }
-      if (disposableDomains.some(domain => value.endsWith(domain))) {
-        throw new Error('Temporary email addresses are not allowed');
-      }
-      return true;
-    }),
-  
   body('dateOfBirth')
     .optional()
     .isISO8601()
@@ -122,16 +216,6 @@ const validateProfileUpdate = [
       return true;
     }),
   
-  body('height')
-    .optional()
-    .isFloat({ min: 50, max: 250 })
-    .withMessage('Height must be between 50-250 cm'),
-  
-  body('weight')
-    .optional()
-    .isFloat({ min: 20, max: 300 })
-    .withMessage('Weight must be between 20-300 kg'),
-  
   body('gender')
     .optional()
     .isIn(['Male', 'Female'])
@@ -141,94 +225,21 @@ const validateProfileUpdate = [
     .optional()
     .custom((value) => {
       if (value) {
-        const phoneRegex = /^\+?[1-9]\d{1,14}$/;
-        if (!phoneRegex.test(value.replace(/\s/g, ''))) {
-          throw new Error('Invalid phone number format');
+        const validation = validatePhoneNumber(value, 'US'); // Default to US for validation
+        if (!validation.isValid) {
+          throw new Error(validation.error);
         }
       }
       return true;
     }),
   
-  body('emergencyContact')
+  body('phone')
     .optional()
     .custom((value) => {
       if (value) {
-        try {
-          const contact = typeof value === 'string' ? JSON.parse(value) : value;
-          if (contact.name && contact.name.length > 50) {
-            throw new Error('Emergency contact name must be less than 50 characters');
-          }
-          if (contact.phone) {
-            const phoneRegex = /^\+?[1-9]\d{1,14}$/;
-            if (!phoneRegex.test(contact.phone.replace(/\s/g, ''))) {
-              throw new Error('Invalid emergency contact phone number');
-            }
-          }
-        } catch (e) {
-          throw new Error('Invalid emergency contact data');
-        }
-      }
-      return true;
-    }),
-  
-  body('allergies')
-    .optional()
-    .custom((value) => {
-      if (value) {
-        try {
-          const allergies = typeof value === 'string' ? JSON.parse(value) : value;
-          if (!Array.isArray(allergies)) {
-            throw new Error('Allergies must be an array');
-          }
-          for (const allergy of allergies) {
-            if (allergy.length < 2 || allergy.length > 100) {
-              throw new Error('Allergy must be 2-100 characters');
-            }
-          }
-        } catch (e) {
-          throw new Error('Invalid allergies data');
-        }
-      }
-      return true;
-    }),
-  
-  body('currentMedications')
-    .optional()
-    .custom((value) => {
-      if (value) {
-        try {
-          const medications = typeof value === 'string' ? JSON.parse(value) : value;
-          if (!Array.isArray(medications)) {
-            throw new Error('Current medications must be an array');
-          }
-          for (const medication of medications) {
-            if (medication.length < 2 || medication.length > 100) {
-              throw new Error('Medication must be 2-100 characters');
-            }
-          }
-        } catch (e) {
-          throw new Error('Invalid medications data');
-        }
-      }
-      return true;
-    }),
-  
-  body('medicalConditions')
-    .optional()
-    .custom((value) => {
-      if (value) {
-        try {
-          const conditions = typeof value === 'string' ? JSON.parse(value) : value;
-          if (!Array.isArray(conditions)) {
-            throw new Error('Medical conditions must be an array');
-          }
-          for (const condition of conditions) {
-            if (condition.length < 2 || condition.length > 100) {
-              throw new Error('Medical condition must be 2-100 characters');
-            }
-          }
-        } catch (e) {
-          throw new Error('Invalid medical conditions data');
+        const validation = validatePhoneNumber(value, 'US'); // Default to US for validation
+        if (!validation.isValid) {
+          throw new Error(validation.error);
         }
       }
       return true;

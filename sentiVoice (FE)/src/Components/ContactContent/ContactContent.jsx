@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaUser, FaPaperPlane, FaClock, FaShieldAlt, FaHeadset, FaMicrophone, FaBrain, FaHeart, FaCheckCircle, FaTimes } from 'react-icons/fa'
+import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaUser, FaPaperPlane, FaClock, FaShieldAlt, FaHeadset, FaMicrophone, FaBrain, FaHeart, FaCheckCircle, FaTimes, FaExclamationTriangle } from 'react-icons/fa'
 import { api } from "../../utils/api";
 
 const ContactContent = () => {
@@ -12,6 +12,8 @@ const ContactContent = () => {
     const [errors, setErrors] = useState({})
     const [submitted, setSubmitted] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [showErrorModal, setShowErrorModal] = useState(false);
+    const [errorModalMessage, setErrorModalMessage] = useState('');
 
     const MAX_MESSAGE_LENGTH = 500
 
@@ -134,7 +136,8 @@ const ContactContent = () => {
                 
             } catch (err) {
                 console.error('Contact form error:', err)
-                alert(err.message || 'Failed to send message. Please try again.')
+                setErrorModalMessage(err.message || 'Failed to send message. Please try again.');
+                setShowErrorModal(true);
             } finally {
                 setIsSubmitting(false)
             }
@@ -187,6 +190,25 @@ const ContactContent = () => {
                             }
                         }
                     `}</style>
+                </div>
+            )}
+
+            {/* Error Modal */}
+            {showErrorModal && (
+                <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}>
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 border border-gray-100 relative animate-fade-in flex flex-col items-center text-center">
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-red-400 to-rose-500 flex items-center justify-center mb-4 shadow-lg">
+                            <FaExclamationTriangle className="text-white text-3xl" />
+                        </div>
+                        <h2 className="text-2xl font-bold mb-2 text-red-700">Error</h2>
+                        <p className="text-gray-700 mb-6">{errorModalMessage}</p>
+                        <button
+                            className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-semibold px-6 py-3 rounded-lg shadow-lg transition-all duration-200 text-base"
+                            onClick={() => setShowErrorModal(false)}
+                        >
+                            Close
+                        </button>
+                    </div>
                 </div>
             )}
 

@@ -816,30 +816,28 @@ export default function PaymentHistory() {
                               </span>
                             </div>
                             
-                            <div className="col-span-2 flex items-center justify-center space-x-2">
+                            <div className="col-span-2 flex flex-col items-start gap-2 min-w-[120px]">
                               <a
                                 href={safeUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center space-x-1 px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                                className="w-full flex items-center space-x-1 px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                               >
                                 <FaEye className="w-3 h-3" />
                                 <span>Receipt</span>
                               </a>
-                              
                               <button
                                 onClick={() => handleViewDetails(payment)}
-                                className="flex items-center space-x-1 px-3 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors"
+                                className="w-full flex items-center space-x-1 px-3 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors"
                               >
                                 <FaEye className="w-3 h-3" />
                                 <span>Details</span>
                               </button>
-                              
                               {payment.status === "Declined" && (
                                 <button
                                   onClick={() => handleRefund(payment)}
                                   disabled={processing === payment._id}
-                                  className={`flex items-center space-x-1 px-3 py-1 text-xs font-medium text-white rounded-lg transition-colors ${
+                                  className={`w-full flex items-center space-x-1 px-3 py-1 text-xs font-medium text-white rounded-lg transition-colors ${
                                     processing === payment._id
                                       ? 'bg-gray-400 cursor-not-allowed'
                                       : 'bg-orange-600 hover:bg-orange-700'
@@ -854,7 +852,7 @@ export default function PaymentHistory() {
                                 </button>
                               )}
                               {refundError[payment._id] && (
-                                <div className="text-red-500 text-xs mt-1" aria-live="polite" role="alert">{refundError[payment._id]}</div>
+                                <div className="text-red-500 text-xs mt-1 w-full text-left" aria-live="polite" role="alert">{refundError[payment._id]}</div>
                               )}
                             </div>
                           </div>

@@ -206,6 +206,36 @@ const AppointmentHistory = () => {
     }
   };
 
+  // Add payment status color and icon helpers
+  const getPaymentStatusColor = (status) => {
+    switch (status) {
+      case 'completed':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'refunded':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'refund pending':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'declined':
+        return 'bg-red-100 text-red-800 border-red-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+  const getPaymentStatusIcon = (status) => {
+    switch (status) {
+      case 'completed':
+        return <FaCheckCircle className="text-green-600" />;
+      case 'refunded':
+        return <FaCheckCircle className="text-blue-600" />;
+      case 'refund pending':
+        return <FaHourglassHalf className="text-yellow-600" />;
+      case 'declined':
+        return <FaTimesCircle className="text-red-600" />;
+      default:
+        return <FaClock className="text-gray-600" />;
+    }
+  };
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -432,6 +462,13 @@ const AppointmentHistory = () => {
                           <span className="text-gray-600">Requested:</span>
                           <span className="text-gray-900">{appointment.createdAt ? formatDateTime(appointment.createdAt) : 'N/A'}</span>
                         </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Payment:</span>
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${getPaymentStatusColor(appointment.paymentStatus)}`}>
+                            {getPaymentStatusIcon(appointment.paymentStatus)}
+                            <span className="ml-1 capitalize">{appointment.paymentStatus || 'N/A'}</span>
+                          </span>
+                        </div>
                       </div>
                       
                       <div className="mt-3 pt-3 border-t border-gray-200">
@@ -481,6 +518,7 @@ const AppointmentHistory = () => {
                           Status {getSortIcon('status')}
                         </button>
                       </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Actions
                       </th>
@@ -525,6 +563,12 @@ const AppointmentHistory = () => {
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(appointment.status)}`}>
                             {getStatusIcon(appointment.status)}
                             <span className="ml-1">{appointment.status}</span>
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPaymentStatusColor(appointment.paymentStatus)}`}>
+                            {getPaymentStatusIcon(appointment.paymentStatus)}
+                            <span className="ml-1 capitalize">{appointment.paymentStatus || 'N/A'}</span>
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -675,6 +719,13 @@ const AppointmentHistory = () => {
                       <p className="text-sm text-gray-900">{selectedAppointment.notes}</p>
                     </div>
                   )}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Payment Status</label>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPaymentStatusColor(selectedAppointment.paymentStatus)}`}>
+                      {getPaymentStatusIcon(selectedAppointment.paymentStatus)}
+                      <span className="ml-1 capitalize">{selectedAppointment.paymentStatus || 'N/A'}</span>
+                    </span>
+                  </div>
                 </div>
                 <div className="mt-4 sm:mt-6 flex justify-end space-x-3">
                   <button

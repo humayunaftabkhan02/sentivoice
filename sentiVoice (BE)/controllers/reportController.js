@@ -155,6 +155,53 @@ exports.sendReport = async (req, res) => {
     }
 };
 
+// PUT /api/reports/:reportId/send-to-patient
+exports.sendReportToPatient = async (req, res) => {
+    try {
+        const { reportId } = req.params;
+        const report = await Report.findById(reportId);
+        if (!report) {
+            return res.status(404).json({ success: false, message: 'Report not found' });
+        }
+        report.sentToPatient = true;
+        report.sentToPatientAt = new Date();
+        await report.save();
+        res.json({ success: true, message: 'Report sent to patient', report });
+    } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+            console.error('Error sending report to patient:', error.message);
+        }
+        res.status(500).json({ success: false, message: 'Failed to send report to patient' });
+    }
+};
+
+// GET /api/reports/patient/:patientUsername
+exports.getPatientReports = async (req, res) => {
+    try {
+        const { patientUsername } = req.params;
+        const reports = await Report.find({ patientUsername }).sort({ sentToPatientAt: -1 });
+        // Populate therapist full name for each report
+        const User = require('../models/dataModel');
+        const reportsWithTherapistName = await Promise.all(reports.map(async (report) => {
+            let therapistFullName = report.therapistUsername;
+            if (report.therapistUsername) {
+                const therapist = await User.findOne({ username: report.therapistUsername });
+                if (therapist && therapist.info) {
+                    const { firstName, lastName } = therapist.info;
+                    if (firstName && lastName) therapistFullName = `${firstName} ${lastName}`;
+                    else if (firstName) therapistFullName = firstName;
+                }
+            }
+            return { ...report.toObject(), therapistFullName };
+        }));
+        res.json({ reports: reportsWithTherapistName });
+    } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+            console.error('Error fetching patient reports:', error.message);
+        }
+        res.status(500).json({ message: 'Failed to fetch patient reports' });
+    }
+};
 
 
 // GET /api/reports/download/:reportId

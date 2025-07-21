@@ -1,10 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaTimes, FaExclamationTriangle, FaCalendarTimes, FaCommentAlt } from "react-icons/fa";
 
-const CancelModal = ({ onClose, onConfirm, userRole = 'patient' }) => {
+const CancelModal = ({ onClose, onConfirm, userRole = 'patient', appointmentDate, appointmentTime, errorMessage }) => {
   const [reason, setReason] = useState("");
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const MAX_REASON_LENGTH = 50;
+  const [tooLate, setTooLate] = useState(false);
+
+  useEffect(() => {
+    if (userRole === 'patient' && appointmentDate && appointmentTime) {
+      const appointmentDateTime = new Date(`${appointmentDate} ${appointmentTime}`);
+      const now = new Date();
+      const diffMs = appointmentDateTime - now;
+      const diffHours = diffMs / (1000 * 60 * 60);
+      setTooLate(diffHours < 48);
+    }
+  }, [userRole, appointmentDate, appointmentTime]);
 
   const validateReason = (val) => {
     if (val.length > MAX_REASON_LENGTH) return `Reason cannot exceed ${MAX_REASON_LENGTH} characters`;
@@ -54,18 +66,32 @@ const CancelModal = ({ onClose, onConfirm, userRole = 'patient' }) => {
           {/* Warning Message */}
           <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4">
             <div className="flex items-start space-x-3">
-              <FaExclamationTriangle className="text-amber-500 mt-0.5 flex-shrink-0" />
-              <div>
-                <span className="text-sm font-medium text-amber-800">Important Notice</span>
-                <p className="text-sm text-amber-700 mt-1">
+              <div className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-400 shadow-md">
+                <FaExclamationTriangle className="text-white text-xl" />
+              </div>
+              <div className="flex-1">
+                <span className="text-base font-semibold text-amber-900">Important Notice</span>
+                <p className="text-sm text-amber-800 mt-1">
                   {userRole === 'therapist' 
                     ? 'Cancelling this appointment will notify your patient. Please provide a reason to help us improve our services.'
-                    : 'Cancelling this appointment will notify your therapist. Please provide a reason to help us improve our services.'
+                    : (
+                      <>
+                        Cancelling this appointment will notify your therapist. Please provide a reason to help us improve our services.
+                      </>
+                    )
                   }
                 </p>
               </div>
             </div>
           </div>
+
+          {/* Error Card */}
+          {errorMessage && (
+            <div className="flex items-center space-x-3 bg-red-50 border border-red-200 rounded-lg p-3 mb-2 animate-fade-in">
+              <FaExclamationTriangle className="text-red-400 text-lg flex-shrink-0" />
+              <div className="flex-1 text-sm text-red-700 font-medium">{errorMessage}</div>
+            </div>
+          )}
 
           {/* Reason Input */}
           <div className="space-y-3">
@@ -96,11 +122,30 @@ const CancelModal = ({ onClose, onConfirm, userRole = 'patient' }) => {
               Keep Appointment
             </button>
             <button
-              onClick={() => onConfirm(reason)}
-              className="flex-1 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
-              disabled={!!error}
+              onClick={async () => {
+                if (isSubmitting) return;
+                setIsSubmitting(true);
+                try {
+                  await onConfirm(reason);
+                } finally {
+                  setIsSubmitting(false);
+                }
+              }}
+              disabled={!!error || isSubmitting || (userRole === 'patient' && tooLate)}
+              className={`flex-1 font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 ${
+                isSubmitting || !!error || (userRole === 'patient' && tooLate)
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white'
+              }`}
             >
-              Cancel Appointment
+              {isSubmitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Cancelling...
+                </>
+              ) : (
+                'Cancel Appointment'
+              )}
             </button>
           </div>
         </div>

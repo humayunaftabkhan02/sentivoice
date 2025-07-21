@@ -39,7 +39,7 @@ exports.getTherapistPatients = async (req, res) => {
 exports.updatePatientInfo = async (req, res) => {
   try {
     const { patientUsername } = req.params;
-    const { diagnosis, pastSessionSummary, therapyPlan } = req.body;
+    const { diagnosis, pastSessionSummary, therapyPlan, showDiagnosisToPatient } = req.body;
 
     console.log('🔍 Debug - Received data:', {
       patientUsername,
@@ -74,16 +74,17 @@ exports.updatePatientInfo = async (req, res) => {
     console.log('🔍 Current patient info:', {
       hasInfo: !!patient.info,
       infoKeys: patient.info ? Object.keys(patient.info) : [],
-      emergencyContact: patient.info?.emergencyContact,
-      emergencyContactType: typeof patient.info?.emergencyContact,
       therapyPlan: patient.info?.therapyPlan
     });
 
-    // Update the patient's info - directly set fields instead of spreading
-    if (diagnosis !== undefined) {
-      patient.info.diagnosis = diagnosis;
-    }
-    
+    // Merge all fields from req.body into patient.info (except therapyPlan and pastSessionSummary)
+    Object.keys(req.body).forEach(key => {
+      if (key !== 'therapyPlan' && key !== 'pastSessionSummary') {
+        patient.info[key] = req.body[key];
+      }
+    });
+
+    // Existing logic for pastSessionSummary and therapyPlan
     if (pastSessionSummary) {
       patient.info.pastSessionSummary = {
         ...patient.info?.pastSessionSummary,
@@ -94,7 +95,6 @@ exports.updatePatientInfo = async (req, res) => {
           patient.info?.pastSessionSummary?.timestamp
       };
     }
-    
     if (therapyPlan) {
       // If therapyPlan is an array of objects with id, step, timestamp, update only changed/new steps
       const prevPlan = (patient.info.therapyPlan || []).reduce((acc, item) => {
@@ -130,23 +130,6 @@ exports.updatePatientInfo = async (req, res) => {
       patient.info.therapyPlan = [];
     }
 
-    // Explicitly handle emergencyContact to prevent validation errors
-    if (!patient.info.emergencyContact || patient.info.emergencyContact === undefined) {
-      patient.info.emergencyContact = {
-        name: '',
-        relationship: '',
-        phone: ''
-      };
-    }
-
-    console.log('🔍 EmergencyContact after processing:', {
-      emergencyContact: patient.info.emergencyContact,
-      emergencyContactType: typeof patient.info.emergencyContact,
-      hasName: !!patient.info.emergencyContact?.name,
-      hasRelationship: !!patient.info.emergencyContact?.relationship,
-      hasPhone: !!patient.info.emergencyContact?.phone
-    });
-
     // Ensure pastSessionSummary is properly structured
     if (!patient.info.pastSessionSummary) {
       patient.info.pastSessionSummary = {
@@ -154,17 +137,6 @@ exports.updatePatientInfo = async (req, res) => {
         note: '',
         timestamp: new Date()
       };
-    }
-
-    // Ensure arrays are properly initialized
-    if (!patient.info.allergies) {
-      patient.info.allergies = [];
-    }
-    if (!patient.info.currentMedications) {
-      patient.info.currentMedications = [];
-    }
-    if (!patient.info.medicalConditions) {
-      patient.info.medicalConditions = [];
     }
 
     // Remove undefined values to prevent validation errors
@@ -177,7 +149,6 @@ exports.updatePatientInfo = async (req, res) => {
     // Validate the structure before saving
     console.log('🔍 Final updatedInfo structure:', {
       keys: Object.keys(patient.info),
-      emergencyContact: patient.info.emergencyContact,
       pastSessionSummary: patient.info.pastSessionSummary,
       therapyPlan: patient.info.therapyPlan
     });
@@ -191,7 +162,6 @@ exports.updatePatientInfo = async (req, res) => {
       infoKeys: Object.keys(patient.info || {}),
       therapyPlan: patient.info?.therapyPlan,
       diagnosis: patient.info?.diagnosis,
-      emergencyContact: patient.info?.emergencyContact,
       pastSessionSummary: patient.info?.pastSessionSummary
     });
     

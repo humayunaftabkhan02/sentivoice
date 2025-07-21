@@ -1,6 +1,7 @@
 /* utils/generatePdfReport.js */
 const PDFDocument = require('pdfkit');
 const path        = require('path');
+const moment = require('moment-timezone');
 
 const sum = arr => arr.reduce((a, b) => a + b, 0);
 
@@ -23,7 +24,8 @@ async function generatePdfReport(analysisData, patientName) {
       const pageW = doc.page.width - doc.page.margins.left - doc.page.margins.right;
 
       /* -------------------------  HEADER  ------------------------- */
-      const now = new Date();
+      // Use Pakistan Standard Time (Asia/Karachi)
+      const now = moment().tz('Asia/Karachi');
 
       doc.fillColor('#1D3F80')
          .font('Unicode-Bold')
@@ -33,10 +35,10 @@ async function generatePdfReport(analysisData, patientName) {
       doc.fontSize(9)
          .font('Unicode')
          .fillColor('black')
-         .text(`Date: ${now.toLocaleDateString()}`, doc.page.margins.left, 70, {
+         .text(`Date: ${now.format('YYYY-MM-DD')}`, doc.page.margins.left, 70, {
            width: pageW, align: 'right'
          })
-         .text(`Time: ${now.toLocaleTimeString()}`, {
+         .text(`Time: ${now.format('hh:mm:ss A')} (PKT)`, {
            width: pageW, align: 'right'
          });
 

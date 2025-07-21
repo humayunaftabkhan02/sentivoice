@@ -24,7 +24,7 @@ import UserTopBar from '../Components/UserTopBar';
 import { api } from "../utils/api";
 import TherapistSidebar from "../Components/TherapistSidebar/TherapistSidebar.jsx";
 import PhoneInput from "react-phone-input-2";
-import { parsePhoneNumberFromString } from "libphonenumber-js";
+import { validatePhoneNumber, DEFAULT_COUNTRY } from "../utils/phoneValidation";
 
 const generateTimeOptions = () => {
   const times = [];
@@ -71,6 +71,7 @@ function normalizeDay(day) {
 const TherapistSettings = () => {
   const [username, setUsername] = useState("");
   const [fullName, setFullName] = useState("");
+  const [phoneCountry, setPhoneCountry] = useState(undefined);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -105,6 +106,9 @@ const TherapistSettings = () => {
   const [info, setInfo] = useState({});
   const [profileImagePreview, setProfileImagePreview] = useState(null);
   const [profilePicture, setProfilePicture] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState('success'); // 'success' or 'error'
+  const [modalMessage, setModalMessage] = useState('');
 
   // 1. Add validation state: errors, touched, isFormValid
   const [errors, setErrors] = useState({});
@@ -236,10 +240,10 @@ const TherapistSettings = () => {
         else if (!isValidName(value)) error = "Only letters and spaces allowed";
         break;
       case "phone":
-        if (!value) error = "Phone number is required";
-        else {
-          const phoneObj = parsePhoneNumberFromString(value.startsWith('+') ? value : `+${value}`);
-          if (!phoneObj || !phoneObj.isValid()) error = "Please enter a valid phone number";
+        // Only validate if we have a value and a country
+        if (value && phoneCountry) {
+          const phoneValidation = validatePhoneNumber(value, phoneCountry);
+          error = phoneValidation.error || "";
         }
         break;
       case "address":
@@ -442,12 +446,16 @@ const TherapistSettings = () => {
       
       setSuccess(true);
       setError(null);
-      alert('Profile updated successfully!');
+      setModalType('success');
+      setModalMessage('Profile updated successfully!');
+      setShowModal(true);
     } catch (err) {
       console.error('Profile update error:', err);
       setError("Failed to update profile");
       setSuccess(false);
-      alert('Failed to update profile. Please try again.');
+      setModalType('error');
+      setModalMessage('Failed to update profile. Please try again.');
+      setShowModal(true);
     }
     setSaving(false);
   };
@@ -647,17 +655,60 @@ const TherapistSettings = () => {
                       <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                         Phone Number <span className="text-red-600">*</span>
                       </label>
-                      <div className="w-full">
+                      <div className="relative">
                         <PhoneInput
-                          country={"us"}
+                          country={DEFAULT_COUNTRY}
                           value={formData.phone}
-                          onChange={(phone) => setFormData({ ...formData, phone: phone })}
-                          onBlur={() => { setTouched({ ...touched, phone: true }); setErrors(prev => ({ ...prev, phone: validateField('phone', formData.phone) })); }}
-                          inputClass="w-full h-10 px-3 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                          placeholder="Phone number"
-                        disabled={loading}
-                      />
-                    </div>
+                          onChange={(phone, country) => {
+                            setFormData({ ...formData, phone: phone });
+                            setPhoneCountry(country);
+                            
+                            // Mark field as touched when user starts typing
+                            if (!touched.phone) {
+                              setTouched(prev => ({ ...prev, phone: true }));
+                            }
+                            
+                            // Validate phone number
+                            if (phone) {
+                              const validation = validatePhoneNumber(phone, country);
+                              setErrors(prev => ({
+                                ...prev,
+                                phone: validation.error
+                              }));
+                            } else {
+                              setErrors(prev => ({
+                                ...prev,
+                                phone: null
+                              }));
+                            }
+                          }}
+                          onBlur={() => { 
+                            setTouched({ ...touched, phone: true }); 
+                          }}
+                          className="w-full"
+                          inputClass={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition-all duration-200 ${errors.phone ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300'}`}
+                          containerClass="w-full"
+                          buttonClass="border border-gray-300 rounded-l-lg bg-white h-[42px] w-[52px] flex items-center justify-center"
+                          dropdownClass="border border-gray-300 rounded-lg shadow-lg"
+                          enableSearch={true}
+                          searchPlaceholder="Search country..."
+                          placeholder="Enter your phone number"
+                          inputStyle={{
+                            height: '42px',
+                            fontSize: '14px',
+                            paddingLeft: '60px'
+                          }}
+                          buttonStyle={{
+                            height: '42px',
+                            width: '52px',
+                            border: '1px solid #d1d5db',
+                            borderRight: 'none',
+                            borderRadius: '8px 0 0 8px',
+                            backgroundColor: '#ffffff'
+                          }}
+                          disabled={loading}
+                        />
+                      </div>
                       {touched.phone && errors.phone && (
                         <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
                       )}
@@ -898,6 +949,28 @@ const TherapistSettings = () => {
           </div>
         )}
       </div>
+      {/* Success/Error Modal */}
+      {showModal && (
+        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 border border-gray-100 relative animate-fade-in flex flex-col items-center text-center">
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 shadow-lg ${modalType === 'success' ? 'bg-gradient-to-br from-green-400 to-emerald-500' : 'bg-gradient-to-br from-red-400 to-rose-500'}`}> 
+              {modalType === 'success' ? (
+                <FaCheck className="text-white text-3xl" />
+              ) : (
+                <FaExclamationTriangle className="text-white text-3xl" />
+              )}
+            </div>
+            <h2 className={`text-2xl font-bold mb-2 ${modalType === 'success' ? 'text-green-700' : 'text-red-700'}`}>{modalType === 'success' ? 'Success' : 'Error'}</h2>
+            <p className="text-gray-700 mb-6">{modalMessage}</p>
+            <button
+              className={`bg-gradient-to-r ${modalType === 'success' ? 'from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700' : 'from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700'} text-white font-semibold px-6 py-3 rounded-lg shadow-lg transition-all duration-200 text-base`}
+              onClick={() => setShowModal(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

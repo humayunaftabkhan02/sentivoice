@@ -62,35 +62,12 @@ const userSchema = new mongoose.Schema(
       age: Number,
       gender: String,
       diagnosis: String,
+      showDiagnosisToPatient: { type: Boolean, default: true },
       contact: String,
 
-      // Patient-specific comprehensive fields
+      // Patient-specific fields
       dateOfBirth: String,
-      bloodType: String,
-      height: Number, // in cm
-      weight: Number, // in kg
-      allergies: [String],
-      currentMedications: [String],
-      medicalConditions: [String],
-      previousTherapy: String,
-      therapyGoals: String,
-      
-      // Emergency Contact Information
-      emergencyContact: {
-        name: { type: String, default: '' },
-        relationship: { type: String, default: '' },
-        phone: { type: String, default: '' }
-      },
-
-      // Insurance & Payment Information
-      insuranceProvider: String,
-      insuranceNumber: String,
-      preferredPaymentMethod: String,
-
-      // Preferences
-      preferredLanguage: String,
-      communicationPreferences: String,
-      sessionPreferences: String,
+      address: String,
 
       // Therapist Professional Information
       specialization: String,
@@ -105,7 +82,6 @@ const userSchema = new mongoose.Schema(
 
       // Contact Information
       phone: String,
-      address: String,
 
       // Profile Picture
       profilePicture: String, // Base64 encoded image or file path

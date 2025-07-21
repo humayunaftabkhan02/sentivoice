@@ -3,6 +3,7 @@ const Appointment = require('../models/appointmentModel');
 const Notification = require('../models/notificationModel');
 const User = require('../models/dataModel');
 const Payment = require('../models/paymentModel');
+const moment = require('moment-timezone');
 
 /**
  * CREATE (schedule) a new appointment.
@@ -203,10 +204,24 @@ exports.cancelAppointment = async (req, res) => {
   try {
     const { id } = req.params;
     const { reason } = req.body;
+    const userRole = req.user?.role || req.body.userRole; // Try to get from auth, fallback to body
 
     const appointment = await Appointment.findById(id);
     if (!appointment) {
       return res.status(404).json({ error: 'Appointment not found' });
+    }
+
+    // Only enforce for patients
+    if (userRole === 'patient') {
+      // Combine date and time into a single Date object (assume server is in PKT)
+      const appointmentDateTime = moment.tz(`${appointment.date} ${appointment.time}`, 'YYYY-MM-DD hh:mm A', 'Asia/Karachi');
+      const now = moment.tz('Asia/Karachi');
+      const hoursDiff = appointmentDateTime.diff(now, 'hours');
+      if (hoursDiff < 48) {
+        return res.status(400).json({
+          error: 'Appointments can only be cancelled with at least 48 hours notice. Please contact support if you need urgent help.'
+        });
+      }
     }
 
     appointment.status = 'Canceled';
@@ -242,10 +257,10 @@ exports.cancelAppointment = async (req, res) => {
     });
 
     return res.status(200).json({ message: 'Appointment canceled' });
-      } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error canceling appointment:', error.message);
-      }
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error canceling appointment:', error.message);
+    }
     return res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -369,6 +384,33 @@ exports.getAppointmentsByUsername = async (req, res) => {
         }
       } catch {
         appointment.therapistFullName = `Dr. ${appointment.therapistUsername}`;
+      }
+
+      // Add paymentStatus field
+      if (appointment.paymentId) {
+        try {
+          const payment = await Payment.findById(appointment.paymentId);
+          let mappedStatus = 'N/A';
+          if (payment) {
+            switch (payment.status) {
+              case 'Approved':
+                mappedStatus = 'completed'; break;
+              case 'Refunded':
+                mappedStatus = 'refunded'; break;
+              case 'Refund Pending':
+                mappedStatus = 'refund pending'; break;
+              case 'Declined':
+                mappedStatus = 'declined'; break;
+              default:
+                mappedStatus = payment.status?.toLowerCase() || 'N/A';
+            }
+          }
+          appointment.paymentStatus = mappedStatus;
+        } catch {
+          appointment.paymentStatus = 'N/A';
+        }
+      } else {
+        appointment.paymentStatus = 'N/A';
       }
     }
 

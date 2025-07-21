@@ -1,22 +1,35 @@
 import React, { useState } from 'react';
+import { FaCheck, FaExclamationTriangle } from 'react-icons/fa';
 
 const SendReportModal = ({ patientUsername, therapistUsername, therapistFullName, onClose, onSend }) => {
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState('success'); // 'success' or 'error'
+  const [modalMessage, setModalMessage] = useState('');
 
   const handleSend = async () => {
     if (!message.trim()) {
-      alert('Please add a message for the therapist');
+      setModalType('error');
+      setModalMessage('Please add a message for the therapist');
+      setShowModal(true);
       return;
     }
 
     setSending(true);
     try {
       await onSend(message);
-      alert('✅ Report sent successfully to therapist!');
-      onClose();
+      setModalType('success');
+      setModalMessage('✅ Report sent successfully to therapist!');
+      setShowModal(true);
+      setTimeout(() => {
+        setShowModal(false);
+        onClose();
+      }, 1500);
     } catch (error) {
-      alert('❌ Failed to send report. Please try again.');
+      setModalType('error');
+      setModalMessage('❌ Failed to send report. Please try again.');
+      setShowModal(true);
       console.error('Error sending report:', error);
     } finally {
       setSending(false);
@@ -56,6 +69,28 @@ const SendReportModal = ({ patientUsername, therapistUsername, therapistFullName
           </button>
         </div>
       </div>
+      {/* Success/Error Modal */}
+      {showModal && (
+        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 border border-gray-100 relative animate-fade-in flex flex-col items-center text-center">
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 shadow-lg ${modalType === 'success' ? 'bg-gradient-to-br from-green-400 to-emerald-500' : 'bg-gradient-to-br from-red-400 to-rose-500'}`}> 
+              {modalType === 'success' ? (
+                <FaCheck className="text-white text-3xl" />
+              ) : (
+                <FaExclamationTriangle className="text-white text-3xl" />
+              )}
+            </div>
+            <h2 className={`text-2xl font-bold mb-2 ${modalType === 'success' ? 'text-green-700' : 'text-red-700'}`}>{modalType === 'success' ? 'Success' : 'Error'}</h2>
+            <p className="text-gray-700 mb-6">{modalMessage}</p>
+            <button
+              className={`bg-gradient-to-r ${modalType === 'success' ? 'from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700' : 'from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700'} text-white font-semibold px-6 py-3 rounded-lg shadow-lg transition-all duration-200 text-base`}
+              onClick={() => setShowModal(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

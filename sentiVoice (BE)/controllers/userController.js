@@ -577,12 +577,13 @@ exports.getUserInfo = async (req, res) => {
     });
     
     // Ensure email is included in the response
+    let info = { ...user.info, email: user.email };
+    if (info.diagnosis && info.showDiagnosisToPatient === false) {
+      info = { ...info, diagnosis: undefined };
+    }
     const userResponse = {
       ...user.toObject(),
-      info: {
-        ...user.info,
-        email: user.email // Include email in user info
-      }
+      info
     };
     
     return res.status(200).json({ user: userResponse });
@@ -624,6 +625,20 @@ exports.updateProfile = async (req, res) => {
       return value;
     };
 
+    // Helper: Calculate age from date of birth (YYYY-MM-DD or ISO string)
+    function calculateAge(dob) {
+      if (!dob) return undefined;
+      const birthDate = new Date(dob);
+      if (isNaN(birthDate)) return undefined;
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      return age;
+    }
+
     /* Update all profile fields */
     const fields = [
       'firstName', 'lastName', 'specialization', 'availableSlots',
@@ -632,10 +647,8 @@ exports.updateProfile = async (req, res) => {
       'experience', 'education', 'certifications', 'bio',
       'phone', 'address', 'languages',
       // New patient fields
-      'dateOfBirth', 'bloodType', 'height', 'weight',
-      'previousTherapy', 'therapyGoals', 'insuranceProvider',
-      'insuranceNumber', 'preferredPaymentMethod', 'preferredLanguage',
-      'communicationPreferences', 'sessionPreferences'
+      'dateOfBirth', 'address',
+      'showDiagnosisToPatient' // allow updating this flag
     ];
     
     fields.forEach(f => { 
@@ -645,34 +658,11 @@ exports.updateProfile = async (req, res) => {
       }
     });
 
-    /* Handle arrays for patient medical information */
-    if (data.allergies !== undefined) {
-      const parsedAllergies = parseFormDataField(data.allergies);
-      user.info.allergies = Array.isArray(parsedAllergies) ? parsedAllergies : [];
-      console.log('✅ Updated allergies:', user.info.allergies);
-    }
-
-    if (data.currentMedications !== undefined) {
-      const parsedMedications = parseFormDataField(data.currentMedications);
-      user.info.currentMedications = Array.isArray(parsedMedications) ? parsedMedications : [];
-      console.log('✅ Updated current medications:', user.info.currentMedications);
-    }
-
-    if (data.medicalConditions !== undefined) {
-      const parsedConditions = parseFormDataField(data.medicalConditions);
-      user.info.medicalConditions = Array.isArray(parsedConditions) ? parsedConditions : [];
-      console.log('✅ Updated medical conditions:', user.info.medicalConditions);
-    }
-
-    /* Handle emergency contact information */
-    if (data.emergencyContact !== undefined) {
-      const parsedEmergencyContact = parseFormDataField(data.emergencyContact);
-      user.info.emergencyContact = {
-        name: parsedEmergencyContact.name || '',
-        relationship: parsedEmergencyContact.relationship || '',
-        phone: parsedEmergencyContact.phone || ''
-      };
-      console.log('✅ Updated emergency contact:', user.info.emergencyContact);
+    // If dateOfBirth is set, recalculate and store age
+    if (user.info.dateOfBirth) {
+      const calculatedAge = calculateAge(user.info.dateOfBirth);
+      user.info.age = calculatedAge;
+      console.log('✅ Calculated age from dateOfBirth:', calculatedAge);
     }
 
     /* Handle profile picture upload */

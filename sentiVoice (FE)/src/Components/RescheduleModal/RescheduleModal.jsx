@@ -67,6 +67,7 @@ const RescheduleModal = ({ appointment, onClose, onConfirm, userRole = 'patient'
   };
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const therapist = appointment.therapistUsername;
 
@@ -159,6 +160,8 @@ const RescheduleModal = ({ appointment, onClose, onConfirm, userRole = 'patient'
   }
 
   const handleSubmit = async () => {
+    if (isSubmitting) return;
+    
     let newErrors = {};
     setApiError("");
     // Date validation
@@ -181,10 +184,14 @@ const RescheduleModal = ({ appointment, onClose, onConfirm, userRole = 'patient'
     }
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
+    
+    setIsSubmitting(true);
     try {
       await onConfirm(selectedDate, selectedTime, reason);
     } catch (err) {
       setApiError(err?.message || "Failed to reschedule. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -325,11 +332,24 @@ const RescheduleModal = ({ appointment, onClose, onConfirm, userRole = 'patient'
             </button>
             <button 
               onClick={handleSubmit} 
-              className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center space-x-2"
-              disabled={!!reasonError}
+              className={`flex-1 font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center space-x-2 ${
+                isSubmitting || !!reasonError
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white'
+              }`}
+              disabled={!!reasonError || isSubmitting}
             >
+              {isSubmitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  <span>Submitting...</span>
+                </>
+              ) : (
+                <>
               <FaCheck className="text-sm" />
               <span>Confirm Reschedule</span>
+                </>
+              )}
             </button>
           </div>
           {apiError && (

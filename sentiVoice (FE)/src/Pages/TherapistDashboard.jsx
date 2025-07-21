@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FaUser, FaCalendarAlt, FaClock, FaUserFriends, FaCheckCircle, FaTimesCircle, FaEdit, FaTrash, FaChevronLeft, FaChevronRight, FaSearch } from "react-icons/fa";
+import { FaUser, FaCalendarAlt, FaClock, FaUserFriends, FaCheckCircle, FaTimesCircle, FaEdit, FaTrash, FaChevronLeft, FaChevronRight, FaSearch, FaCheck, FaExclamationTriangle } from "react-icons/fa";
 import NotificationBell from '../Components/NotificationBell/NotificationBell.jsx'
 import { useNavigate } from "react-router-dom";
 import RescheduleModal from "../Components/RescheduleModal/RescheduleModal.jsx";
@@ -121,12 +121,16 @@ const TherapistDashboard = () => {
     if (!window.confirm('Are you sure you want to accept this appointment?')) return;
     try {
       await api.put(`/api/appointments/${appointmentId}/accept`);
-      alert("Appointment accepted.");
+      setModalType('success');
+      setModalMessage('Appointment accepted.');
+      setShowModal(true);
       fetchAppointments(username);
     } catch (err) {
       setActionError(prev => ({ ...prev, [appointmentId]: 'Failed to accept appointment: ' + (err.message || 'Unknown error') }));
       console.error("Failed to accept appointment:", err);
-      alert("Failed to accept appointment.");
+      setModalType('error');
+      setModalMessage('Failed to accept appointment.');
+      setShowModal(true);
     }
   };
 
@@ -136,12 +140,16 @@ const TherapistDashboard = () => {
     if (!window.confirm('Are you sure you want to reject this appointment?')) return;
     try {
       await api.put(`/api/appointments/${appointmentId}/reject`, { reason: "Rejected by therapist" });
-      alert("Appointment rejected.");
+      setModalType('success');
+      setModalMessage('Appointment rejected.');
+      setShowModal(true);
       fetchAppointments(username);
     } catch (err) {
       setActionError(prev => ({ ...prev, [appointmentId]: 'Failed to reject appointment: ' + (err.message || 'Unknown error') }));
       console.error("Failed to reject appointment:", err);
-      alert("Failed to reject appointment.");
+      setModalType('error');
+      setModalMessage('Failed to reject appointment.');
+      setShowModal(true);
     }
   };
 
@@ -151,12 +159,16 @@ const TherapistDashboard = () => {
     if (!window.confirm('Are you sure you want to cancel this appointment?')) return;
     try {
       await api.put(`/api/appointments/${appointmentId}/cancel`, { reason });
-      alert("Appointment canceled.");
+      setModalType('success');
+      setModalMessage('Appointment canceled.');
+      setShowModal(true);
       fetchAppointments(username);
     } catch (err) {
       setActionError(prev => ({ ...prev, [appointmentId]: 'Failed to cancel appointment: ' + (err.message || 'Unknown error') }));
       console.error("Failed to cancel appointment:", err);
-      alert("Failed to cancel.");
+      setModalType('error');
+      setModalMessage('Failed to cancel appointment.');
+      setShowModal(true);
     }
     setShowCancelModal(false);
     setCancelAppId(null);
@@ -169,7 +181,9 @@ const TherapistDashboard = () => {
       setReschedulingApp(appointment); // show modal
     } catch (err) {
       console.error("Error fetching availability:", err);
-      alert("❌ Failed to load availability.");
+      setModalType('error');
+      setModalMessage('Failed to load availability.');
+      setShowModal(true);
     }
   };
 
@@ -181,11 +195,15 @@ const TherapistDashboard = () => {
         reason,
         reschedulerRole: "therapist",
       });
-      alert("✅ Appointment rescheduled.");
+      setModalType('success');
+      setModalMessage('Appointment rescheduled.');
+      setShowModal(true);
       fetchAppointments(username);
     } catch (err) {
       console.error("Reschedule error:", err);
-      alert("❌ Reschedule failed.");
+      setModalType('error');
+      setModalMessage('Reschedule failed.');
+      setShowModal(true);
     }
     setReschedulingApp(null);
   };  
@@ -293,6 +311,10 @@ const TherapistDashboard = () => {
     if (hour >= 17 && hour < 21) return "Good Evening";
     return "Good Night";
   };
+
+  const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState('success'); // 'success' or 'error'
+  const [modalMessage, setModalMessage] = useState('');
 
   return (
     <div className="flex min-h-screen bg-[#EBEDE9] overflow-x-hidden">
@@ -654,6 +676,28 @@ const TherapistDashboard = () => {
           onConfirm={(reason) => cancelAppointment(cancelAppId, reason)}
           userRole="therapist"
         />
+      )}
+      {/* Success/Error Modal */}
+      {showModal && (
+        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 border border-gray-100 relative animate-fade-in flex flex-col items-center text-center">
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 shadow-lg ${modalType === 'success' ? 'bg-gradient-to-br from-green-400 to-emerald-500' : 'bg-gradient-to-br from-red-400 to-rose-500'}`}> 
+              {modalType === 'success' ? (
+                <FaCheck className="text-white text-3xl" />
+              ) : (
+                <FaExclamationTriangle className="text-white text-3xl" />
+              )}
+            </div>
+            <h2 className={`text-2xl font-bold mb-2 ${modalType === 'success' ? 'text-green-700' : 'text-red-700'}`}>{modalType === 'success' ? 'Success' : 'Error'}</h2>
+            <p className="text-gray-700 mb-6">{modalMessage}</p>
+            <button
+              className={`bg-gradient-to-r ${modalType === 'success' ? 'from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700' : 'from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700'} text-white font-semibold px-6 py-3 rounded-lg shadow-lg transition-all duration-200 text-base`}
+              onClick={() => setShowModal(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
