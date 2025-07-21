@@ -1114,6 +1114,7 @@ useEffect(() => {
                       <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2" htmlFor="file-upload">
                         <FaUpload className="inline mr-2 text-blue-600" />
                         Payment Screenshot <span className="text-red-500" aria-hidden="true">*</span>
+                        <span className="ml-2 text-gray-400 text-xs">(Max file size: 1MB)</span>
                       </label>
                       <div className={`border-2 border-dashed rounded-lg p-4 sm:p-6 text-center transition-colors ${errors.slipFile ? 'border-red-500' : 'border-gray-300 hover:border-blue-400'}`}>
                         <input
@@ -1155,59 +1156,10 @@ useEffect(() => {
                         <p id="slipFile-error" className="text-red-500 text-xs sm:text-sm mt-1" role="alert">{errors.slipFile}</p>
                       )}
                       
-                      {/* Upload Progress */}
-                      {uploadProgress > 0 && (
-                        <div className="mt-4">
-                          <div className="flex justify-between text-xs sm:text-sm text-gray-600 mb-1">
-                            <span>
-                              {uploadProgress === 100 ? (
-                                <span className="text-green-600 font-medium">Upload Complete</span>
-                              ) : (
-                                "Uploading..."
-                              )}
-                            </span>
-                            <span>{uploadProgress}%</span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div
-                              className={`h-2 rounded-full transition-all duration-300 ${
-                                uploadProgress === 100 ? 'bg-green-500' : 'bg-blue-600'
-                              }`}
-                              style={{ width: `${uploadProgress}%` }}
-                            ></div>
-                          </div>
-                          {uploadProgress === 100 && (
-                            <div className="mt-2 text-xs sm:text-sm text-green-600 flex items-center">
-                              <FaCheck className="mr-1" />
-                              File uploaded successfully
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* File Preview */}
-                      {slipFile && (
-                        <div className="mt-4 relative inline-block">
-                          <img
-                            src={URL.createObjectURL(slipFile)}
-                            alt="Payment Receipt"
-                            className="max-w-[150px] sm:max-w-[200px] rounded-lg border border-gray-300 shadow-lg"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSlipFile(null);
-                              setUploadProgress(0);
-                              const fileInput = document.getElementById('file-upload');
-                              if (fileInput) {
-                                fileInput.value = '';
-                              }
-                            }}
-                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
-                            title="Remove file"
-                          >
-                            <FaTimes className="text-xs" />
-                          </button>
+                      {slipFile && !slipFileSizeError && (
+                        <div className="mt-2 text-xs sm:text-sm text-green-600 flex items-center">
+                          <FaCheck className="mr-1" />
+                          File selected: {slipFile.name}
                         </div>
                       )}
                     </div>
