@@ -745,17 +745,17 @@ useEffect(() => {
                         }}
                         onBlur={handlePhoneBlur}
                         disabled={hasStoredPhone}
-                        inputClass="w-full px-3 py-1.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition-all duration-200"
-                        inputStyle={{ height: '36px', fontSize: '14px', paddingLeft: '48px' }}
+                        inputClass="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+                        inputStyle={{ backgroundColor: '#f9fafb', borderColor: '#e5e7eb' }}
                         containerClass="w-full"
-                        buttonClass="border border-gray-300 rounded-l-lg bg-white h-[36px] w-[40px] flex items-center justify-center"
+                        buttonClass="border border-gray-300 rounded-l-lg bg-white h-[44px] w-[52px] flex items-center justify-center"
                         dropdownClass="border border-gray-300 rounded-lg shadow-lg"
                         enableSearch={true}
                         searchPlaceholder="Search country..."
                         placeholder="Enter your phone number"
                         buttonStyle={{
-                          height: '36px',
-                          width: '40px',
+                          height: '44px',
+                          width: '52px',
                           border: '1px solid #d1d5db',
                           borderRight: 'none',
                           borderRadius: '8px 0 0 8px',
