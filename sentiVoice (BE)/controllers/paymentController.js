@@ -172,14 +172,26 @@ exports.listPending = async (_req, res) => {
 };
 
 // GET  /api/admin/payment-history   – all Approved or Declined
-exports.listHistory = async (_req, res) => {
+exports.listHistory = async (req, res) => {
   try {
     console.log('Fetching payment history...');
+    // Pagination parameters
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 50;
+    const skip = (page - 1) * limit;
+
+    // Get total count for pagination
+    const total = await Payment.countDocuments({
+      status: { $in: ["Pending", "Approved", "Declined", "Refund Pending", "Refunded"] }
+    });
+
+    // Paginated query
     const payments = await Payment.find({
       status: { $in: ["Pending", "Approved", "Declined", "Refund Pending", "Refunded"] }
     })
     .sort({ updatedAt: -1 })
-    .allowDiskUse(true) // Allow disk use for large sorts
+    .skip(skip)
+    .limit(limit)
     .lean();
 
     // attach patient & therapist full names and booking status
@@ -213,7 +225,13 @@ exports.listHistory = async (_req, res) => {
       }
     }
 
-    res.json(payments);
+    res.json({
+      payments,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit)
+    });
   } catch (err) {
     console.error('Error in listHistory:', err);
     res.status(500).json({ error: 'Failed to fetch payment history', details: err.message });

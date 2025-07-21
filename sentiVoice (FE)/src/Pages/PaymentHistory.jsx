@@ -63,12 +63,14 @@ export default function PaymentHistory() {
 
   const apiOrigin = import.meta.env.VITE_API_ORIGIN || import.meta.env.VITE_API_URL || "http://localhost:3000";
 
-    const fetchHistory = async () => {
+    const fetchHistory = async (page = currentPage, limit = pageSize) => {
       try {
         setLoading(true);
       setError(null);
-        const data = await api.get("/api/admin/payment-history");
-      setPayments(Array.isArray(data) ? data : []);
+        const data = await api.get(`/api/admin/payment-history?page=${page}&limit=${limit}`);
+      setPayments(Array.isArray(data.payments) ? data.payments : []);
+      setTotalPages(data.totalPages || 1);
+      setCurrentPage(data.page || 1);
       } catch (err) {
       setError("Failed to fetch payment history");
         console.error("Failed to fetch payment history:", err);
@@ -333,19 +335,29 @@ export default function PaymentHistory() {
     }
   });
 
-  // Pagination logic
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const paginatedPayments = sortedPayments.slice(startIndex, endIndex);
+  // Remove client-side slicing and use server-side pagination
+  // Remove: const startIndex = (currentPage - 1) * pageSize;
+  // Remove: const endIndex = startIndex + pageSize;
+  // Remove: const paginatedPayments = sortedPayments.slice(startIndex, endIndex);
+
+  // Update handlePageChange and handlePageSizeChange to fetch new data
+  const handlePageChange = (page) => {
+    fetchHistory(page, pageSize);
+  };
+
+  const handlePageSizeChange = (newPageSize) => {
+    setPageSize(newPageSize);
+    fetchHistory(1, newPageSize); // Reset to first page
+  };
 
   // Reset to first page when search term or filter changes
   useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, filterStatus]);
+    fetchHistory();
+  }, [searchTerm, filterStatus, pageSize]);
 
   // Update total pages when sorted payments change
   useEffect(() => {
-    setTotalPages(Math.ceil(sortedPayments.length / pageSize));
+    // setTotalPages(Math.ceil(sortedPayments.length / pageSize)); // This line is no longer needed
   }, [sortedPayments, pageSize]);
 
   const handleSort = (field) => {
@@ -360,15 +372,6 @@ export default function PaymentHistory() {
   const getSortIcon = (field) => {
     if (sortBy !== field) return <FaSort className="text-gray-400" />;
     return sortOrder === 'asc' ? <FaSortUp className="text-blue-600" /> : <FaSortDown className="text-blue-600" />;
-  };
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
-
-  const handlePageSizeChange = (newPageSize) => {
-    setPageSize(newPageSize);
-    setCurrentPage(1); // Reset to first page
   };
 
   useEffect(() => {
@@ -514,7 +517,7 @@ export default function PaymentHistory() {
           <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between space-y-4 lg:space-y-0">
               <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
-                Payment Records ({sortedPayments.length})
+                Payment Records ({payments.length})
               </h2>
               
               <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4">
@@ -564,7 +567,7 @@ export default function PaymentHistory() {
                   <p className="text-gray-600">Loading payment history...</p>
                 </div>
               </div>
-            ) : sortedPayments.length === 0 ? (
+            ) : payments.length === 0 ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FaHistory className="text-3xl text-gray-400" />
@@ -594,7 +597,7 @@ export default function PaymentHistory() {
               <>
                 {/* Mobile Payment Cards */}
                 <div className="lg:hidden space-y-4">
-                  {paginatedPayments.map((payment) => {
+                  {payments.map((payment) => {
                     const safeUrl = `${apiOrigin}/${payment.receiptUrl.replace(/\\/g, "/")}`;
                     return (
                       <div key={payment._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
@@ -751,7 +754,7 @@ export default function PaymentHistory() {
                       <div className="col-span-2 text-center">Actions</div>
                     </div>
 
-                    {paginatedPayments.map((payment) => {
+                    {payments.map((payment) => {
                       const safeUrl = `${apiOrigin}/${payment.receiptUrl.replace(/\\/g, "/")}`;
                       return (
                         <div key={payment._id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
@@ -867,7 +870,7 @@ export default function PaymentHistory() {
                   <div className="mt-8 flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
                     <div className="flex items-center space-x-4">
                       <span className="text-sm text-gray-700">
-                        Showing {startIndex + 1} to {Math.min(endIndex, sortedPayments.length)} of {sortedPayments.length} payments
+                        Showing {currentPage * pageSize - pageSize + 1} to {Math.min(currentPage * pageSize, payments.length)} of {payments.length} payments
                       </span>
                       <select
                         value={pageSize}
