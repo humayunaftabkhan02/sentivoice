@@ -578,6 +578,30 @@ exports.getUserInfo = async (req, res) => {
     
     // Ensure email is included in the response
     let info = { ...user.info, email: user.email };
+
+    // Ensure pastSessionSummary exists and has defaults
+    if (!info.pastSessionSummary) {
+      info.pastSessionSummary = {
+        emotion: 'neutral',
+        note: '',
+        timestamp: null
+      };
+    }
+    if (!info.pastSessionSummary.emotion) {
+      info.pastSessionSummary.emotion = 'neutral';
+    }
+    if (!info.pastSessionSummary.note) {
+      info.pastSessionSummary.note = '';
+    }
+    if (!('timestamp' in info.pastSessionSummary)) {
+      info.pastSessionSummary.timestamp = null;
+    }
+
+    // Ensure diagnosis exists
+    if (!('diagnosis' in info) || !info.diagnosis) {
+      info.diagnosis = '';
+    }
+
     if (info.diagnosis && info.showDiagnosisToPatient === false) {
       info = { ...info, diagnosis: undefined };
     }

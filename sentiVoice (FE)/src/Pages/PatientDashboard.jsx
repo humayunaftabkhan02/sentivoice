@@ -433,53 +433,39 @@ const P_Dashboard = () => {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg sm:text-xl font-bold text-gray-800 flex items-center">
                   <FaNotesMedical className="mr-2 text-blue-600" />
-                  Last Session Summary
+                  Summary
                 </h2>
               </div>
-              
-              {lastSessionDate && user?.info?.pastSessionSummary?.emotion ? (
-                <div className="space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
-                    <div className="text-3xl sm:text-4xl">
-                      {emotionEmojiMap[user.info.pastSessionSummary.emotion] || "😐"}
-                    </div>
-                    <div>
-                      <p className="text-base sm:text-lg font-semibold text-gray-800">
-                        Primary Emotion: <span className="text-blue-600">
-                          {user.info.pastSessionSummary.emotion}
-                        </span>
-                      </p>
-                      <p className="text-xs sm:text-sm text-gray-600">
-                        Detected on {formatDate(user.info.pastSessionSummary.timestamp)}
-                      </p>
-                    </div>
+              {/* Always show the summary, with fallback values */}
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+                  <div className="text-3xl sm:text-4xl">
+                    {emotionEmojiMap[(user?.info?.pastSessionSummary?.emotion || 'Neutral').charAt(0).toUpperCase() + (user?.info?.pastSessionSummary?.emotion || 'Neutral').slice(1).toLowerCase()] || "😐"}
                   </div>
-                  
-                  {user.info.pastSessionSummary.note && (
-                    <div className="relative bg-blue-50 border-l-4 border-blue-400 rounded-lg p-4 mb-2 shadow-sm">
-                      <div className="flex items-center mb-2">
-                        <FaQuoteLeft className="text-blue-400 mr-2 text-lg" />
-                        <span className="font-semibold text-blue-700 text-xs sm:text-sm">Therapist's Note</span>
-                      </div>
-                      <p className="text-base sm:text-lg text-gray-800 italic pl-2">{user.info.pastSessionSummary.note}</p>
-                    </div>
-                  )}
-
-                  {/* Diagnosis badge (modern style) */}
-                  {user.info.diagnosis && (
-                    <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs sm:text-sm font-semibold mt-2">
-                      <FaNotesMedical className="mr-1 text-blue-500" />
-                      Diagnosis: <span className="ml-1">{user.info.diagnosis}</span>
-                    </div>
-                  )}
+                  <div>
+                    <p className="text-base sm:text-lg font-semibold text-gray-800">
+                      Primary Emotion: <span className="text-blue-600">
+                        {(user?.info?.pastSessionSummary?.emotion && user.info.pastSessionSummary.emotion.trim() !== "") ? user.info.pastSessionSummary.emotion : "Neutral"}
+                      </span>
+                    </p>
+                    <p className="text-xs sm:text-sm text-gray-600">
+                      Detected on {user?.info?.pastSessionSummary?.timestamp ? formatDate(user.info.pastSessionSummary.timestamp) : "N/A"}
+                    </p>
+                  </div>
                 </div>
-              ) : (
-                <div className="text-center py-6 sm:py-8">
-                  <FaNotesMedical className="text-3xl sm:text-4xl text-gray-300 mx-auto mb-4" />
-                  <p className="text-sm sm:text-base text-gray-500">No session summary available</p>
-                  <p className="text-xs sm:text-sm text-gray-400">Your therapist will add notes after your next session</p>
+                <div className="relative bg-blue-50 border-l-4 border-blue-400 rounded-lg p-4 mb-2 shadow-sm">
+                  <div className="flex items-center mb-2">
+                    <FaQuoteLeft className="text-blue-400 mr-2 text-lg" />
+                    <span className="font-semibold text-blue-700 text-xs sm:text-sm">Therapist's Note</span>
+                  </div>
+                  <p className="text-base sm:text-lg text-gray-800 italic pl-2">{(user?.info?.pastSessionSummary?.note && user.info.pastSessionSummary.note.trim() !== "") ? user.info.pastSessionSummary.note : "No therapist notes"}</p>
                 </div>
-              )}
+                {/* Diagnosis badge (modern style) */}
+                <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs sm:text-sm font-semibold mt-2">
+                  <FaNotesMedical className="mr-1 text-blue-500" />
+                  Diagnosis: <span className="ml-1">{(user?.info?.diagnosis && user.info.diagnosis.trim() !== "") ? user.info.diagnosis : "No diagnosis"}</span>
+                </div>
+              </div>
             </div>
 
             {/* Therapy Plan Card */}
