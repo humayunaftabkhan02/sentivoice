@@ -3,6 +3,9 @@ SentiVoice is a Final Year Project developed for the BSCS program at Capital Uni
 The system allows therapists to manage patients, appointments, and session notes, while patients can book sessions, track therapy plans, and communicate securely. It uses technologies such as React.js, Node.js, MongoDB, TensorFlow.js, and Web Speech API, along with encryption and real-time communication features to ensure a secure and efficient platform.
 
 Project Team:
+
 Humayun Aftab
+
 Zeeshan Nazeer
+
 Hamza Roohani
